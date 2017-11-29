@@ -1,5 +1,7 @@
 package org.theorangealliance.datasync.util;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import javafx.application.Platform;
 
 import java.io.BufferedReader;
@@ -75,6 +77,10 @@ public class TOAEndpoint implements Runnable {
                 this.completeListener.onComplete(e.getLocalizedMessage(), false);
             }
         });
+    }
+
+    public Gson getGson() {
+        return new GsonBuilder().serializeNulls().create();
     }
 
     public interface TOACompleteListener {

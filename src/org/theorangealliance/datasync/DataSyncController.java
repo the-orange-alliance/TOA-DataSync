@@ -2,12 +2,12 @@ package org.theorangealliance.datasync;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
+import org.theorangealliance.datasync.models.Team;
+import org.theorangealliance.datasync.tabs.TeamsController;
+import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 
 import java.io.File;
@@ -20,29 +20,46 @@ import java.util.ResourceBundle;
 public class DataSyncController implements Initializable {
 
     /* This is the left-side of the setup tab. */
-    @FXML Tab tabSetup;
-    @FXML TextField txtSetupKey;
-    @FXML TextField txtSetupID;
-    @FXML Button btnSetupTest;
-    @FXML Label labelSetupTest;
-    @FXML Label txtConsole;
+    @FXML public Tab tabSetup;
+    @FXML public TextField txtSetupKey;
+    @FXML public TextField txtSetupID;
+    @FXML public Button btnSetupTest;
+    @FXML public Label labelSetupTest;
+    @FXML public Label txtConsole;
 
     /* This is the right-side of the setup tab. */
-    @FXML TextField txtSetupDir;
-    @FXML Button btnSetupSelect;
-    @FXML Button btnSetupTestDir;
-    @FXML Label labelSetupDir;
+    @FXML public TextField txtSetupDir;
+    @FXML public Button btnSetupSelect;
+    @FXML public Button btnSetupTestDir;
+    @FXML public Label labelSetupDir;
 
-    @FXML Tab tabTeams;
+    /* This is for our teams tab */
+    @FXML public Tab tabTeams;
+    @FXML public TableView<Team> tableTeams;
+    @FXML public TableColumn colTeamsTeam;
+    @FXML public TableColumn colTeamsRegion;
+    @FXML public TableColumn colTeamsLeague;
+    @FXML public TableColumn colTeamsShort;
+    @FXML public TableColumn colTeamsLong;
+    @FXML public TableColumn colTeamsLocation;
+
+    /* Instances of our tab controllers */
+    private TeamsController teamsController;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        this.teamsController = new TeamsController(this);
+
         labelSetupTest.setTextFill(Color.RED);
         labelSetupDir.setTextFill(Color.RED);
 
         txtSetupDir.setEditable(false);
         btnSetupSelect.setDisable(true);
         btnSetupTestDir.setDisable(true);
+
+        txtSetupKey.setText("TESTING_123_R3L1C");
+        txtSetupID.setText("1718-FIM-TST");
+        txtSetupDir.setText("C:\\Users\\Kyle Flynn\\Desktop\\FTC Stuff\\Scoring System");
     }
 
     @FXML
@@ -53,6 +70,10 @@ public class DataSyncController implements Initializable {
             testConnection.setCredentials(txtSetupKey.getText(), txtSetupID.getText());
             testConnection.execute((response, success) -> {
                 if (success) {
+                    // Setup our local config
+                    Config.EVENT_API_KEY = txtSetupKey.getText();
+                    Config.EVENT_ID = txtSetupID.getText();
+
                     sendInfo("Connection to TOA was successful. Proceed to Scoring System setup.");
 
                     labelSetupTest.setText("Connection Successful");
@@ -90,8 +111,10 @@ public class DataSyncController implements Initializable {
     public void testDirectory() {
         if (txtSetupDir.getText().length() > 0) {
             String root = txtSetupDir.getText();
-            File divionsFile = new File(root + "\\divisions.txt");
-            if (divionsFile.exists()) {
+            File divisionsFile = new File(root + "\\divisions.txt");
+            if (divisionsFile.exists()) {
+                Config.SCORING_DIR = root;
+
                 labelSetupDir.setTextFill(Color.GREEN);
                 labelSetupDir.setText("Valid Directory.");
 
@@ -106,19 +129,24 @@ public class DataSyncController implements Initializable {
         }
     }
 
-    private void sendInfo(String message) {
+    public void sendInfo(String message) {
         txtConsole.setTextFill(Color.GREEN);
         txtConsole.setText(message);
     }
 
-    private void sendWarning(String message) {
+    public void sendWarning(String message) {
         txtConsole.setTextFill(Color.YELLOW);
         txtConsole.setText(message);
     }
 
-    private void sendError(String message) {
+    public void sendError(String message) {
         txtConsole.setTextFill(Color.RED);
         txtConsole.setText(message);
+    }
+
+    @FXML
+    public void getTeamsByURL() {
+        this.teamsController.getTeamsByURL();
     }
 
 }

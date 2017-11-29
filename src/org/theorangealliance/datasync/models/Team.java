@@ -7,7 +7,7 @@ import javafx.beans.property.SimpleStringProperty;
  * Created by Kyle Flynn on 11/28/2017.
  */
 public class Team {
-    
+
     private final SimpleIntegerProperty teamKey;
     private final SimpleStringProperty regionKey;
     private final SimpleStringProperty leagueKey;
@@ -15,7 +15,7 @@ public class Team {
     private final SimpleStringProperty teamNameLong;
     private final SimpleStringProperty location;
 
-    private Team(int teamKey, String regionKey, String leagueKey, String teamNameShort, String teamNameLong, String location) {
+    public Team(int teamKey, String regionKey, String leagueKey, String teamNameShort, String teamNameLong, String location) {
         this.teamKey = new SimpleIntegerProperty(teamKey);
         this.regionKey = new SimpleStringProperty(regionKey);
         this.leagueKey = new SimpleStringProperty(leagueKey);
