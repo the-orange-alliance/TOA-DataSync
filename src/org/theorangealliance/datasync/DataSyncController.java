@@ -45,6 +45,9 @@ public class DataSyncController implements Initializable {
     @FXML public Button btnTeamsPost;
     @FXML public Button btnTeamsDelete;
 
+    @FXML public Tab tabMatches;
+    @FXML public Tab tabRankings;
+
     /* Instances of our tab controllers */
     private TeamsController teamsController;
 
@@ -121,6 +124,8 @@ public class DataSyncController implements Initializable {
                 sendInfo("Found divisions.txt");
 
                 tabTeams.setDisable(false);
+                tabMatches.setDisable(false);
+                tabRankings.setDisable(false);
             } else {
                 sendError("Scoring System not setup. Are you using the right directory?");
             }
@@ -147,6 +152,11 @@ public class DataSyncController implements Initializable {
     @FXML
     public void getTeamsByURL() {
         this.teamsController.getTeamsByURL();
+    }
+
+    @FXML
+    public void getTeamsByFile() {
+        this.teamsController.getTeamsByFile();
     }
 
     @FXML

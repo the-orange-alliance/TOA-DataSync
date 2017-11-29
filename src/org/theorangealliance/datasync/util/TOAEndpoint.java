@@ -6,6 +6,7 @@ import javafx.application.Platform;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -55,7 +56,6 @@ public class TOAEndpoint implements Runnable {
 
     @Override
     public void run() {
-        Platform.runLater(() -> {
             try {
                 URL url = new URL(this.endpoint);
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -83,9 +83,11 @@ public class TOAEndpoint implements Runnable {
                         response.append(inputLine);
                     }
                     in.close();
-                    if (this.completeListener != null) {
-                        this.completeListener.onComplete(response.toString(), true);
-                    }
+                    Platform.runLater(() -> {
+                        if (this.completeListener != null) {
+                            this.completeListener.onComplete(response.toString(), true);
+                        }
+                    });
                 } else {
                     BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
                     String inputLine;
@@ -97,15 +99,22 @@ public class TOAEndpoint implements Runnable {
 
                     System.out.println(response);
 
-                    if (this.completeListener != null) {
-                        this.completeListener.onComplete(con.getResponseCode() + ": " + con.getResponseMessage(), false);
-                    }
+                    Platform.runLater(() -> {
+                        if (this.completeListener != null) {
+                            try {
+                                this.completeListener.onComplete(con.getResponseCode() + ": " + con.getResponseMessage(), false);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                this.completeListener.onComplete(e.getLocalizedMessage(), false);
+                Platform.runLater(() -> {
+                    this.completeListener.onComplete(e.getLocalizedMessage(), false);
+                });
             }
-        });
     }
 
     public Gson getGson() {

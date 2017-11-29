@@ -15,6 +15,10 @@ import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 import org.theorangealliance.datasync.util.TOARequestBody;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
@@ -75,6 +79,39 @@ public class TeamsController {
         }));
     }
 
+    public void getTeamsByFile() {
+        File teamsFile = new File(Config.SCORING_DIR + "\\teams.txt");
+        if (teamsFile.exists()) {
+            try {
+                teamsList.clear();
+                BufferedReader reader = new BufferedReader(new FileReader(teamsFile));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] values = line.split("\\|");
+                    Team team = new Team(
+                            Integer.parseInt(values[1]),
+                            "",
+                            "",
+                            values[2],
+                            values[3],
+                            values[4] + ", " + values[5] + ", " + values[6]
+                            );
+                    teamsList.add(team);
+                }
+                reader.close();
+
+                controller.btnTeamsPost.setDisable(false);
+                controller.btnTeamsDelete.setDisable(false);
+                controller.sendInfo("Successfully imported " + teamsList.size() + " teams from the Scoring System.");
+            } catch (Exception e) {
+                e.printStackTrace();
+                controller.sendError("Could not open file. " + e.getLocalizedMessage());
+            }
+        } else {
+            controller.sendError("Could not locate teams.txt from the Scoring System. Did you setup your event properly?");
+        }
+    }
+
     public void postEventTeams() {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Are you sure about this?");
@@ -88,7 +125,7 @@ public class TeamsController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == okayButton){
-            // Begin the purging of the data table...
+            teamsList.sort((team1, team2) -> (team1.getTeamKey() > team2.getTeamKey() ? 1 : -1));
             controller.sendInfo("Uploading data from event " + Config.EVENT_ID + "...");
             TOAEndpoint deleteEndpoint = new TOAEndpoint("POST", "upload/event/teams");
             deleteEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
@@ -97,7 +134,6 @@ public class TeamsController {
             for (int i = 0; i < teamsList.size(); i++) {
                 Team team = teamsList.get(i);
                 EventParticipantJSON eventTeam = new EventParticipantJSON();
-                // TEAM LIST NEEDS TO BE SORTED FOR THIS TO WORK PROPERLY
                 eventTeam.setParticipantKey(Config.EVENT_ID + "-T" + (i+1));
                 eventTeam.setTeamKey(team.getTeamKey());
                 eventTeam.setEventKey(Config.EVENT_ID);

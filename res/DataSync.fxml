@@ -7,9 +7,9 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane maxHeight="600.0" maxWidth="900.0" minHeight="-Infinity" minWidth="-Infinity" prefHeight="480.0" prefWidth="720.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.theorangealliance.datasync.DataSyncController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="480.0" prefWidth="720.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.theorangealliance.datasync.DataSyncController">
    <children>
-      <TabPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="455.0" prefWidth="720.0" tabClosingPolicy="UNAVAILABLE">
+      <TabPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="455.0" prefWidth="720.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.025" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <tabs>
           <Tab fx:id="tabSetup" closable="false" text="Setup">
             <content>
@@ -127,9 +127,9 @@
           </Tab>
           <Tab fx:id="tabTeams" closable="false" disable="true" text="Teams">
             <content>
-              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+              <AnchorPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="451.0" prefWidth="720.0">
                      <children>
-                        <TableView fx:id="tableTeams" prefHeight="385.0" prefWidth="720.0">
+                        <TableView fx:id="tableTeams" prefHeight="385.0" prefWidth="720.0" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <columns>
                             <TableColumn fx:id="colTeamsTeam" prefWidth="75.0" text="TeamID" />
                             <TableColumn fx:id="colTeamsRegion" prefWidth="75.0" text="RegionID" />
@@ -145,17 +145,15 @@
                               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                           </columnConstraints>
                           <rowConstraints>
                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                           </rowConstraints>
                            <children>
-                              <Button fx:id="btnTeamsGetTOA" mnemonicParsing="false" onAction="#getTeamsByURL" text="Import From TOA" GridPane.columnSpan="2" GridPane.halignment="CENTER" />
-                              <Button fx:id="btnTeamsGet" mnemonicParsing="false" text="Import From File" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.halignment="CENTER" />
-                              <Button fx:id="btnTeamsDelete" mnemonicParsing="false" onAction="#deleteEventTeams" text="Purge EventParticipants" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" />
-                              <Button fx:id="btnTeamsPost" mnemonicParsing="false" onAction="#postEventTeams" text="Upload to TOA" GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.halignment="CENTER" />
+                              <Button fx:id="btnTeamsGetTOA" mnemonicParsing="false" onAction="#getTeamsByURL" text="Import From TOA" GridPane.halignment="CENTER" />
+                              <Button fx:id="btnTeamsGet" mnemonicParsing="false" onAction="#getTeamsByFile" text="Import From Scoring System" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                              <Button fx:id="btnTeamsDelete" mnemonicParsing="false" onAction="#deleteEventTeams" text="Purge EventParticipants" GridPane.columnIndex="3" GridPane.halignment="CENTER" />
+                              <Button fx:id="btnTeamsPost" mnemonicParsing="false" onAction="#postEventTeams" text="Upload to TOA" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
                            </children>
                         </GridPane>
                      </children></AnchorPane>
