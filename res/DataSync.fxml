@@ -154,6 +154,8 @@
                            <children>
                               <Button fx:id="btnTeamsGetTOA" mnemonicParsing="false" onAction="#getTeamsByURL" text="Import From TOA" GridPane.columnSpan="2" GridPane.halignment="CENTER" />
                               <Button fx:id="btnTeamsGet" mnemonicParsing="false" text="Import From File" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.halignment="CENTER" />
+                              <Button fx:id="btnTeamsDelete" mnemonicParsing="false" onAction="#deleteEventTeams" text="Purge EventParticipants" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" />
+                              <Button fx:id="btnTeamsPost" mnemonicParsing="false" onAction="#postEventTeams" text="Upload to TOA" GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.halignment="CENTER" />
                            </children>
                         </GridPane>
                      </children></AnchorPane>

@@ -42,6 +42,8 @@ public class DataSyncController implements Initializable {
     @FXML public TableColumn colTeamsShort;
     @FXML public TableColumn colTeamsLong;
     @FXML public TableColumn colTeamsLocation;
+    @FXML public Button btnTeamsPost;
+    @FXML public Button btnTeamsDelete;
 
     /* Instances of our tab controllers */
     private TeamsController teamsController;
@@ -57,9 +59,7 @@ public class DataSyncController implements Initializable {
         btnSetupSelect.setDisable(true);
         btnSetupTestDir.setDisable(true);
 
-        txtSetupKey.setText("TESTING_123_R3L1C");
-        txtSetupID.setText("1718-FIM-TST");
-        txtSetupDir.setText("C:\\Users\\Kyle Flynn\\Desktop\\FTC Stuff\\Scoring System");
+        
     }
 
     @FXML
@@ -147,6 +147,16 @@ public class DataSyncController implements Initializable {
     @FXML
     public void getTeamsByURL() {
         this.teamsController.getTeamsByURL();
+    }
+
+    @FXML
+    public void postEventTeams() {
+        this.teamsController.postEventTeams();
+    }
+
+    @FXML
+    public void deleteEventTeams() {
+        this.teamsController.deleteEventTeams();
     }
 
 }

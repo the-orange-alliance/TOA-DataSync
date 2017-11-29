@@ -5,9 +5,11 @@ import com.google.gson.GsonBuilder;
 import javafx.application.Platform;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 /**
  * Created by Kyle Flynn on 11/28/2017.
@@ -19,6 +21,7 @@ public class TOAEndpoint implements Runnable {
     private String requestType;
     private String apiKey;
     private String eventKey;
+    private String bodyJSON;
 
     private Thread connection;
     private TOACompleteListener completeListener;
@@ -29,6 +32,7 @@ public class TOAEndpoint implements Runnable {
         this.connection = new Thread(this, endpoint);
         this.apiKey = "";
         this.eventKey = "";
+        this.bodyJSON = "";
     }
 
     public TOAEndpoint(String endpoint) {
@@ -38,6 +42,10 @@ public class TOAEndpoint implements Runnable {
     public void setCredentials(String apiKey, String eventKey) {
         this.apiKey = apiKey;
         this.eventKey = eventKey;
+    }
+
+    public void setBody(TOARequestBody requestBody) {
+        this.bodyJSON = getGson().toJson(requestBody);
     }
 
     public void execute(TOACompleteListener completeListener) {
@@ -55,6 +63,17 @@ public class TOAEndpoint implements Runnable {
                 con.setRequestProperty("X-Application-Origin", "TOA-DataSync");
                 con.setRequestProperty("X-TOA-Key", this.apiKey);
                 con.setRequestProperty("X-TOA-Event", this.eventKey);
+
+                if (bodyJSON.length() > 1) {
+                    System.out.println("Making " + requestType + " with body " + bodyJSON);
+                    con.setRequestProperty("Content-Type","application/json");
+                    con.setDoOutput(true);
+                    DataOutputStream stream = new DataOutputStream(con.getOutputStream());
+                    stream.writeBytes(bodyJSON);
+                    stream.flush();
+                    stream.close();
+                }
+
                 int responseCode = con.getResponseCode();
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
@@ -68,6 +87,16 @@ public class TOAEndpoint implements Runnable {
                         this.completeListener.onComplete(response.toString(), true);
                     }
                 } else {
+                    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                    String inputLine;
+                    StringBuilder response = new StringBuilder();
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    in.close();
+
+                    System.out.println(response);
+
                     if (this.completeListener != null) {
                         this.completeListener.onComplete(con.getResponseCode() + ": " + con.getResponseMessage(), false);
                     }
