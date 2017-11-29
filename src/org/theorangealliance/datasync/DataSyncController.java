@@ -33,10 +33,16 @@ public class DataSyncController implements Initializable {
     @FXML Button btnSetupTestDir;
     @FXML Label labelSetupDir;
 
+    @FXML Tab tabTeams;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         labelSetupTest.setTextFill(Color.RED);
         labelSetupDir.setTextFill(Color.RED);
+
+        txtSetupDir.setEditable(false);
+        btnSetupSelect.setDisable(true);
+        btnSetupTestDir.setDisable(true);
     }
 
     @FXML
@@ -47,22 +53,23 @@ public class DataSyncController implements Initializable {
             testConnection.setCredentials(txtSetupKey.getText(), txtSetupID.getText());
             testConnection.execute((response, success) -> {
                 if (success) {
-                    txtConsole.setTextFill(Color.GREEN);
-                    txtConsole.setText("Connection to TOA was successful. Proceed to Scoring System setup.");
+                    sendInfo("Connection to TOA was successful. Proceed to Scoring System setup.");
 
                     labelSetupTest.setText("Connection Successful");
                     labelSetupTest.setTextFill(Color.GREEN);
+
+                    txtSetupDir.setEditable(true);
+                    btnSetupSelect.setDisable(false);
+                    btnSetupTestDir.setDisable(false);
                 } else {
-                    txtConsole.setTextFill(Color.RED);
-                    txtConsole.setText("Connection to TOA unsuccessful. " + response);
+                    sendError("Connection to TOA unsuccessful. " + response);
 
                     labelSetupTest.setText("Connection Unsuccessful.");
                     labelSetupTest.setTextFill(Color.RED);
                 }
             });
         } else {
-            txtConsole.setTextFill(Color.RED);
-            txtConsole.setText("You must enter the two fields described.");
+            sendError("You must enter the two fields described.");
         }
     }
 
@@ -75,8 +82,7 @@ public class DataSyncController implements Initializable {
         if (file != null && file.isDirectory()) {
             txtSetupDir.setText(file.getAbsolutePath());
         } else {
-            txtConsole.setTextFill(Color.RED);
-            txtConsole.setText("Error in selecting scoring system directory.");
+            sendError("Error in selecting scoring system directory.");
         }
     }
 
@@ -89,16 +95,30 @@ public class DataSyncController implements Initializable {
                 labelSetupDir.setTextFill(Color.GREEN);
                 labelSetupDir.setText("Valid Directory.");
 
-                txtConsole.setTextFill(Color.GREEN);
-                txtConsole.setText("Found divisions.txt");
+                sendInfo("Found divisions.txt");
+
+                tabTeams.setDisable(false);
             } else {
-                txtConsole.setTextFill(Color.RED);
-                txtConsole.setText("Scoring System not setup. Are you using the right directory?");
+                sendError("Scoring System not setup. Are you using the right directory?");
             }
         } else {
-            txtConsole.setTextFill(Color.RED);
-            txtConsole.setText("You must select a directory for the scoring system root.");
+            sendError("You must select a directory for the scoring system root.");
         }
+    }
+
+    private void sendInfo(String message) {
+        txtConsole.setTextFill(Color.GREEN);
+        txtConsole.setText(message);
+    }
+
+    private void sendWarning(String message) {
+        txtConsole.setTextFill(Color.YELLOW);
+        txtConsole.setText(message);
+    }
+
+    private void sendError(String message) {
+        txtConsole.setTextFill(Color.RED);
+        txtConsole.setText(message);
     }
 
 }

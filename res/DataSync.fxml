@@ -125,11 +125,36 @@
                      </children></AnchorPane>
             </content>
           </Tab>
-          <Tab closable="false" text="Teams">
+          <Tab fx:id="tabTeams" closable="false" disable="true" text="Teams">
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
             </content>
           </Tab>
+            <Tab fx:id="tabMatches" disable="true" text="Matches">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+              </content>
+            </Tab>
+            <Tab fx:id="tabRankings" disable="true" text="Rankings">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+              </content>
+            </Tab>
+            <Tab fx:id="tabAllianceSelection" disable="true" text="Alliance Selection">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+              </content>
+            </Tab>
+            <Tab fx:id="tabAwards" disable="true" text="Awards">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+              </content>
+            </Tab>
+            <Tab fx:id="tabAdvancement" disable="true" text="Advancement">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+              </content>
+            </Tab>
         </tabs>
       </TabPane>
       <Separator layoutY="451.0" prefHeight="10.0" prefWidth="720.0" />
