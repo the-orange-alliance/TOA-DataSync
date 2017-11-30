@@ -221,6 +221,11 @@
                                     <Font name="System Bold" size="18.0" />
                                  </font>
                               </Label>
+                              <Label fx:id="labelMatchName" GridPane.columnSpan="2" GridPane.rowIndex="1">
+                                 <GridPane.margin>
+                                    <Insets left="10.0" />
+                                 </GridPane.margin>
+                              </Label>
                            </children>
                         </GridPane>
                      </children></AnchorPane>

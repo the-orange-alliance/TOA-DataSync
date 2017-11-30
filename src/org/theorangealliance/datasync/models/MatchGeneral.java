@@ -13,6 +13,7 @@ public class MatchGeneral {
     private final SimpleStringProperty matchName;
     private final SimpleBooleanProperty isDone;
     private final SimpleBooleanProperty isUploaded;
+    private String matchKey;
     private int tournamentLevel;
     private Date scheduledTime;
     private int fieldNumber;
@@ -105,6 +106,10 @@ public class MatchGeneral {
         return Integer.parseInt(matchNumber);
     }
 
+    public void setMatchKey(String matchKey) {
+        this.matchKey = matchKey;
+    }
+
     public void setMatchName(String matchName) {
          this.matchName.set(matchName);
     }
@@ -115,6 +120,10 @@ public class MatchGeneral {
 
     public void setIsUploaded(boolean isUploaded) {
         this.isUploaded.set(isUploaded);
+    }
+
+    public String getMatchKey() {
+        return matchKey;
     }
 
     public String getMatchName() {

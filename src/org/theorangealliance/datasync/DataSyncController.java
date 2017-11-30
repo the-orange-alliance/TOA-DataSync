@@ -55,6 +55,7 @@ public class DataSyncController implements Initializable {
     @FXML public TableColumn colMatchName;
     @FXML public TableColumn colMatchDone;
     @FXML public TableColumn colMatchPosted;
+    @FXML public Label labelMatchName;
 
     @FXML public Tab tabRankings;
 
@@ -74,7 +75,6 @@ public class DataSyncController implements Initializable {
         btnSetupSelect.setDisable(true);
         btnSetupTestDir.setDisable(true);
 
-        
     }
 
     @FXML

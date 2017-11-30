@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Created by Kyle Flynn on 11/29/2017.
  */
-public class MatchGeneralJSON {
+public class MatchScheduleGeneralJSON {
 
     @SerializedName("match_key")
     private String matchKey;
@@ -105,4 +105,6 @@ public class MatchGeneralJSON {
     public void setCreatedOn(String createdOn) {
         this.createdOn = createdOn;
     }
+
+
 }
