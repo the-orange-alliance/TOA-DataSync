@@ -5,7 +5,9 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
+import org.theorangealliance.datasync.models.MatchGeneral;
 import org.theorangealliance.datasync.models.Team;
+import org.theorangealliance.datasync.tabs.MatchesController;
 import org.theorangealliance.datasync.tabs.TeamsController;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
@@ -45,15 +47,25 @@ public class DataSyncController implements Initializable {
     @FXML public Button btnTeamsPost;
     @FXML public Button btnTeamsDelete;
 
+    /* This is for our matches tab */
     @FXML public Tab tabMatches;
+    @FXML public Button btnMatchImport;
+    @FXML public Button btnMatchScheduleUpload;
+    @FXML public TableView<MatchGeneral> tableMatches;
+    @FXML public TableColumn colMatchName;
+    @FXML public TableColumn colMatchDone;
+    @FXML public TableColumn colMatchPosted;
+
     @FXML public Tab tabRankings;
 
     /* Instances of our tab controllers */
     private TeamsController teamsController;
+    private MatchesController matchesController;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         this.teamsController = new TeamsController(this);
+        this.matchesController = new MatchesController(this);
 
         labelSetupTest.setTextFill(Color.RED);
         labelSetupDir.setTextFill(Color.RED);
@@ -167,6 +179,16 @@ public class DataSyncController implements Initializable {
     @FXML
     public void deleteEventTeams() {
         this.teamsController.deleteEventTeams();
+    }
+
+    @FXML
+    public void getMatchesByFile() {
+        this.matchesController.getMatchesByFile();
+    }
+
+    @FXML
+    public void postMatchSchedule() {
+        this.matchesController.postMatchSchedule();
     }
 
 }

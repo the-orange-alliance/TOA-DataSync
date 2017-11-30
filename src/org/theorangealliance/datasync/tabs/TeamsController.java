@@ -124,7 +124,7 @@ public class TeamsController {
         alert.getButtonTypes().setAll(okayButton, cancelButton);
 
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == okayButton){
+        if (result.get() == okayButton) {
             teamsList.sort((team1, team2) -> (team1.getTeamKey() > team2.getTeamKey() ? 1 : -1));
             controller.sendInfo("Uploading data from event " + Config.EVENT_ID + "...");
             TOAEndpoint deleteEndpoint = new TOAEndpoint("POST", "upload/event/teams");
@@ -166,7 +166,7 @@ public class TeamsController {
         alert.getButtonTypes().setAll(okayButton, cancelButton);
 
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == okayButton){
+        if (result.get() == okayButton) {
             // Begin the purging of the data table...
             controller.sendInfo("Purging data from event " + Config.EVENT_ID + "...");
             TOAEndpoint deleteEndpoint = new TOAEndpoint("DELETE", "upload/event/teams");
@@ -184,7 +184,7 @@ public class TeamsController {
         }
     }
 
-    String getCurrentTime() {
+    private String getCurrentTime() {
         Date dt = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
