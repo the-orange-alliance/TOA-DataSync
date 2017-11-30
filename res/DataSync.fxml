@@ -165,9 +165,9 @@
                      <children>
                         <TableView fx:id="tableMatches" prefHeight="425.0" prefWidth="225.0" AnchorPane.bottomAnchor="33.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <columns>
-                            <TableColumn fx:id="colMatchName" prefWidth="75.0" text="Match" />
-                            <TableColumn fx:id="colMatchDone" prefWidth="75.0" resizable="false" text="Completed" />
-                              <TableColumn fx:id="colMatchPosted" prefWidth="75.0" resizable="false" text="Uploaded" />
+                            <TableColumn fx:id="colMatchName" prefWidth="75.0" sortable="false" text="Match" />
+                            <TableColumn fx:id="colMatchDone" prefWidth="75.0" resizable="false" sortable="false" text="Completed" />
+                              <TableColumn fx:id="colMatchPosted" prefWidth="75.0" resizable="false" sortable="false" text="Uploaded" />
                           </columns>
                         </TableView>
                         <GridPane layoutX="225.0" prefHeight="75.0" prefWidth="495.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -190,15 +190,19 @@
                                  <GridPane.margin>
                                     <Insets left="10.0" />
                                  </GridPane.margin>
+                                 <font>
+                                    <Font size="11.0" />
+                                 </font>
                               </Button>
-                              <Button fx:id="btnMatchScheduleUpload" mnemonicParsing="false" onAction="#postMatchSchedule" text="Upload Match Schedule to TOA" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
+                              <Button fx:id="btnMatchScheduleUpload" mnemonicParsing="false" onAction="#postMatchSchedule" text="Upload Schedule to TOA" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
                                  <GridPane.margin>
                                     <Insets right="10.0" />
                                  </GridPane.margin>
                               </Button>
+                              <Label fx:id="labelScheduleUploaded" text="Label" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
                            </children>
                         </GridPane>
-                        <Separator layoutX="225.0" layoutY="74.0" prefHeight="3.0" prefWidth="505.0" AnchorPane.rightAnchor="0.0" />
+                        <Separator layoutX="225.0" layoutY="74.0" prefHeight="2.0" prefWidth="500.0" AnchorPane.rightAnchor="0.0" />
                         <GridPane layoutX="225.0" layoutY="74.0" prefHeight="344.0" prefWidth="500.0" AnchorPane.rightAnchor="0.0">
                           <columnConstraints>
                             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -209,6 +213,7 @@
                             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                           </columnConstraints>
                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -226,6 +231,41 @@
                                     <Insets left="10.0" />
                                  </GridPane.margin>
                               </Label>
+                              <Button fx:id="btnMatchUpload" mnemonicParsing="false" text="Upload" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="5" />
+                              <Button fx:id="btnMatchSync" mnemonicParsing="false" text="Re-Sync" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="5" />
+                              <Label text="Red Alliance" textFill="RED" GridPane.columnSpan="2" GridPane.halignment="CENTER">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Label>
+                              <Label text="Blue Alliance" textAlignment="CENTER" textFill="#0059ff" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="labelRedScore" text="Score" textFill="RED" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="BOTTOM" />
+                              <Label fx:id="labelBlueScore" text="Score" textFill="#0059ff" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="BOTTOM" />
+                              <Label text="Final Score" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="BOTTOM" />
+                              <Label text="Auto Score" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
+                              <Label fx:id="labelRedAuto" text="Auto" textFill="RED" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
+                              <Label fx:id="labelBlueAuto" text="Auto" textFill="#0059ff" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
+                              <Label fx:id="labelRedTele" text="Tele" textFill="RED" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
+                              <Label text="Teleop Score" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
+                              <Label fx:id="labelBlueTele" text="Tele" textFill="#0059ff" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
+                              <Label text="Penalty Points" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="TOP" />
+                              <Label fx:id="labelRedPenalty" text="Penalties" textFill="RED" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="TOP" />
+                              <Label fx:id="labelBluePenalty" text="Penalties" textFill="#0059ff" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="TOP" />
+                              <Label fx:id="labelRedEnd" text="End" textFill="RED" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+                              <Label text="End Score" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+                              <Label fx:id="labelBlueEnd" text="End" textFill="#0059ff" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+                              <Separator prefWidth="200.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="4" GridPane.valignment="TOP">
+                                 <GridPane.margin>
+                                    <Insets top="10.0" />
+                                 </GridPane.margin>
+                              </Separator>
+                              <Label text="Teams" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
+                              <Label fx:id="labelRedTeams" text="Teams" textFill="RED" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
+                              <Label fx:id="labelBlueTeams" text="Teams" textFill="#0059ff" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
                            </children>
                         </GridPane>
                      </children></AnchorPane>
@@ -247,6 +287,11 @@
               </content>
             </Tab>
             <Tab fx:id="tabAdvancement" disable="true" text="Advancement">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+              </content>
+            </Tab>
+            <Tab fx:id="tabSync" disable="true" text="Auto-Sync">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
               </content>

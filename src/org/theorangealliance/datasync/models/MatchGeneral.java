@@ -10,12 +10,13 @@ import java.util.Date;
  */
 public class MatchGeneral {
 
-    private final SimpleStringProperty matchName;
-    private final SimpleBooleanProperty isDone;
-    private final SimpleBooleanProperty isUploaded;
+    private SimpleStringProperty matchName;
+    private SimpleBooleanProperty isDone;
+    private SimpleBooleanProperty isUploaded;
     private String matchKey;
     private int tournamentLevel;
     private Date scheduledTime;
+    private int playNumber;
     private int fieldNumber;
     private int redScore;
     private int blueScore;
@@ -23,6 +24,8 @@ public class MatchGeneral {
     private int bluePenalty;
     private int redAutoScore;
     private int blueAutoScore;
+    private int redTeleScore;
+    private int blueTeleScore;
     private int redEndScore;
     private int blueEndScore;
     private String createdBy;
@@ -30,7 +33,7 @@ public class MatchGeneral {
 
     public MatchGeneral(String matchName, int tournamentLevel, Date scheduledTime, int fieldNumber) {
         this.matchName = new SimpleStringProperty(matchName);
-        this.isDone = new SimpleBooleanProperty(true);
+        this.isDone = new SimpleBooleanProperty(false);
         this.isUploaded = new SimpleBooleanProperty(false);
         this.tournamentLevel = tournamentLevel;
         this.scheduledTime = scheduledTime;
@@ -106,6 +109,14 @@ public class MatchGeneral {
         return Integer.parseInt(matchNumber);
     }
 
+    public int getPlayNumber() {
+        return playNumber;
+    }
+
+    public void setPlayNumber(int playNumber) {
+        this.playNumber = playNumber;
+    }
+
     public void setMatchKey(String matchKey) {
         this.matchKey = matchKey;
     }
@@ -114,8 +125,8 @@ public class MatchGeneral {
          this.matchName.set(matchName);
     }
 
-    public void setIsDone(boolean isDone) {
-        this.isDone.set(isDone);
+    public void setIsDone(boolean done) {
+        this.isDone.set(done);
     }
 
     public void setIsUploaded(boolean isUploaded) {
@@ -130,11 +141,11 @@ public class MatchGeneral {
         return this.matchName.get();
     }
 
-    public boolean isDone() {
+    public Boolean isDone() {
         return isDone.get();
     }
 
-    public boolean isUploaded() {
+    public Boolean isUploaded() {
         return isUploaded.get();
     }
 
@@ -176,6 +187,22 @@ public class MatchGeneral {
 
     public void setBlueScore(int blueScore) {
         this.blueScore = blueScore;
+    }
+
+    public int getRedTeleScore() {
+        return redTeleScore;
+    }
+
+    public void setRedTeleScore(int redTeleScore) {
+        this.redTeleScore = redTeleScore;
+    }
+
+    public int getBlueTeleScore() {
+        return blueTeleScore;
+    }
+
+    public void setBlueTeleScore(int blueTeleScore) {
+        this.blueTeleScore = blueTeleScore;
     }
 
     public int getRedPenalty() {

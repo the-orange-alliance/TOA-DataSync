@@ -1,12 +1,15 @@
 package org.theorangealliance.datasync.tabs;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.paint.Color;
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.MatchScheduleGeneralJSON;
 import org.theorangealliance.datasync.json.MatchScheduleStationJSON;
@@ -31,17 +34,44 @@ public class MatchesController {
 
     private DataSyncController controller;
     private ObservableList<MatchGeneral> matchList;
+    private MatchGeneral[] uploadedMatches;
 
     private HashMap<MatchGeneral, ScheduleStation[]> matchStations;
 
     public MatchesController(DataSyncController instance) {
         this.controller = instance;
 
-        this.controller.colMatchName.setCellValueFactory(new PropertyValueFactory<MatchGeneral, String>("matchName"));
-        this.controller.colMatchDone.setCellValueFactory(new PropertyValueFactory<MatchGeneral, Boolean>("isDone"));
-        this.controller.colMatchPosted.setCellValueFactory(new PropertyValueFactory<MatchGeneral, Boolean>("isUploaded"));
-        this.controller.colMatchDone.setCellFactory(CheckBoxTableCell.forTableColumn(this.controller.colMatchDone));
-        this.controller.colMatchPosted.setCellFactory(CheckBoxTableCell.forTableColumn(this.controller.colMatchPosted));
+        this.controller.colMatchName.setCellValueFactory(new PropertyValueFactory<>("matchName"));
+        this.controller.colMatchDone.setCellValueFactory(cellData -> new SimpleBooleanProperty(cellData.getValue().isDone()));
+        this.controller.colMatchPosted.setCellValueFactory(cellData -> new SimpleBooleanProperty(cellData.getValue().isUploaded()));
+        this.controller.colMatchDone.setCellFactory(col -> new TableCell<MatchGeneral, Boolean>() {
+            @Override
+            protected void updateItem(Boolean done, boolean empty) {
+                if (!empty && done != null) {
+                    if (done) {
+                        setTextFill(Color.GREEN);
+                        setText("YES");
+                    } else {
+                        setTextFill(Color.RED);
+                        setText("NO");
+                    }
+                }
+            }
+        });
+        this.controller.colMatchPosted.setCellFactory(col -> new TableCell<MatchGeneral, Boolean>() {
+            @Override
+            protected void updateItem(Boolean done, boolean empty) {
+                if (!empty && done != null) {
+                    if (done) {
+                        setTextFill(Color.GREEN);
+                        setText("YES");
+                    } else {
+                        setTextFill(Color.RED);
+                        setText("NO");
+                    }
+                }
+            }
+        });
 
         this.matchStations = new HashMap<>();
         this.matchList = FXCollections.observableArrayList();
@@ -51,6 +81,79 @@ public class MatchesController {
         }));
 
         this.controller.btnMatchScheduleUpload.setDisable(true);
+        this.controller.btnMatchUpload.setVisible(false);
+        this.controller.btnMatchUpload.setDisable(true);
+        this.controller.btnMatchSync.setVisible(false);
+        this.controller.btnMatchSync.setDisable(true);
+    }
+
+    private void openMatchView(MatchGeneral match) {
+        if (match.isDone()) {
+            controller.btnMatchUpload.setDisable(false);
+        } else {
+            controller.btnMatchUpload.setDisable(true);
+        }
+        ScheduleStation[] teams = matchStations.get(match);
+        if (teams != null) {
+            String redTeams = teams[0].getTeamKey() + " " + teams[1].getTeamKey();
+            String redFinalTeam = (teams[2].getTeamKey() == 0 ? "" : teams[2].getTeamKey() + "");
+            String blueTeams = teams[3].getTeamKey() + " " + teams[4].getTeamKey();
+            String blueFinalTeam = (teams[5].getTeamKey() == 0 ? "" : teams[5].getTeamKey() + "");
+            controller.labelRedTeams.setText(redTeams + " " + redFinalTeam);
+            controller.labelBlueTeams.setText(blueTeams + " " + blueFinalTeam);
+        }
+
+        controller.labelRedAuto.setUnderline(match.getRedAutoScore() >= match.getBlueAutoScore());
+        controller.labelBlueAuto.setUnderline(match.getRedAutoScore() <= match.getBlueAutoScore());
+        controller.labelRedAuto.setText("" + match.getRedAutoScore());
+        controller.labelBlueAuto.setText("" + match.getBlueAutoScore());
+
+        controller.labelRedTele.setUnderline(match.getRedTeleScore() >= match.getBlueTeleScore());
+        controller.labelBlueTele.setUnderline(match.getRedTeleScore() <= match.getBlueTeleScore());
+        controller.labelRedTele.setText("" + match.getRedTeleScore());
+        controller.labelBlueTele.setText("" + match.getBlueTeleScore());
+
+        controller.labelRedEnd.setUnderline(match.getRedEndScore() >= match.getBlueEndScore());
+        controller.labelBlueEnd.setUnderline(match.getRedEndScore() <= match.getBlueEndScore());
+        controller.labelRedEnd.setText("" + match.getRedEndScore());
+        controller.labelBlueEnd.setText("" + match.getBlueEndScore());
+
+        controller.labelRedPenalty.setUnderline(match.getRedPenalty() >= match.getBluePenalty());
+        controller.labelBluePenalty.setUnderline(match.getRedPenalty() <= match.getBluePenalty());
+        controller.labelRedPenalty.setText("" + match.getRedPenalty());
+        controller.labelBluePenalty.setText("" + match.getBluePenalty());
+
+        controller.labelRedScore.setUnderline(match.getRedScore() >= match.getBlueScore());
+        controller.labelBlueScore.setUnderline(match.getRedScore() <= match.getBlueScore());
+        controller.labelRedScore.setText("" + match.getRedScore());
+        controller.labelBlueScore.setText("" + match.getBlueScore());
+    }
+
+    private void updateMatchDetails() {
+
+    }
+
+    public void checkMatchSchedule() {
+        this.controller.labelScheduleUploaded.setTextFill(Color.YELLOW);
+        this.controller.labelScheduleUploaded.setText("Checking TOA...");
+        TOAEndpoint matchesEndpoint = new TOAEndpoint("GET", "event/" + Config.EVENT_ID + "/matches");
+        matchesEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        matchesEndpoint.execute(((response, success) -> {
+            if (success) {
+                uploadedMatches = matchesEndpoint.getGson().fromJson(response, MatchGeneral[].class);
+                if (uploadedMatches.length > 0) {
+                    this.controller.labelScheduleUploaded.setTextFill(Color.GREEN);
+                    this.controller.labelScheduleUploaded.setText("Schedule Already Posted");
+                    this.controller.sendInfo("Match Schedule Already Posted");
+                } else {
+                    this.controller.labelScheduleUploaded.setTextFill(Color.GREEN);
+                    this.controller.labelScheduleUploaded.setText("Schedule NOT Posted");
+                    this.controller.sendInfo("Match Schedule NOT Posted");
+                }
+            } else {
+                this.controller.sendError("Error: " + response);
+            }
+        }));
     }
 
     public void getMatchesByFile() {
@@ -66,6 +169,7 @@ public class MatchesController {
                     int tournamentLevel = Integer.parseInt(matchInfo[1]);
                     int matchNumber = Integer.parseInt(matchInfo[2]);
                     int fieldNumber = matchNumber % 2 == 0 ? 2 : 1;
+                    int playNumber = Integer.parseInt(matchInfo[3]);
                     MatchGeneral match = new MatchGeneral(
                             MatchGeneral.buildMatchName(tournamentLevel, matchNumber),
                             MatchGeneral.buildTOATournamentLevel(tournamentLevel, matchNumber),
@@ -73,7 +177,13 @@ public class MatchesController {
                             fieldNumber);
                     char qualChar = match.getMatchName().contains("Qual") ? 'Q' : 'E';
                     match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", match.getCanonicalMatchNumber()) + "-1");
+
+                    if (playNumber > 0) {
+                        match.setIsDone(true);
+                    }
+
                     matchList.add(match);
+
                     /** TEAM info */
                     String[] teamInfo = line.split("\\|\\|")[1].split("\\|");
                     ScheduleStation[] scheduleStations = new ScheduleStation[6];
@@ -87,7 +197,16 @@ public class MatchesController {
                 }
                 reader.close();
                 controller.btnMatchScheduleUpload.setDisable(false);
-                controller.sendInfo("Successfully imported " + matchList.size() + " matches from the Scoring System.");
+                if (uploadedMatches != null) {
+                    if (uploadedMatches.length == matchList.size()) {
+                        controller.sendInfo("Successfully imported " + matchList.size() + " matches from the Scoring System. Online and local schedules are the same.");
+                    } else {
+                        controller.sendError("Successfully imported " + matchList.size() + " matches from the Scoring System. However, uploaded schedule and local schedule differ.");
+                    }
+                    this.controller.btnMatchUpload.setVisible(true);
+                    this.controller.btnMatchSync.setVisible(true);
+                }
+
             } catch (Exception e) {
                 e.printStackTrace();
                 controller.sendError("Could not open file. " + e.getLocalizedMessage());
@@ -112,18 +231,10 @@ public class MatchesController {
         if (result.get() == okayButton) {
             postMatchScheduleMatches();
             postMatchScheduleTeams();
+
+            this.controller.btnMatchUpload.setVisible(true);
+            this.controller.btnMatchSync.setVisible(true);
         }
-    }
-
-    private void openMatchView(MatchGeneral match) {
-        controller.labelMatchName.setText("Match: " + match.getMatchName());
-    }
-
-    private String getCurrentTime() {
-        Date dt = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-        return sdf.format(dt);
     }
 
     private void postMatchScheduleTeams() {
@@ -182,6 +293,13 @@ public class MatchesController {
                 controller.sendError("Connection to TOA unsuccessful. " + response);
             }
         }));
+    }
+
+    private String getCurrentTime() {
+        Date dt = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        return sdf.format(dt);
     }
 
 }

@@ -51,11 +51,27 @@ public class DataSyncController implements Initializable {
     @FXML public Tab tabMatches;
     @FXML public Button btnMatchImport;
     @FXML public Button btnMatchScheduleUpload;
+    @FXML public Button btnMatchUpload;
+    @FXML public Button btnMatchSync;
     @FXML public TableView<MatchGeneral> tableMatches;
-    @FXML public TableColumn colMatchName;
-    @FXML public TableColumn colMatchDone;
-    @FXML public TableColumn colMatchPosted;
+    @FXML public TableColumn<MatchGeneral, String> colMatchName;
+    @FXML public TableColumn<MatchGeneral, Boolean> colMatchDone;
+    @FXML public TableColumn<MatchGeneral, Boolean> colMatchPosted;
     @FXML public Label labelMatchName;
+    @FXML public Label labelScheduleUploaded;
+
+    @FXML public Label labelRedAuto;
+    @FXML public Label labelRedTele;
+    @FXML public Label labelRedEnd;
+    @FXML public Label labelRedPenalty;
+    @FXML public Label labelRedScore;
+    @FXML public Label labelBlueAuto;
+    @FXML public Label labelBlueTele;
+    @FXML public Label labelBlueEnd;
+    @FXML public Label labelBluePenalty;
+    @FXML public Label labelBlueScore;
+    @FXML public Label labelRedTeams;
+    @FXML public Label labelBlueTeams;
 
     @FXML public Tab tabRankings;
 
@@ -97,6 +113,8 @@ public class DataSyncController implements Initializable {
                     txtSetupDir.setEditable(true);
                     btnSetupSelect.setDisable(false);
                     btnSetupTestDir.setDisable(false);
+
+                    matchesController.checkMatchSchedule();
                 } else {
                     sendError("Connection to TOA unsuccessful. " + response);
 
