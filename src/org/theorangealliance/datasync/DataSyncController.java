@@ -5,6 +5,9 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import org.theorangealliance.datasync.json.EventJSON;
@@ -18,10 +21,10 @@ import org.theorangealliance.datasync.tabs.TeamsController;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.awt.*;
+import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -130,6 +133,15 @@ public class DataSyncController implements Initializable {
         txtSetupDir.setEditable(false);
         btnSetupSelect.setDisable(true);
         btnSetupTestDir.setDisable(true);
+    }
+
+    @FXML
+    public void openDocs() {
+        try {
+            Desktop.getDesktop().browse(new URI("https://drive.google.com/open?id=1fSdBXXRTmZvWZXSr1ieZB4vJNWNUefXYdbUPU6TyhsM"));
+        } catch (IOException | URISyntaxException e1) {
+            e1.printStackTrace();
+        }
     }
 
     @FXML

@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -23,9 +24,9 @@ public class DataSync extends Application {
             Scene scene = new Scene(root);
 
             mainStage = primaryStage;
-
             mainStage.setScene(scene);
-            mainStage.setTitle("TOA DataSync v0.0.0");
+            mainStage.setTitle("TOA DataSync v1.0.0 BETA");
+            mainStage.getIcons().add(new Image(getClass().getResourceAsStream("/app_ico.png")));
             mainStage.setResizable(false);
             mainStage.show();
 

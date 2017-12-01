@@ -79,6 +79,16 @@
                               </Label>
                               <Button fx:id="btnSetupTest" mnemonicParsing="false" onAction="#testConnection" text="Test Connection" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="6" />
                               <Label fx:id="labelSetupTest" alignment="CENTER" prefHeight="35.0" prefWidth="150.0" text="Not Connected" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="6" />
+                              <Hyperlink onAction="#openDocs" text="(Documentation)" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="RIGHT" GridPane.rowIndex="8">
+                                 <GridPane.margin>
+                                    <Insets right="25.0" />
+                                 </GridPane.margin>
+                              </Hyperlink>
+                              <Label text="Copyright 2017 TheOrangeAlliance.org" GridPane.columnSpan="2147483647" GridPane.rowIndex="8">
+                                 <GridPane.margin>
+                                    <Insets left="10.0" />
+                                 </GridPane.margin>
+                              </Label>
                            </children>
                         </GridPane>
                         <GridPane layoutX="360.0" layoutY="13.0" prefHeight="399.0" prefWidth="350.0">
