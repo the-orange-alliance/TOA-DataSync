@@ -1,5 +1,6 @@
 package org.theorangealliance.datasync;
 
+import com.sun.corba.se.impl.orbutil.concurrent.Sync;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -8,6 +9,7 @@ import javafx.stage.DirectoryChooser;
 import org.theorangealliance.datasync.models.MatchGeneral;
 import org.theorangealliance.datasync.models.Team;
 import org.theorangealliance.datasync.tabs.MatchesController;
+import org.theorangealliance.datasync.tabs.SyncController;
 import org.theorangealliance.datasync.tabs.TeamsController;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
@@ -53,13 +55,17 @@ public class DataSyncController implements Initializable {
     @FXML public Button btnMatchScheduleUpload;
     @FXML public Button btnMatchUpload;
     @FXML public Button btnMatchSync;
+    @FXML public Button btnMatchOpen;
     @FXML public TableView<MatchGeneral> tableMatches;
     @FXML public TableColumn<MatchGeneral, String> colMatchName;
     @FXML public TableColumn<MatchGeneral, Boolean> colMatchDone;
     @FXML public TableColumn<MatchGeneral, Boolean> colMatchPosted;
-    @FXML public Label labelMatchName;
     @FXML public Label labelScheduleUploaded;
-
+    @FXML public Label labelMatchLevel;
+    @FXML public Label labelMatchField;
+    @FXML public Label labelMatchPlay;
+    @FXML public Label labelMatchName;
+    @FXML public Label labelMatchKey;
     @FXML public Label labelRedAuto;
     @FXML public Label labelRedTele;
     @FXML public Label labelRedEnd;
@@ -75,14 +81,18 @@ public class DataSyncController implements Initializable {
 
     @FXML public Tab tabRankings;
 
+    @FXML public Tab tabSync;
+
     /* Instances of our tab controllers */
     private TeamsController teamsController;
     private MatchesController matchesController;
+    private SyncController syncController;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         this.teamsController = new TeamsController(this);
         this.matchesController = new MatchesController(this);
+        this.syncController = new SyncController(this);
 
         labelSetupTest.setTextFill(Color.RED);
         labelSetupDir.setTextFill(Color.RED);
@@ -118,6 +128,7 @@ public class DataSyncController implements Initializable {
                     btnSetupTestDir.setDisable(false);
 
                     matchesController.checkMatchSchedule();
+                    matchesController.checkMatchDetails();
                 } else {
                     sendError("Connection to TOA unsuccessful. " + response);
 
@@ -210,6 +221,16 @@ public class DataSyncController implements Initializable {
     @FXML
     public void postMatchSchedule() {
         this.matchesController.postMatchSchedule();
+    }
+
+    @FXML
+    public void postSelectedMatch() {
+        this.matchesController.postSelectedMatch();
+    }
+
+    @FXML
+    public void openMatchDetails() {
+        this.matchesController.openMatchDetails();
     }
 
 }
