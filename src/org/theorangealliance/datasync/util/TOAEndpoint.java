@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class TOAEndpoint implements Runnable {
 
-    private final String BASE_URL = "http://localhost:8080/apiv2/";
+    private final String BASE_URL = "https://theorangealliance.org/apiv2/";
     private String endpoint;
     private String requestType;
     private String apiKey;
