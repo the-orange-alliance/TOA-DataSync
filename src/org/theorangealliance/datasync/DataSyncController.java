@@ -9,17 +9,23 @@ import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import org.theorangealliance.datasync.models.MatchGeneral;
 import org.theorangealliance.datasync.models.Team;
+import org.theorangealliance.datasync.models.TeamRanking;
 import org.theorangealliance.datasync.tabs.MatchesController;
+import org.theorangealliance.datasync.tabs.RankingsController;
 import org.theorangealliance.datasync.tabs.SyncController;
 import org.theorangealliance.datasync.tabs.TeamsController;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 
 /**
@@ -41,7 +47,7 @@ public class DataSyncController implements Initializable {
     @FXML public Button btnSetupTestDir;
     @FXML public Label labelSetupDir;
 
-    /* This is for our teams tab */
+    /* This is for our teams tab. */
     @FXML public Tab tabTeams;
     @FXML public TableView<Team> tableTeams;
     @FXML public TableColumn colTeamsTeam;
@@ -53,7 +59,7 @@ public class DataSyncController implements Initializable {
     @FXML public Button btnTeamsPost;
     @FXML public Button btnTeamsDelete;
 
-    /* This is for our matches tab */
+    /* This is for our matches tab. */
     @FXML public Tab tabMatches;
     @FXML public Button btnMatchImport;
     @FXML public Button btnMatchScheduleUpload;
@@ -83,19 +89,36 @@ public class DataSyncController implements Initializable {
     @FXML public Label labelRedTeams;
     @FXML public Label labelBlueTeams;
 
+    /* This is for our rankings tab. */
     @FXML public Tab tabRankings;
+    @FXML public TableView<TeamRanking> tableRankings;
+    @FXML public TableColumn<TeamRanking, Integer> colRank;
+    @FXML public TableColumn<TeamRanking, Integer> colRankTeam;
+    @FXML public TableColumn<TeamRanking, Integer> colRankWins;
+    @FXML public TableColumn<TeamRanking, Integer> colRankLosses;
+    @FXML public TableColumn<TeamRanking, Integer> colRankTies;
+    @FXML public TableColumn<TeamRanking, Integer> colRankQP;
+    @FXML public TableColumn<TeamRanking, Integer> colRankRP;
+    @FXML public TableColumn<TeamRanking, Integer> colRankScore;
+    @FXML public TableColumn<TeamRanking, Integer> colRankPlayed;
+    @FXML public Button btnRankUpload;
 
+    /* This is for our sync tab. */
     @FXML public Tab tabSync;
+    @FXML public Button btnSyncStart;
+    @FXML public Button btnSyncStop;
 
-    /* Instances of our tab controllers */
+    /* Instances of our tab controllers. */
     private TeamsController teamsController;
     private MatchesController matchesController;
+    private RankingsController rankingsController;
     private SyncController syncController;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         this.teamsController = new TeamsController(this);
         this.matchesController = new MatchesController(this);
+        this.rankingsController = new RankingsController(this);
         this.syncController = new SyncController(this);
 
         labelSetupTest.setTextFill(Color.RED);
@@ -165,6 +188,15 @@ public class DataSyncController implements Initializable {
             File divisionsFile = new File(root + "\\divisions.txt");
             if (divisionsFile.exists()) {
                 Config.SCORING_DIR = root;
+
+                try {
+                    BufferedReader reader = new BufferedReader(new FileReader(divisionsFile));
+                    String line = reader.readLine();
+                    line = reader.readLine();
+                    Config.EVENT_NAME = line;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 labelSetupDir.setTextFill(Color.GREEN);
                 labelSetupDir.setText("Valid Directory.");
@@ -247,8 +279,34 @@ public class DataSyncController implements Initializable {
             Platform.runLater(() -> {
                 this.matchesController.syncMatches();
                 this.matchesController.checkMatchDetails();
+                this.rankingsController.syncRankings();
+                this.rankingsController.postRankings();
             });
         });
+    }
+
+    @FXML
+    public void stopAutoSync() {
+        this.syncController.kill();
+    }
+
+    @FXML
+    public void getRankingsByFile() {
+        this.rankingsController.getRankingsByFile();
+    }
+
+    @FXML
+    public void postRankings() {
+        this.rankingsController.postRankings();
+    }
+
+    @FXML
+    public void deleteRankings() {
+        this.rankingsController.deleteRankings();
+    }
+
+    public HashMap<Integer, int[]> getTeamWL() {
+        return this.matchesController.getTeamWL();
     }
 
 }

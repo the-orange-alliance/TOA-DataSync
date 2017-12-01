@@ -7,6 +7,7 @@ public class Config {
 
     public static String EVENT_API_KEY;
     public static String EVENT_ID;
+    public static String EVENT_NAME;
     public static String SCORING_DIR;
 
 }

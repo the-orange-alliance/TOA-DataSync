@@ -299,7 +299,37 @@
             </Tab>
             <Tab fx:id="tabRankings" disable="true" text="Rankings">
               <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TableView fx:id="tableRankings" prefHeight="200.0" prefWidth="720.0" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                          <columns>
+                            <TableColumn fx:id="colRank" prefWidth="75.0" resizable="false" text="Rank" />
+                            <TableColumn fx:id="colRankTeam" prefWidth="75.0" resizable="false" text="Team" />
+                              <TableColumn fx:id="colRankWins" prefWidth="75.0" resizable="false" text="Wins" />
+                              <TableColumn fx:id="colRankLosses" prefWidth="75.0" resizable="false" text="Losses" />
+                              <TableColumn fx:id="colRankTies" prefWidth="75.0" resizable="false" text="Ties" />
+                              <TableColumn fx:id="colRankQP" prefWidth="60.0" resizable="false" text="QP" />
+                              <TableColumn fx:id="colRankRP" prefWidth="60.0" resizable="false" text="RP" />
+                              <TableColumn fx:id="colRankScore" prefWidth="119.0" resizable="false" text="Highest Qual Score" />
+                              <TableColumn fx:id="colRankPlayed" prefWidth="105.0" resizable="false" text="Matches Played" />
+                          </columns>
+                        </TableView>
+                        <GridPane layoutY="376.0" prefHeight="50.0" prefWidth="720.0" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="376.0">
+                          <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                          </rowConstraints>
+                           <children>
+                              <Button fx:id="btnRankUpload" mnemonicParsing="false" onAction="#postRankings" text="Update Rankings on TOA" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                              <Button mnemonicParsing="false" onAction="#deleteRankings" text="Purge Rankings From TOA" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
+                              <Button mnemonicParsing="false" onAction="#getRankingsByFile" text="Import From Scoring System" GridPane.halignment="CENTER" />
+                           </children>
+                        </GridPane>
+                     </children></AnchorPane>
               </content>
             </Tab>
             <Tab fx:id="tabAllianceSelection" disable="true" text="Alliance Selection">
@@ -321,7 +351,36 @@
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <Button layoutX="311.0" layoutY="213.0" mnemonicParsing="false" onAction="#startAutoSync" text="Start Sync Loop" />
+                        <GridPane prefHeight="420.0" prefWidth="720.0" AnchorPane.bottomAnchor="31.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                          <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                          </rowConstraints>
+                           <children>
+                              <Button fx:id="btnSyncStart" mnemonicParsing="false" onAction="#startAutoSync" text="Start Sync Loop" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
+                              <Label text="Press this button to autosync" textAlignment="CENTER" wrapText="true" GridPane.columnIndex="2" GridPane.halignment="CENTER">
+                                 <font>
+                                    <Font name="System Bold Italic" size="19.0" />
+                                 </font>
+                              </Label>
+                              <Button fx:id="btnSyncStop" mnemonicParsing="false" onAction="#stopAutoSync" text="Stop Sync Loop" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
+                              <Label text="Press this button to not autosync" textAlignment="CENTER" wrapText="true" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="3">
+                                 <font>
+                                    <Font name="System Bold Italic" size="19.0" />
+                                 </font>
+                              </Label>
+                           </children>
+                        </GridPane>
                      </children>
                   </AnchorPane>
               </content>

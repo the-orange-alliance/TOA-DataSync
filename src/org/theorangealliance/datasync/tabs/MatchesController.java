@@ -42,6 +42,8 @@ public class MatchesController {
     private HashMap<MatchGeneral, MatchDetailRelicJSON> matchDetails;
     private MatchGeneral selectedMatch;
 
+    private HashMap<Integer, int[]> teamWinLoss;
+
     public MatchesController(DataSyncController instance) {
         this.controller = instance;
 
@@ -79,6 +81,7 @@ public class MatchesController {
 
         this.matchStations = new HashMap<>();
         this.matchDetails = new HashMap<>();
+        this.teamWinLoss = new HashMap<>();
         this.matchList = FXCollections.observableArrayList();
         this.controller.tableMatches.setItems(this.matchList);
         this.controller.tableMatches.getSelectionModel().selectedItemProperty().addListener(((observable, oldValue, newValue) -> {
@@ -189,6 +192,54 @@ public class MatchesController {
         }));
     }
 
+    private void calculateWL(MatchGeneral match, ScheduleStation[] stations) {
+        if (match.isDone()) {
+            boolean redWin = match.getRedScore() > match.getBlueScore();
+            boolean tie = match.getRedScore() == match.getBlueScore();
+            String resultStr = tie ? "TIE" : redWin ? "RED" : "BLUE";
+//            System.out.println(match.getMatchKey() + ": "  + resultStr);
+            for (ScheduleStation station : stations) {
+                if (station.getTeamKey() != 0) {
+                    int WINS = 0;
+                    int LOSS = 1;
+                    int TIES = 2;
+                    int[] result = teamWinLoss.get(station.getTeamKey());
+                    if (result != null) {
+                        if (redWin && station.getStation() < 20) {
+                            // Red win and this team is on red
+                            result[WINS]++;
+                        } else if (!redWin && station.getStation() > 20) {
+                            result[WINS]++;
+                        } else if (tie) {
+                            result[TIES]++;
+                        } else {
+                            result[LOSS]++;
+                        }
+                    } else {
+                        result = new int[3];
+                        if (redWin && station.getStation() < 20) {
+                            // Red win and this team is on red
+                            result[WINS] = 1;
+                            result[LOSS] = 0;
+                            result[TIES] = 0;
+                        } else if (!redWin && station.getStation() > 20) {
+                            result[WINS]++;
+                        } else if (tie) {
+                            result[WINS] = 0;
+                            result[LOSS] = 0;
+                            result[TIES] = 1;
+                        } else {
+                            result[WINS] = 0;
+                            result[LOSS] = 1;
+                            result[TIES] = 0;
+                        }
+                    }
+                    teamWinLoss.put(station.getTeamKey(), result);
+                }
+            }
+        }
+    }
+
     public void syncMatches() {
         if (matchList.size() <= 0) {
             getMatchesByFile();
@@ -196,6 +247,7 @@ public class MatchesController {
             File matchFile = new File(Config.SCORING_DIR + "\\matches.txt");
             if (matchFile.exists()) {
                 try {
+                    teamWinLoss.clear();
                     BufferedReader reader = new BufferedReader(new FileReader(matchFile));
                     String line;
                     int count = 0;
@@ -261,6 +313,7 @@ public class MatchesController {
                         match.setBlueEndScore((detailJSON.getBlueEndRelic1()*10) + (detailJSON.getBlueEndRelic2()*20) + (detailJSON.getBlueEndRelic3()*40) + (detailJSON.getBlueEndRelicUp()*15) + (detailJSON.getBlueEndRobotBal()*20));
                         match.setRedScore(match.getRedAutoScore()+match.getRedTeleScore()+match.getRedEndScore()+match.getRedPenalty());
                         match.setBlueScore(match.getBlueAutoScore()+match.getBlueTeleScore()+match.getBlueEndScore()+match.getBluePenalty());
+                        calculateWL(match, matchStations.get(match));
                         count++;
                     }
                     controller.tableMatches.refresh();
@@ -281,9 +334,11 @@ public class MatchesController {
         File matchFile = new File(Config.SCORING_DIR + "\\matches.txt");
         if (matchFile.exists()) {
             try {
+                controller.btnMatchUpload.setDisable(true);
                 matchList.clear();
                 matchStations.clear();
                 matchDetails.clear();
+                teamWinLoss.clear();
                 BufferedReader reader = new BufferedReader(new FileReader(matchFile));
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -370,6 +425,9 @@ public class MatchesController {
                     match.setBlueEndScore((detailJSON.getBlueEndRelic1()*10) + (detailJSON.getBlueEndRelic2()*20) + (detailJSON.getBlueEndRelic3()*40) + (detailJSON.getBlueEndRelicUp()*15) + (detailJSON.getBlueEndRobotBal()*20));
                     match.setRedScore(match.getRedAutoScore()+match.getRedTeleScore()+match.getRedEndScore()+match.getRedPenalty());
                     match.setBlueScore(match.getBlueAutoScore()+match.getBlueTeleScore()+match.getBlueEndScore()+match.getBluePenalty());
+
+                    calculateWL(match, scheduleStations);
+
                     matchList.add(match);
                     matchStations.put(match, scheduleStations);
                     matchDetails.put(match, detailJSON);
@@ -511,6 +569,7 @@ public class MatchesController {
 
             this.controller.btnMatchUpload.setVisible(true);
             this.controller.btnMatchSync.setVisible(true);
+            this.checkMatchSchedule();
         }
     }
 
@@ -565,6 +624,7 @@ public class MatchesController {
         scheduleEndpoint.setBody(requestBody);
         scheduleEndpoint.execute(((response, success) -> {
             if (success) {
+                controller.labelScheduleUploaded.setText("Schedule Already Posted.");
                 controller.sendInfo("Successfully uploaded data to TOA. " + response);
             } else {
                 controller.sendError("Connection to TOA unsuccessful. " + response);
@@ -577,6 +637,10 @@ public class MatchesController {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         return sdf.format(dt);
+    }
+
+    public HashMap<Integer, int[]> getTeamWL() {
+        return teamWinLoss;
     }
 
 }

@@ -1,7 +1,12 @@
 package org.theorangealliance.datasync.tabs;
 
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import org.theorangealliance.datasync.DataSyncController;
+import org.theorangealliance.datasync.util.Config;
 
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -21,14 +26,34 @@ public class SyncController implements Runnable {
         this.controller = instance;
         this.service = Executors.newSingleThreadScheduledExecutor();
         this.totalSyncs = 0;
+        this.controller.btnSyncStart.setDisable(false);
+        this.controller.btnSyncStop.setDisable(true);
     }
 
     public void execute(TOAExecuteAdapter toaExecuteAdapter) {
-        service.scheduleAtFixedRate(this, 0, 5, TimeUnit.SECONDS);
-        executeAdapter = toaExecuteAdapter;
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Are you sure about this?");
+        alert.setHeaderText("This operation cannot be undone.");
+        alert.setContentText("You are about to start AutoSync. This will automatically stage changes from the scoring system and make them ready to be uploaded. " +
+                "Rankings WILL AUTOMATICALLY BE UPLOADED ON COMPLETED MATCH. Match results, however, MUST be uploaded separately in the matches tab. Continue?");
+
+        ButtonType okayButton = new ButtonType("Sure?");
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(okayButton, cancelButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == okayButton) {
+            this.controller.btnSyncStart.setDisable(true);
+            controller.btnSyncStop.setDisable(false);
+            service.scheduleAtFixedRate(this, 0, 5, TimeUnit.SECONDS);
+            executeAdapter = toaExecuteAdapter;
+        }
     }
 
     public void kill() {
+        controller.btnSyncStart.setDisable(false);
+        controller.btnSyncStop.setDisable(true);
         service.shutdownNow();
     }
 
