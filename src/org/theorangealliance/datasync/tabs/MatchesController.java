@@ -85,6 +85,8 @@ public class MatchesController {
             if (newValue != null) {
                 selectedMatch = newValue;
                 openMatchView(newValue);
+            } else if (oldValue != null) {
+                selectedMatch = oldValue;
             } else {
                 selectedMatch = null;
             }
@@ -185,6 +187,94 @@ public class MatchesController {
                 this.controller.sendError("Error: " + response);
             }
         }));
+    }
+
+    public void syncMatches() {
+        if (matchList.size() <= 0) {
+            getMatchesByFile();
+        } else {
+            File matchFile = new File(Config.SCORING_DIR + "\\matches.txt");
+            if (matchFile.exists()) {
+                try {
+                    BufferedReader reader = new BufferedReader(new FileReader(matchFile));
+                    String line;
+                    int count = 0;
+                    while ((line = reader.readLine()) != null) {
+                        MatchGeneral match = matchList.get(count);
+                        String[] teamInfo = line.split("\\|\\|")[1].split("\\|");
+                        // Field 24 will be whether or not score is SAVED.
+                        // This is ALSO where the match details section begins.
+                        int saved = Integer.parseInt(teamInfo[24]);
+                        if (saved == 1) {
+                            match.setPlayNumber(1);
+                            match.setIsDone(true);
+                        }
+
+                        // Not very efficient, but it is what is is... I hate O(N^2) algorithms.
+                        for (MatchDetailRelicJSON detail : uploadedDetails) {
+                            if (detail.getMatchKey().equals(match.getMatchKey())) {
+                                match.setIsUploaded(true);
+                            }
+                        }
+
+                        MatchDetailRelicJSON detailJSON = matchDetails.get(match);
+                        detailJSON.setRedAutoJewel(Integer.parseInt(teamInfo[25]));
+                        detailJSON.setRedAutoGlyphs(Integer.parseInt(teamInfo[26]));
+                        detailJSON.setRedAutoKeys(Integer.parseInt(teamInfo[27]));
+                        detailJSON.setRedAutoPark(Integer.parseInt(teamInfo[28]));
+                        detailJSON.setRedTeleGlyphs(Integer.parseInt(teamInfo[29]));
+                        detailJSON.setRedTeleRows(Integer.parseInt(teamInfo[30]));
+                        detailJSON.setRedTeleColumns(Integer.parseInt(teamInfo[31]));
+                        detailJSON.setRedTeleCypher(Integer.parseInt(teamInfo[32]));
+                        detailJSON.setRedEndRelic1(Integer.parseInt(teamInfo[33]));
+                        detailJSON.setRedEndRelic2(Integer.parseInt(teamInfo[34]));
+                        detailJSON.setRedEndRelic3(Integer.parseInt(teamInfo[35]));
+                        detailJSON.setRedEndRelicUp(Integer.parseInt(teamInfo[36]));
+                        detailJSON.setRedEndRobotBal(Integer.parseInt(teamInfo[37]));
+                        detailJSON.setRedMinPen(Integer.parseInt(teamInfo[38]));
+                        detailJSON.setRedMajPen(Integer.parseInt(teamInfo[39]));
+                        detailJSON.setBlueAutoJewel(Integer.parseInt(teamInfo[42]));
+                        detailJSON.setBlueAutoGlyphs(Integer.parseInt(teamInfo[43]));
+                        detailJSON.setBlueAutoKeys(Integer.parseInt(teamInfo[44]));
+                        detailJSON.setBlueAutoPark(Integer.parseInt(teamInfo[45]));
+                        detailJSON.setBlueTeleGlyphs(Integer.parseInt(teamInfo[46]));
+                        detailJSON.setBlueTeleRows(Integer.parseInt(teamInfo[47]));
+                        detailJSON.setBlueTeleColumns(Integer.parseInt(teamInfo[48]));
+                        detailJSON.setBlueTeleCypher(Integer.parseInt(teamInfo[49]));
+                        detailJSON.setBlueEndRelic1(Integer.parseInt(teamInfo[50]));
+                        detailJSON.setBlueEndRelic2(Integer.parseInt(teamInfo[51]));
+                        detailJSON.setBlueEndRelic3(Integer.parseInt(teamInfo[52]));
+                        detailJSON.setBlueEndRelicUp(Integer.parseInt(teamInfo[53]));
+                        detailJSON.setBlueEndRobotBal(Integer.parseInt(teamInfo[54]));
+                        detailJSON.setBlueMinPen(Integer.parseInt(teamInfo[55]));
+                        detailJSON.setBlueMajPen(Integer.parseInt(teamInfo[56]));
+                        detailJSON.setMatchKey(match.getMatchKey());
+                        detailJSON.setMatchDtlKey(match.getMatchKey() + "-DTL");
+
+                        match.setRedPenalty((detailJSON.getBlueMinPen() * 10) + (detailJSON.getBlueMajPen() * 40));
+                        match.setBluePenalty((detailJSON.getRedMinPen() * 10) + (detailJSON.getRedMajPen() * 40));
+                        match.setRedAutoScore((detailJSON.getRedAutoGlyphs()*15) + (detailJSON.getRedAutoPark()*10) + (detailJSON.getRedAutoKeys()*30) + (detailJSON.getRedAutoJewel()*30));
+                        match.setBlueAutoScore((detailJSON.getBlueAutoGlyphs()*15) + (detailJSON.getBlueAutoPark()*10) + (detailJSON.getBlueAutoKeys()*30) + (detailJSON.getBlueAutoJewel()*30));
+                        match.setRedTeleScore((detailJSON.getRedTeleGlyphs()*2) + (detailJSON.getRedTeleRows()*10) + (detailJSON.getRedTeleColumns()*20) + (detailJSON.getRedTeleCypher()*30));
+                        match.setBlueTeleScore((detailJSON.getBlueTeleGlyphs()*2) + (detailJSON.getBlueTeleRows()*10) + (detailJSON.getBlueTeleColumns()*20) + (detailJSON.getBlueTeleCypher()*30));
+                        match.setRedEndScore((detailJSON.getRedEndRelic1()*10) + (detailJSON.getRedEndRelic2()*20) + (detailJSON.getRedEndRelic3()*40) + (detailJSON.getRedEndRelicUp()*15) + (detailJSON.getRedEndRobotBal()*20));
+                        match.setBlueEndScore((detailJSON.getBlueEndRelic1()*10) + (detailJSON.getBlueEndRelic2()*20) + (detailJSON.getBlueEndRelic3()*40) + (detailJSON.getBlueEndRelicUp()*15) + (detailJSON.getBlueEndRobotBal()*20));
+                        match.setRedScore(match.getRedAutoScore()+match.getRedTeleScore()+match.getRedEndScore()+match.getRedPenalty());
+                        match.setBlueScore(match.getBlueAutoScore()+match.getBlueTeleScore()+match.getBlueEndScore()+match.getBluePenalty());
+                        count++;
+                    }
+                    controller.tableMatches.refresh();
+                    reader.close();
+
+                    if (selectedMatch != null) {
+                        selectedMatch = matchList.get(selectedMatch.getCanonicalMatchNumber()-1);
+                        openMatchView(selectedMatch);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     public void getMatchesByFile() {
@@ -372,12 +462,21 @@ public class MatchesController {
                     }
                 }
 
+                MatchDetailRelicJSON detailJSON = null;
+
+                for (MatchDetailRelicJSON matchDetails : matchDetails.values()) {
+                    if (matchDetails.getMatchKey().equals(selectedMatch.getMatchKey())) {
+                        detailJSON = matchDetails;
+                        break;
+                    }
+                }
+
                 TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "upload/event/match/detail");
                 detailEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
                 TOARequestBody detailBody = new TOARequestBody();
                 detailBody.setEventKey(Config.EVENT_ID);
                 detailBody.setMatchKey(selectedMatch.getMatchKey());
-                detailBody.addValue(matchDetails.get(selectedMatch));
+                detailBody.addValue(detailJSON);
                 detailEndpoint.setBody(detailBody);
                 detailEndpoint.execute(((response, success) -> {
                     if (success) {

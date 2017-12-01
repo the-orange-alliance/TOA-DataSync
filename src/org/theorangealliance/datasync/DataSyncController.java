@@ -1,6 +1,7 @@
 package org.theorangealliance.datasync;
 
 import com.sun.corba.se.impl.orbutil.concurrent.Sync;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -16,6 +17,9 @@ import org.theorangealliance.datasync.util.TOAEndpoint;
 
 import java.io.File;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.ResourceBundle;
 
 /**
@@ -170,6 +174,7 @@ public class DataSyncController implements Initializable {
                 tabTeams.setDisable(false);
                 tabMatches.setDisable(false);
                 tabRankings.setDisable(false);
+                tabSync.setDisable(false);
             } else {
                 sendError("Scoring System not setup. Are you using the right directory?");
             }
@@ -231,6 +236,19 @@ public class DataSyncController implements Initializable {
     @FXML
     public void openMatchDetails() {
         this.matchesController.openMatchDetails();
+    }
+
+    @FXML
+    public void startAutoSync() {
+        DataSync.getMainStage().setOnCloseRequest(closeEvent -> this.syncController.kill());
+        this.syncController.execute((count) -> {
+            Date date = new Date();
+            System.out.println("Executing update #" + count + " at " + DateFormat.getTimeInstance(DateFormat.SHORT).format(date));
+            Platform.runLater(() -> {
+                this.matchesController.syncMatches();
+                this.matchesController.checkMatchDetails();
+            });
+        });
     }
 
 }

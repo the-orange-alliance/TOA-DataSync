@@ -319,7 +319,11 @@
             </Tab>
             <Tab fx:id="tabSync" disable="true" text="Auto-Sync">
               <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <Button layoutX="311.0" layoutY="213.0" mnemonicParsing="false" onAction="#startAutoSync" text="Start Sync Loop" />
+                     </children>
+                  </AnchorPane>
               </content>
             </Tab>
         </tabs>
