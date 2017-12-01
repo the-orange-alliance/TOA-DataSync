@@ -133,11 +133,12 @@
                         <TableView fx:id="tableTeams" prefHeight="385.0" prefWidth="720.0" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <columns>
                             <TableColumn fx:id="colTeamsTeam" prefWidth="75.0" resizable="false" text="TeamID" />
-                            <TableColumn fx:id="colTeamsRegion" prefWidth="75.0" resizable="false" text="RegionID" />
-                              <TableColumn fx:id="colTeamsLeague" prefWidth="75.0" resizable="false" text="LeagueID" />
-                              <TableColumn fx:id="colTeamsShort" prefWidth="175.0" resizable="false" text="Team Name (Short)" />
-                              <TableColumn fx:id="colTeamsLong" prefWidth="200.0" resizable="false" text="Team Name (Long)" />
-                              <TableColumn fx:id="colTeamsLocation" prefWidth="119.0" resizable="false" text="Location" />
+                              <TableColumn fx:id="colTeamDiv" prefWidth="34.0" resizable="false" text="Div." />
+                            <TableColumn fx:id="colTeamsRegion" prefWidth="85.0" resizable="false" text="RegionID" />
+                              <TableColumn fx:id="colTeamsLeague" prefWidth="85.0" resizable="false" text="LeagueID" />
+                              <TableColumn fx:id="colTeamsShort" prefWidth="150.0" resizable="false" text="Team Name (Short)" />
+                              <TableColumn fx:id="colTeamsLong" prefWidth="165.0" resizable="false" text="Team Name (Long)" />
+                              <TableColumn fx:id="colTeamsLocation" minWidth="-1.0" prefWidth="125.0" resizable="false" text="Location" />
                           </columns>
                         </TableView>
                         <GridPane layoutY="385.0" prefHeight="42.0" prefWidth="720.0">
@@ -367,14 +368,27 @@
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                           </rowConstraints>
                            <children>
-                              <Button fx:id="btnSyncStart" mnemonicParsing="false" onAction="#startAutoSync" text="Start Sync Loop" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
-                              <Label text="Press this button to autosync" textAlignment="CENTER" wrapText="true" GridPane.columnIndex="2" GridPane.halignment="CENTER">
+                              <Button fx:id="btnSyncStart" mnemonicParsing="false" onAction="#startAutoSync" text="Start Sync Loop" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+                              <Label text="Press this button to autosync" textAlignment="CENTER" wrapText="true" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1">
                                  <font>
                                     <Font name="System Bold Italic" size="19.0" />
                                  </font>
                               </Label>
-                              <Button fx:id="btnSyncStop" mnemonicParsing="false" onAction="#stopAutoSync" text="Stop Sync Loop" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
-                              <Label text="Press this button to not autosync" textAlignment="CENTER" wrapText="true" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="3">
+                              <Button fx:id="btnSyncStop" mnemonicParsing="false" onAction="#stopAutoSync" text="Stop Sync Loop" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+                              <Label text="Press this button to not autosync" textAlignment="CENTER" wrapText="true" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="1">
+                                 <font>
+                                    <Font name="System Bold Italic" size="19.0" />
+                                 </font>
+                              </Label>
+                              <CheckBox fx:id="btnSyncMatches" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="0.0" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.valignment="CENTER">
+                                 <font>
+                                    <Font size="34.0" />
+                                 </font>
+                                 <GridPane.margin>
+                                    <Insets left="15.0" />
+                                 </GridPane.margin>
+                              </CheckBox>
+                              <Label text="Check this to autosync matches to TOA" textAlignment="CENTER" wrapText="true" GridPane.columnIndex="2" GridPane.rowIndex="3">
                                  <font>
                                     <Font name="System Bold Italic" size="19.0" />
                                  </font>

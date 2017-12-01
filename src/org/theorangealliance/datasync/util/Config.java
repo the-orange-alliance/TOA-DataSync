@@ -9,5 +9,7 @@ public class Config {
     public static String EVENT_ID;
     public static String EVENT_NAME;
     public static String SCORING_DIR;
+    public static boolean DUAL_DIVISION_EVENT = false;
+    public static String DIVISION_NAME;
 
 }

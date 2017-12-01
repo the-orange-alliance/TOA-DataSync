@@ -9,14 +9,16 @@ import javafx.beans.property.SimpleStringProperty;
 public class Team {
 
     private final SimpleIntegerProperty teamKey;
+    private final SimpleIntegerProperty teamDivKey;
     private final SimpleStringProperty regionKey;
     private final SimpleStringProperty leagueKey;
     private final SimpleStringProperty teamNameShort;
     private final SimpleStringProperty teamNameLong;
     private final SimpleStringProperty location;
 
-    public Team(int teamKey, String regionKey, String leagueKey, String teamNameShort, String teamNameLong, String location) {
+    public Team(int teamKey, int teamDivKey, String regionKey, String leagueKey, String teamNameShort, String teamNameLong, String location) {
         this.teamKey = new SimpleIntegerProperty(teamKey);
+        this.teamDivKey = new SimpleIntegerProperty(teamDivKey);
         this.regionKey = new SimpleStringProperty(regionKey);
         this.leagueKey = new SimpleStringProperty(leagueKey);
         this.teamNameShort = new SimpleStringProperty(teamNameShort);
@@ -24,8 +26,14 @@ public class Team {
         this.location = new SimpleStringProperty(location);
     }
 
+
+
     public void setTeamKey(int teamKey) {
         this.teamKey.set(teamKey);
+    }
+
+    public void setTeamDivKey(int teamDivKey) {
+        this.teamDivKey.set(teamDivKey);
     }
 
     public void setRegionKey(String regionKey) {
@@ -50,6 +58,10 @@ public class Team {
 
     public int getTeamKey() {
         return this.teamKey.get();
+    }
+
+    public int getTeamDivKey() {
+        return this.teamDivKey.get();
     }
 
     public String getRegionKey() {

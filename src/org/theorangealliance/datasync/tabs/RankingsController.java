@@ -18,6 +18,8 @@ import org.theorangealliance.datasync.util.TOAEndpoint;
 import org.theorangealliance.datasync.util.TOARequestBody;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Optional;
 
@@ -51,7 +53,12 @@ public class RankingsController {
             getRankingsByFile();
         } else {
             try {
-                File rankReport = new File(Config.SCORING_DIR + "\\reports\\Rankings_" + Config.EVENT_NAME.replace(" ", "_") + ".html");
+                File rankReport;
+                if (Config.DUAL_DIVISION_EVENT) {
+                    rankReport = new File(Config.SCORING_DIR + "\\reports\\Rankings_" + Config.EVENT_NAME.replace(" ", "_") + "_" + Config.DIVISION_NAME.replace(" ", "_") + ".html");
+                } else {
+                    rankReport = new File(Config.SCORING_DIR + "\\reports\\Rankings_" + Config.EVENT_NAME.replace(" ", "_") + ".html");
+                }
                 Document rankDoc = Jsoup.parse(rankReport, "UTF-8");
                 Element tableBody = rankDoc.body().getElementsByAttribute("cellpadding").first().child(0);
                 Elements rankElems = tableBody.getElementsByAttribute("align");
@@ -86,7 +93,12 @@ public class RankingsController {
 
     public void getRankingsByFile() {
         try {
-            File rankReport = new File(Config.SCORING_DIR + "\\reports\\Rankings_" + Config.EVENT_NAME.replace(" ", "_") + ".html");
+            File rankReport;
+            if (Config.DUAL_DIVISION_EVENT) {
+                rankReport = new File(Config.SCORING_DIR + "\\reports\\Rankings_" + Config.EVENT_NAME.replace(" ", "_") + "_" + Config.DIVISION_NAME.replace(" ", "_") + ".html");
+            } else {
+                rankReport = new File(Config.SCORING_DIR + "\\reports\\Rankings_" + Config.EVENT_NAME.replace(" ", "_") + ".html");
+            }
             Document rankDoc = Jsoup.parse(rankReport, "UTF-8");
             Element tableBody = rankDoc.body().getElementsByAttribute("cellpadding").first().child(0);
             Elements rankElems = tableBody.getElementsByAttribute("align");
@@ -114,8 +126,8 @@ public class RankingsController {
                 }
                 this.controller.btnRankUpload.setDisable(false);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            System.out.println("Error reading rankings file: " + ex.getLocalizedMessage());
         }
     }
 

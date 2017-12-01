@@ -35,6 +35,7 @@ public class TeamsController {
     public TeamsController(DataSyncController instance) {
         this.controller = instance;
         this.controller.colTeamsTeam.setCellValueFactory(new PropertyValueFactory<Team, Integer>("teamKey"));
+        this.controller.colTeamDiv.setCellValueFactory(new PropertyValueFactory<Team, Integer>("teamDivKey"));
         this.controller.colTeamsRegion.setCellValueFactory(new PropertyValueFactory<Team, String>("regionKey"));
         this.controller.colTeamsLeague.setCellValueFactory(new PropertyValueFactory<Team, String>("leagueKey"));
         this.controller.colTeamsShort.setCellValueFactory(new PropertyValueFactory<Team, String>("teamNameShort"));
@@ -57,8 +58,19 @@ public class TeamsController {
                controller.sendInfo("Successfully pulled teams for event " + Config.EVENT_ID);
                TeamJSON[] teams = teamsEndpoint.getGson().fromJson(response, TeamJSON[].class);
                for (TeamJSON team : teams) {
+                   int divKey = 1;
+                   if (Config.DUAL_DIVISION_EVENT) {
+                       String[] args = team.getParticipantKey().split("-");
+                       String eventKey = args[2];
+                       try {
+                           divKey = Integer.parseInt(eventKey.substring(eventKey.length()-1, eventKey.length()));
+                       } catch (Exception e) {
+                           divKey = 1;
+                       }
+                   }
                    Team eventTeam = new Team(
                            team.getTeamKey(),
+                           divKey,
                            team.getRegionKey(),
                            team.getLeagueKey(),
                            team.getTeamNameShort(),
@@ -90,6 +102,7 @@ public class TeamsController {
                     String[] values = line.split("\\|");
                     Team team = new Team(
                             Integer.parseInt(values[1]),
+                            Integer.parseInt(values[0]),
                             "",
                             "",
                             values[2],
@@ -131,12 +144,27 @@ public class TeamsController {
             deleteEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
             TOARequestBody requestBody = new TOARequestBody();
             requestBody.setEventKey(Config.EVENT_ID);
+            int div1 = 0;
+            int div2 = 0;
             for (int i = 0; i < teamsList.size(); i++) {
                 Team team = teamsList.get(i);
                 EventParticipantJSON eventTeam = new EventParticipantJSON();
-                eventTeam.setParticipantKey(Config.EVENT_ID + "-T" + (i+1));
+
+                if (Config.DUAL_DIVISION_EVENT) {
+                    String newEventID = Config.EVENT_ID.substring(0, Config.EVENT_ID.length()-1);
+                    if (team.getTeamDivKey() == 1) {
+                        eventTeam.setParticipantKey(newEventID + team.getTeamDivKey() + "-T" + (div1+1));
+                        eventTeam.setEventKey(newEventID + team.getTeamDivKey());
+                        div1++;
+                    } else {
+                        eventTeam.setParticipantKey(newEventID + team.getTeamDivKey() + "-T" + (div2+1));
+                        eventTeam.setEventKey(newEventID + team.getTeamDivKey());
+                        div2++;
+                    }
+                } else {
+                    eventTeam.setParticipantKey(Config.EVENT_ID + "-T" + (i+1));
+                }
                 eventTeam.setTeamKey(team.getTeamKey());
-                eventTeam.setEventKey(Config.EVENT_ID);
                 eventTeam.setIsActive(1);
                 eventTeam.setAddedFromUI(1);
                 eventTeam.setCreatedBy("TOA-DataSync");

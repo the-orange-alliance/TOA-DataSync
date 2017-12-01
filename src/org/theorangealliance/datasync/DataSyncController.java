@@ -7,6 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
+import org.theorangealliance.datasync.json.EventJSON;
 import org.theorangealliance.datasync.models.MatchGeneral;
 import org.theorangealliance.datasync.models.Team;
 import org.theorangealliance.datasync.models.TeamRanking;
@@ -51,6 +52,7 @@ public class DataSyncController implements Initializable {
     @FXML public Tab tabTeams;
     @FXML public TableView<Team> tableTeams;
     @FXML public TableColumn colTeamsTeam;
+    @FXML public TableColumn colTeamDiv;
     @FXML public TableColumn colTeamsRegion;
     @FXML public TableColumn colTeamsLeague;
     @FXML public TableColumn colTeamsShort;
@@ -107,6 +109,7 @@ public class DataSyncController implements Initializable {
     @FXML public Tab tabSync;
     @FXML public Button btnSyncStart;
     @FXML public Button btnSyncStop;
+    @FXML public CheckBox btnSyncMatches;
 
     /* Instances of our tab controllers. */
     private TeamsController teamsController;
@@ -127,17 +130,13 @@ public class DataSyncController implements Initializable {
         txtSetupDir.setEditable(false);
         btnSetupSelect.setDisable(true);
         btnSetupTestDir.setDisable(true);
-
-        txtSetupKey.setText("TESTING_123_R3L1C");
-        txtSetupID.setText("1718-FIM-TST");
-        txtSetupDir.setText("C:\\Users\\Kyle Flynn\\Desktop\\FTC Stuff\\Scoring System");
     }
 
     @FXML
     public void testConnection() {
         if (txtSetupKey.getText().length() > 0 && txtSetupKey.getText().length() > 0) {
             // This will grab the base URL.
-            TOAEndpoint testConnection = new TOAEndpoint("POST", "upload");
+            TOAEndpoint testConnection = new TOAEndpoint("GET", "event/" + txtSetupID.getText());
             testConnection.setCredentials(txtSetupKey.getText(), txtSetupID.getText());
             testConnection.execute((response, success) -> {
                 if (success) {
@@ -145,7 +144,15 @@ public class DataSyncController implements Initializable {
                     Config.EVENT_API_KEY = txtSetupKey.getText();
                     Config.EVENT_ID = txtSetupID.getText();
 
-                    sendInfo("Connection to TOA was successful. Proceed to Scoring System setup.");
+                    EventJSON[] events = testConnection.getGson().fromJson(response, EventJSON[].class);
+                    if (events[0] != null) {
+                        if (events[0].getDivisionName() != null || events[0].getDivisionKey() > 0) {
+                            Config.DUAL_DIVISION_EVENT = true;
+                            sendInfo("Connection to TOA was successful. DETECTED DUAL DIVISION EVENT. Proceed to Scoring System setup.");
+                        } else {
+                            sendInfo("Connection to TOA was successful. Proceed to Scoring System setup.");
+                        }
+                    }
 
                     labelSetupTest.setText("Connection Successful");
                     labelSetupTest.setTextFill(Color.GREEN);
@@ -194,6 +201,11 @@ public class DataSyncController implements Initializable {
                     String line = reader.readLine();
                     line = reader.readLine();
                     Config.EVENT_NAME = line;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.split("\\|").length > 3) {
+                            Config.DIVISION_NAME = line.split("\\|")[1];
+                        }
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -281,6 +293,9 @@ public class DataSyncController implements Initializable {
                 this.matchesController.checkMatchDetails();
                 this.rankingsController.syncRankings();
                 this.rankingsController.postRankings();
+                if (this.btnSyncMatches.selectedProperty().get()) {
+                     this.matchesController.postCompletedMatches();
+                }
             });
         });
     }

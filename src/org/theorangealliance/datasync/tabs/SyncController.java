@@ -24,10 +24,9 @@ public class SyncController implements Runnable {
 
     public SyncController(DataSyncController instance) {
         this.controller = instance;
-        this.service = Executors.newSingleThreadScheduledExecutor();
-        this.totalSyncs = 0;
         this.controller.btnSyncStart.setDisable(false);
         this.controller.btnSyncStop.setDisable(true);
+        this.controller.btnSyncMatches.setDisable(false);
     }
 
     public void execute(TOAExecuteAdapter toaExecuteAdapter) {
@@ -44,8 +43,11 @@ public class SyncController implements Runnable {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == okayButton) {
+            this.service = Executors.newSingleThreadScheduledExecutor();
             this.controller.btnSyncStart.setDisable(true);
+            this.totalSyncs = 0;
             controller.btnSyncStop.setDisable(false);
+            controller.btnSyncMatches.setDisable(true);
             service.scheduleAtFixedRate(this, 0, 5, TimeUnit.SECONDS);
             executeAdapter = toaExecuteAdapter;
         }
@@ -54,6 +56,7 @@ public class SyncController implements Runnable {
     public void kill() {
         controller.btnSyncStart.setDisable(false);
         controller.btnSyncStop.setDisable(true);
+        controller.btnSyncMatches.setDisable(false);
         service.shutdownNow();
     }
 

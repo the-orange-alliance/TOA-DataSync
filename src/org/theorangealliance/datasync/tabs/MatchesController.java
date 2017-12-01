@@ -44,6 +44,8 @@ public class MatchesController {
 
     private HashMap<Integer, int[]> teamWinLoss;
 
+    private Queue<MatchGeneral> uploadQueue;
+
     public MatchesController(DataSyncController instance) {
         this.controller = instance;
 
@@ -79,6 +81,7 @@ public class MatchesController {
             }
         });
 
+        this.uploadQueue = new LinkedList<>();
         this.matchStations = new HashMap<>();
         this.matchDetails = new HashMap<>();
         this.teamWinLoss = new HashMap<>();
@@ -168,11 +171,11 @@ public class MatchesController {
                 if (uploadedMatches.size() > 0) {
                     this.controller.labelScheduleUploaded.setTextFill(Color.GREEN);
                     this.controller.labelScheduleUploaded.setText("Schedule Already Posted");
-                    this.controller.sendInfo("Match Schedule Already Posted");
+//                    this.controller.sendInfo("Match Schedule Already Posted");
                 } else {
                     this.controller.labelScheduleUploaded.setTextFill(Color.GREEN);
                     this.controller.labelScheduleUploaded.setText("Schedule NOT Posted");
-                    this.controller.sendInfo("Match Schedule NOT Posted");
+//                    this.controller.sendInfo("Match Schedule NOT Posted");
                 }
             } else {
                 this.controller.sendError("Error: " + response);
@@ -247,6 +250,7 @@ public class MatchesController {
             File matchFile = new File(Config.SCORING_DIR + "\\matches.txt");
             if (matchFile.exists()) {
                 try {
+                    uploadQueue.clear();
                     teamWinLoss.clear();
                     BufferedReader reader = new BufferedReader(new FileReader(matchFile));
                     String line;
@@ -315,6 +319,10 @@ public class MatchesController {
                         match.setBlueScore(match.getBlueAutoScore()+match.getBlueTeleScore()+match.getBlueEndScore()+match.getBluePenalty());
                         calculateWL(match, matchStations.get(match));
                         count++;
+
+                        if (match.isDone() && !match.isUploaded()) {
+                            uploadQueue.add(match);
+                        }
                     }
                     controller.tableMatches.refresh();
                     reader.close();
@@ -452,6 +460,91 @@ public class MatchesController {
             }
         } else {
             controller.sendError("Could not locate matches.txt from the Scoring System. Did you generate a match schedule?");
+        }
+    }
+
+    public void postCompletedMatches() {
+        if (uploadQueue.size() > 0) {
+            for (MatchGeneral completeMatch : uploadQueue) {
+                String methodType = "POST";
+                for (MatchGeneralJSON match : uploadedMatches) {
+                    if (match.getMatchKey().equals(completeMatch.getMatchKey())) {
+                        methodType = "PUT";
+                    }
+                }
+                TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "upload/event/match");
+                matchEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                TOARequestBody requestBody = new TOARequestBody();
+                requestBody.setEventKey(Config.EVENT_ID);
+                requestBody.setMatchKey(completeMatch.getMatchKey());
+                MatchGeneralJSON matchJSON = new MatchGeneralJSON();
+                matchJSON.setMatchKey(completeMatch.getMatchKey());
+                matchJSON.setCreatedBy("TOA-DataSync");
+                matchJSON.setCreatedOn(getCurrentTime());
+                matchJSON.setEventKey(Config.EVENT_ID);
+                matchJSON.setFieldNumber(completeMatch.getFieldNumber());
+                matchJSON.setMatchName(completeMatch.getMatchName());
+                matchJSON.setPlayNumber(1);
+                matchJSON.setTournamentLevel(completeMatch.getTournamentLevel());
+                matchJSON.setRedAutoScore(completeMatch.getRedAutoScore());
+                matchJSON.setRedTeleScore(completeMatch.getRedTeleScore());
+                matchJSON.setRedEndScore(completeMatch.getRedEndScore());
+                matchJSON.setRedPenalty(completeMatch.getRedPenalty());
+                matchJSON.setRedScore(completeMatch.getRedScore());
+                matchJSON.setBlueAutoScore(completeMatch.getBlueAutoScore());
+                matchJSON.setBlueTeleScore(completeMatch.getBlueTeleScore());
+                matchJSON.setBlueEndScore(completeMatch.getBlueEndScore());
+                matchJSON.setBluePenalty(completeMatch.getBluePenalty());
+                matchJSON.setBlueScore(completeMatch.getBlueScore());
+                requestBody.addValue(matchJSON);
+                matchEndpoint.setBody(requestBody);
+                matchEndpoint.execute(((response, success) -> {
+                    if (success) {
+                        controller.sendInfo("Successfully uploaded results to TOA. " + response);
+                    } else {
+                        controller.sendError("Connection to TOA unsuccessful. " + response);
+                    }
+                }));
+
+                methodType = "POST";
+                if (completeMatch.isUploaded()) {
+                    methodType = "PUT";
+                } else {
+                    for (MatchDetailRelicJSON detail : uploadedDetails) {
+                        if (detail.getMatchKey().equals(completeMatch.getMatchKey())) {
+                            methodType = "PUT";
+                        }
+                    }
+                }
+
+                MatchDetailRelicJSON detailJSON = null;
+
+                for (MatchDetailRelicJSON matchDetails : matchDetails.values()) {
+                    if (matchDetails.getMatchKey().equals(completeMatch.getMatchKey())) {
+                        detailJSON = matchDetails;
+                        break;
+                    }
+                }
+
+                TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "upload/event/match/detail");
+                detailEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                TOARequestBody detailBody = new TOARequestBody();
+                detailBody.setEventKey(Config.EVENT_ID);
+                detailBody.setMatchKey(completeMatch.getMatchKey());
+                detailBody.addValue(detailJSON);
+                detailEndpoint.setBody(detailBody);
+                detailEndpoint.execute(((response, success) -> {
+                    if (success) {
+                        uploadQueue.remove(completeMatch);
+                        matchList.get(completeMatch.getCanonicalMatchNumber()-1).setIsUploaded(true);
+                        controller.tableMatches.refresh();
+                        controller.sendInfo("Successfully uploaded detail results to TOA. " + response);
+                        checkMatchDetails();
+                    } else {
+                        controller.sendError("Connection to TOA unsuccessful. " + response);
+                    }
+                }));
+            }
         }
     }
 
