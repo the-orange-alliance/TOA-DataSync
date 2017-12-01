@@ -40,14 +40,6 @@ public class MatchGeneral {
         this.fieldNumber = fieldNumber;
     }
 
-    public static char getMatchChar(String matchName) {
-        if (matchName.contains("Quals")) {
-            return 'Q';
-        } else {
-            return 'E';
-        }
-    }
-
     public static int buildTOATournamentLevel(int tournamentLevel, int matchNumber) {
         int level = 0;
         switch (tournamentLevel) {

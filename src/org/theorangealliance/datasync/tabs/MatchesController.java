@@ -11,6 +11,8 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.paint.Color;
 import org.theorangealliance.datasync.DataSyncController;
+import org.theorangealliance.datasync.json.MatchDetailRelicJSON;
+import org.theorangealliance.datasync.json.MatchGeneralJSON;
 import org.theorangealliance.datasync.json.MatchScheduleGeneralJSON;
 import org.theorangealliance.datasync.json.MatchScheduleStationJSON;
 import org.theorangealliance.datasync.models.MatchGeneral;
@@ -19,13 +21,12 @@ import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 import org.theorangealliance.datasync.util.TOARequestBody;
 
+import javax.jnlp.IntegrationService;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Created by Kyle Flynn on 11/29/2017.
@@ -34,9 +35,12 @@ public class MatchesController {
 
     private DataSyncController controller;
     private ObservableList<MatchGeneral> matchList;
-    private MatchGeneral[] uploadedMatches;
+    private HashSet<MatchGeneralJSON> uploadedMatches;
+    private HashSet<MatchDetailRelicJSON> uploadedDetails;
 
     private HashMap<MatchGeneral, ScheduleStation[]> matchStations;
+    private HashMap<MatchGeneral, MatchDetailRelicJSON> matchDetails;
+    private MatchGeneral selectedMatch;
 
     public MatchesController(DataSyncController instance) {
         this.controller = instance;
@@ -74,10 +78,16 @@ public class MatchesController {
         });
 
         this.matchStations = new HashMap<>();
+        this.matchDetails = new HashMap<>();
         this.matchList = FXCollections.observableArrayList();
         this.controller.tableMatches.setItems(this.matchList);
         this.controller.tableMatches.getSelectionModel().selectedItemProperty().addListener(((observable, oldValue, newValue) -> {
-            openMatchView(newValue);
+            if (newValue != null) {
+                selectedMatch = newValue;
+                openMatchView(newValue);
+            } else {
+                selectedMatch = null;
+            }
         }));
 
         this.controller.btnMatchScheduleUpload.setDisable(true);
@@ -85,9 +95,12 @@ public class MatchesController {
         this.controller.btnMatchUpload.setDisable(true);
         this.controller.btnMatchSync.setVisible(false);
         this.controller.btnMatchSync.setDisable(true);
+        this.controller.btnMatchOpen.setVisible(false);
+        this.controller.btnMatchOpen.setDisable(true);
     }
 
     private void openMatchView(MatchGeneral match) {
+        controller.btnMatchOpen.setDisable(false);
         if (match.isDone()) {
             controller.btnMatchUpload.setDisable(false);
         } else {
@@ -102,6 +115,12 @@ public class MatchesController {
             controller.labelRedTeams.setText(redTeams + " " + redFinalTeam);
             controller.labelBlueTeams.setText(blueTeams + " " + blueFinalTeam);
         }
+
+        controller.labelMatchLevel.setText("Level: " + match.getTournamentLevel());
+        controller.labelMatchField.setText("Field: " + match.getFieldNumber());
+        controller.labelMatchPlay.setText("Play: " + match.getPlayNumber());
+        controller.labelMatchName.setText(match.getMatchName());
+        controller.labelMatchKey.setText(match.getMatchKey());
 
         controller.labelRedAuto.setUnderline(match.getRedAutoScore() >= match.getBlueAutoScore());
         controller.labelBlueAuto.setUnderline(match.getRedAutoScore() <= match.getBlueAutoScore());
@@ -129,8 +148,8 @@ public class MatchesController {
         controller.labelBlueScore.setText("" + match.getBlueScore());
     }
 
-    private void updateMatchDetails() {
-
+    public void openMatchDetails() {
+        // TODO - Actually make
     }
 
     public void checkMatchSchedule() {
@@ -140,8 +159,8 @@ public class MatchesController {
         matchesEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
         matchesEndpoint.execute(((response, success) -> {
             if (success) {
-                uploadedMatches = matchesEndpoint.getGson().fromJson(response, MatchGeneral[].class);
-                if (uploadedMatches.length > 0) {
+                uploadedMatches = new HashSet<>(Arrays.asList(matchesEndpoint.getGson().fromJson(response, MatchGeneralJSON[].class)));
+                if (uploadedMatches.size() > 0) {
                     this.controller.labelScheduleUploaded.setTextFill(Color.GREEN);
                     this.controller.labelScheduleUploaded.setText("Schedule Already Posted");
                     this.controller.sendInfo("Match Schedule Already Posted");
@@ -156,11 +175,25 @@ public class MatchesController {
         }));
     }
 
+    public void checkMatchDetails() {
+        TOAEndpoint matchesEndpoint = new TOAEndpoint("GET", "event/" + Config.EVENT_ID + "/matches/details");
+        matchesEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        matchesEndpoint.execute(((response, success) -> {
+            if (success) {
+                uploadedDetails = new HashSet<>(Arrays.asList(matchesEndpoint.getGson().fromJson(response, MatchDetailRelicJSON[].class)));
+            } else {
+                this.controller.sendError("Error: " + response);
+            }
+        }));
+    }
+
     public void getMatchesByFile() {
         File matchFile = new File(Config.SCORING_DIR + "\\matches.txt");
         if (matchFile.exists()) {
             try {
                 matchList.clear();
+                matchStations.clear();
+                matchDetails.clear();
                 BufferedReader reader = new BufferedReader(new FileReader(matchFile));
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -178,12 +211,6 @@ public class MatchesController {
                     char qualChar = match.getMatchName().contains("Qual") ? 'Q' : 'E';
                     match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", match.getCanonicalMatchNumber()) + "-1");
 
-                    if (playNumber > 0) {
-                        match.setIsDone(true);
-                    }
-
-                    matchList.add(match);
-
                     /** TEAM info */
                     String[] teamInfo = line.split("\\|\\|")[1].split("\\|");
                     ScheduleStation[] scheduleStations = new ScheduleStation[6];
@@ -193,18 +220,82 @@ public class MatchesController {
                     scheduleStations[3] = new ScheduleStation(match.getMatchKey(), 21, Integer.parseInt(teamInfo[3]));
                     scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, Integer.parseInt(teamInfo[4]));
                     scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, Integer.parseInt(teamInfo[5]));
+
+                    // Field 24 will be whether or not score is SAVED.
+                    // This is ALSO where the match details section begins.
+                    int saved = Integer.parseInt(teamInfo[24]);
+                    if (saved == 1) {
+                        match.setPlayNumber(1);
+                        match.setIsDone(true);
+                    }
+
+                    // Not very efficient, but it is what is is... I hate O(N^2) algorithms.
+                    for (MatchDetailRelicJSON detail : uploadedDetails) {
+                        if (detail.getMatchKey().equals(match.getMatchKey())) {
+                            match.setIsUploaded(true);
+                        }
+                    }
+
+                    MatchDetailRelicJSON detailJSON = new MatchDetailRelicJSON();
+                    detailJSON.setRedAutoJewel(Integer.parseInt(teamInfo[25]));
+                    detailJSON.setRedAutoGlyphs(Integer.parseInt(teamInfo[26]));
+                    detailJSON.setRedAutoKeys(Integer.parseInt(teamInfo[27]));
+                    detailJSON.setRedAutoPark(Integer.parseInt(teamInfo[28]));
+                    detailJSON.setRedTeleGlyphs(Integer.parseInt(teamInfo[29]));
+                    detailJSON.setRedTeleRows(Integer.parseInt(teamInfo[30]));
+                    detailJSON.setRedTeleColumns(Integer.parseInt(teamInfo[31]));
+                    detailJSON.setRedTeleCypher(Integer.parseInt(teamInfo[32]));
+                    detailJSON.setRedEndRelic1(Integer.parseInt(teamInfo[33]));
+                    detailJSON.setRedEndRelic2(Integer.parseInt(teamInfo[34]));
+                    detailJSON.setRedEndRelic3(Integer.parseInt(teamInfo[35]));
+                    detailJSON.setRedEndRelicUp(Integer.parseInt(teamInfo[36]));
+                    detailJSON.setRedEndRobotBal(Integer.parseInt(teamInfo[37]));
+                    detailJSON.setRedMinPen(Integer.parseInt(teamInfo[38]));
+                    detailJSON.setRedMajPen(Integer.parseInt(teamInfo[39]));
+                    detailJSON.setBlueAutoJewel(Integer.parseInt(teamInfo[42]));
+                    detailJSON.setBlueAutoGlyphs(Integer.parseInt(teamInfo[43]));
+                    detailJSON.setBlueAutoKeys(Integer.parseInt(teamInfo[44]));
+                    detailJSON.setBlueAutoPark(Integer.parseInt(teamInfo[45]));
+                    detailJSON.setBlueTeleGlyphs(Integer.parseInt(teamInfo[46]));
+                    detailJSON.setBlueTeleRows(Integer.parseInt(teamInfo[47]));
+                    detailJSON.setBlueTeleColumns(Integer.parseInt(teamInfo[48]));
+                    detailJSON.setBlueTeleCypher(Integer.parseInt(teamInfo[49]));
+                    detailJSON.setBlueEndRelic1(Integer.parseInt(teamInfo[50]));
+                    detailJSON.setBlueEndRelic2(Integer.parseInt(teamInfo[51]));
+                    detailJSON.setBlueEndRelic3(Integer.parseInt(teamInfo[52]));
+                    detailJSON.setBlueEndRelicUp(Integer.parseInt(teamInfo[53]));
+                    detailJSON.setBlueEndRobotBal(Integer.parseInt(teamInfo[54]));
+                    detailJSON.setBlueMinPen(Integer.parseInt(teamInfo[55]));
+                    detailJSON.setBlueMajPen(Integer.parseInt(teamInfo[56]));
+                    detailJSON.setMatchKey(match.getMatchKey());
+                    detailJSON.setMatchDtlKey(match.getMatchKey() + "-DTL");
+
+                    match.setRedPenalty((detailJSON.getBlueMinPen() * 10) + (detailJSON.getBlueMajPen() * 40));
+                    match.setBluePenalty((detailJSON.getRedMinPen() * 10) + (detailJSON.getRedMajPen() * 40));
+                    match.setRedAutoScore((detailJSON.getRedAutoGlyphs()*15) + (detailJSON.getRedAutoPark()*10) + (detailJSON.getRedAutoKeys()*30) + (detailJSON.getRedAutoJewel()*30));
+                    match.setBlueAutoScore((detailJSON.getBlueAutoGlyphs()*15) + (detailJSON.getBlueAutoPark()*10) + (detailJSON.getBlueAutoKeys()*30) + (detailJSON.getBlueAutoJewel()*30));
+                    match.setRedTeleScore((detailJSON.getRedTeleGlyphs()*2) + (detailJSON.getRedTeleRows()*10) + (detailJSON.getRedTeleColumns()*20) + (detailJSON.getRedTeleCypher()*30));
+                    match.setBlueTeleScore((detailJSON.getBlueTeleGlyphs()*2) + (detailJSON.getBlueTeleRows()*10) + (detailJSON.getBlueTeleColumns()*20) + (detailJSON.getBlueTeleCypher()*30));
+                    match.setRedEndScore((detailJSON.getRedEndRelic1()*10) + (detailJSON.getRedEndRelic2()*20) + (detailJSON.getRedEndRelic3()*40) + (detailJSON.getRedEndRelicUp()*15) + (detailJSON.getRedEndRobotBal()*20));
+                    match.setBlueEndScore((detailJSON.getBlueEndRelic1()*10) + (detailJSON.getBlueEndRelic2()*20) + (detailJSON.getBlueEndRelic3()*40) + (detailJSON.getBlueEndRelicUp()*15) + (detailJSON.getBlueEndRobotBal()*20));
+                    match.setRedScore(match.getRedAutoScore()+match.getRedTeleScore()+match.getRedEndScore()+match.getRedPenalty());
+                    match.setBlueScore(match.getBlueAutoScore()+match.getBlueTeleScore()+match.getBlueEndScore()+match.getBluePenalty());
+                    matchList.add(match);
                     matchStations.put(match, scheduleStations);
+                    matchDetails.put(match, detailJSON);
                 }
                 reader.close();
                 controller.btnMatchScheduleUpload.setDisable(false);
+                controller.btnMatchImport.setText("Re-Sync Match Schedule");
                 if (uploadedMatches != null) {
-                    if (uploadedMatches.length == matchList.size()) {
+                    if (uploadedMatches.size() == matchList.size()) {
                         controller.sendInfo("Successfully imported " + matchList.size() + " matches from the Scoring System. Online and local schedules are the same.");
                     } else {
                         controller.sendError("Successfully imported " + matchList.size() + " matches from the Scoring System. However, uploaded schedule and local schedule differ.");
                     }
                     this.controller.btnMatchUpload.setVisible(true);
                     this.controller.btnMatchSync.setVisible(true);
+                    this.controller.btnMatchOpen.setVisible(true);
                 }
 
             } catch (Exception e) {
@@ -213,6 +304,93 @@ public class MatchesController {
             }
         } else {
             controller.sendError("Could not locate matches.txt from the Scoring System. Did you generate a match schedule?");
+        }
+    }
+
+    public void postSelectedMatch() {
+        if (selectedMatch != null) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Are you sure about this?");
+            alert.setHeaderText("This operation cannot be undone.");
+            alert.setContentText("You are about to POST match " + selectedMatch.getMatchKey() + " to TOA's databases. Are you sure this information is ready to be public?");
+
+            ButtonType okayButton = new ButtonType("Upload Results");
+            ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+            alert.getButtonTypes().setAll(okayButton, cancelButton);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.get() == okayButton) {
+                String methodType = "POST";
+                for (MatchGeneralJSON match : uploadedMatches) {
+                    if (match.getMatchKey().equals(selectedMatch.getMatchKey())) {
+                        methodType = "PUT";
+                    }
+                }
+                TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "upload/event/match");
+                matchEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                TOARequestBody requestBody = new TOARequestBody();
+                requestBody.setEventKey(Config.EVENT_ID);
+                requestBody.setMatchKey(selectedMatch.getMatchKey());
+                MatchGeneralJSON matchJSON = new MatchGeneralJSON();
+                matchJSON.setMatchKey(selectedMatch.getMatchKey());
+                matchJSON.setCreatedBy("TOA-DataSync");
+                matchJSON.setCreatedOn(getCurrentTime());
+                matchJSON.setEventKey(Config.EVENT_ID);
+                matchJSON.setFieldNumber(selectedMatch.getFieldNumber());
+                matchJSON.setMatchName(selectedMatch.getMatchName());
+                matchJSON.setPlayNumber(1);
+                matchJSON.setTournamentLevel(selectedMatch.getTournamentLevel());
+                matchJSON.setRedAutoScore(selectedMatch.getRedAutoScore());
+                matchJSON.setRedTeleScore(selectedMatch.getRedTeleScore());
+                matchJSON.setRedEndScore(selectedMatch.getRedEndScore());
+                matchJSON.setRedPenalty(selectedMatch.getRedPenalty());
+                matchJSON.setRedScore(selectedMatch.getRedScore());
+                matchJSON.setBlueAutoScore(selectedMatch.getBlueAutoScore());
+                matchJSON.setBlueTeleScore(selectedMatch.getBlueTeleScore());
+                matchJSON.setBlueEndScore(selectedMatch.getBlueEndScore());
+                matchJSON.setBluePenalty(selectedMatch.getBluePenalty());
+                matchJSON.setBlueScore(selectedMatch.getBlueScore());
+                requestBody.addValue(matchJSON);
+                matchEndpoint.setBody(requestBody);
+                matchEndpoint.execute(((response, success) -> {
+                    if (success) {
+                        controller.sendInfo("Successfully uploaded results to TOA. " + response);
+                    } else {
+                        controller.sendError("Connection to TOA unsuccessful. " + response);
+                    }
+                }));
+
+                methodType = "POST";
+                if (selectedMatch.isUploaded()) {
+                    methodType = "PUT";
+                } else {
+                    for (MatchDetailRelicJSON detail : uploadedDetails) {
+                        if (detail.getMatchKey().equals(selectedMatch.getMatchKey())) {
+                            methodType = "PUT";
+                        }
+                    }
+                }
+
+                TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "upload/event/match/detail");
+                detailEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                TOARequestBody detailBody = new TOARequestBody();
+                detailBody.setEventKey(Config.EVENT_ID);
+                detailBody.setMatchKey(selectedMatch.getMatchKey());
+                detailBody.addValue(matchDetails.get(selectedMatch));
+                detailEndpoint.setBody(detailBody);
+                detailEndpoint.execute(((response, success) -> {
+                    if (success) {
+                        matchList.get(selectedMatch.getCanonicalMatchNumber()-1).setIsUploaded(true);
+                        controller.tableMatches.refresh();
+                        controller.sendInfo("Successfully uploaded detail results to TOA. " + response);
+                        checkMatchDetails();
+                    } else {
+                        controller.sendError("Connection to TOA unsuccessful. " + response);
+                    }
+                }));
+            }
+
         }
     }
 

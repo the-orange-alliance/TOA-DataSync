@@ -91,6 +91,9 @@ public class DataSyncController implements Initializable {
         btnSetupSelect.setDisable(true);
         btnSetupTestDir.setDisable(true);
 
+        txtSetupKey.setText("TESTING_123_R3L1C");
+        txtSetupID.setText("1718-FIM-TST");
+        txtSetupDir.setText("C:\\Users\\Kyle Flynn\\Desktop\\FTC Stuff\\Scoring System");
     }
 
     @FXML
