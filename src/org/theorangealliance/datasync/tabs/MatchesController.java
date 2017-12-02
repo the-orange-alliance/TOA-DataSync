@@ -349,6 +349,7 @@ public class MatchesController {
                 teamWinLoss.clear();
                 BufferedReader reader = new BufferedReader(new FileReader(matchFile));
                 String line;
+                int elimCount = 0;
                 while ((line = reader.readLine()) != null) {
                     /** MATCH info */
                     String[] matchInfo = line.split("\\|\\|")[0].split("\\|");
@@ -362,7 +363,13 @@ public class MatchesController {
                             null,
                             fieldNumber);
                     char qualChar = match.getMatchName().contains("Qual") ? 'Q' : 'E';
-                    match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", match.getCanonicalMatchNumber()) + "-1");
+                    if (qualChar == 'E') {
+                        elimCount++;
+                        match.setFieldNumber(match.getTournamentLevel() == 4 ? 1 : (match.getTournamentLevel() == 31 ? 1 : 2));
+                        match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", elimCount) + "-1");
+                    } else {
+                        match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", match.getCanonicalMatchNumber()) + "-1");
+                    }
 
                     /** TEAM info */
                     String[] teamInfo = line.split("\\|\\|")[1].split("\\|");
