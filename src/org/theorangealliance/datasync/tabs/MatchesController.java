@@ -196,7 +196,7 @@ public class MatchesController {
     }
 
     private void calculateWL(MatchGeneral match, ScheduleStation[] stations) {
-        if (match.isDone()) {
+        if (match.isDone() && match.getTournamentLevel() == 1) {
             boolean redWin = match.getRedScore() > match.getBlueScore();
             boolean tie = match.getRedScore() == match.getBlueScore();
             String resultStr = tie ? "TIE" : redWin ? "RED" : "BLUE";
