@@ -208,29 +208,29 @@ public class MatchesController {
                     int TIES = 2;
                     int[] result = teamWinLoss.get(station.getTeamKey());
                     if (result != null) {
-                        if (redWin && station.getStation() < 20) {
+                        if (tie) {
+                            result[TIES]++;
+                        } else if (redWin && station.getStation() < 20) {
                             // Red win and this team is on red
                             result[WINS]++;
                         } else if (!redWin && station.getStation() > 20) {
                             result[WINS]++;
-                        } else if (tie) {
-                            result[TIES]++;
                         } else {
                             result[LOSS]++;
                         }
                     } else {
                         result = new int[3];
-                        if (redWin && station.getStation() < 20) {
+                        if (tie) {
+                            result[WINS] = 0;
+                            result[LOSS] = 0;
+                            result[TIES] = 1;
+                        } else if (redWin && station.getStation() < 20) {
                             // Red win and this team is on red
                             result[WINS] = 1;
                             result[LOSS] = 0;
                             result[TIES] = 0;
                         } else if (!redWin && station.getStation() > 20) {
                             result[WINS]++;
-                        } else if (tie) {
-                            result[WINS] = 0;
-                            result[LOSS] = 0;
-                            result[TIES] = 1;
                         } else {
                             result[WINS] = 0;
                             result[LOSS] = 1;
