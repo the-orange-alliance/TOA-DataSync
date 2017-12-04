@@ -25,7 +25,7 @@ public class DataSync extends Application {
 
             mainStage = primaryStage;
             mainStage.setScene(scene);
-            mainStage.setTitle("TOA DataSync v1.1.2 BETA");
+            mainStage.setTitle("TOA DataSync v1.1.3 BETA");
             mainStage.getIcons().add(new Image(getClass().getResourceAsStream("/app_ico.png")));
             mainStage.setResizable(false);
             mainStage.show();
