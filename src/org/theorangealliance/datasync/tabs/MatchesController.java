@@ -325,6 +325,9 @@ public class MatchesController {
                             TOALogger.log(Level.INFO, "Added match " + match.getMatchKey() + " to the upload queue.");
                             uploadQueue.add(match);
                         }
+//                        else if (!match.isDone() && (match.getTournamentLevel() > 30 || match.getTournamentLevel() == 4)) {
+//                            uploadQueue.add(match);
+//                        }
                     }
                     controller.tableMatches.refresh();
                     reader.close();
@@ -688,15 +691,28 @@ public class MatchesController {
         TOARequestBody requestBody = new TOARequestBody();
         requestBody.setEventKey(Config.EVENT_ID);
         for (ScheduleStation[] stations : matchStations.values()) {
-            for (ScheduleStation station : stations) {
-                if (station.getTeamKey() != 0) {
-                    MatchScheduleStationJSON stationJSON = new MatchScheduleStationJSON();
-                    stationJSON.setMatchKey(station.getMatchKey());
-                    stationJSON.setStation(station.getStation());
-                    stationJSON.setStationKey(station.getStationKey());
-                    stationJSON.setTeamKey(station.getTeamKey());
-                    stationJSON.setStationStatus(station.getStationStatus());
-                    requestBody.addValue(stationJSON);
+
+            // TODO - Needs testing!
+
+            boolean uploaded = false;
+            for (MatchGeneralJSON match : uploadedMatches) {
+                if (match.getMatchKey().equals(stations[0].getMatchKey())) {
+                    // This match has been uploaded, so do NOT proceed.
+                    uploaded = true;
+                }
+            }
+
+            if (!uploaded) {
+                for (ScheduleStation station : stations) {
+                    if (station.getTeamKey() != 0) {
+                        MatchScheduleStationJSON stationJSON = new MatchScheduleStationJSON();
+                        stationJSON.setMatchKey(station.getMatchKey());
+                        stationJSON.setStation(station.getStation());
+                        stationJSON.setStationKey(station.getStationKey());
+                        stationJSON.setTeamKey(station.getTeamKey());
+                        stationJSON.setStationStatus(station.getStationStatus());
+                        requestBody.addValue(stationJSON);
+                    }
                 }
             }
         }
@@ -718,16 +734,28 @@ public class MatchesController {
         requestBody.setEventKey(Config.EVENT_ID);
         for (int i = 0; i < matchList.size(); i++) {
             MatchGeneral match = matchList.get(i);
-            MatchScheduleGeneralJSON matchJSON = new MatchScheduleGeneralJSON();
-            matchJSON.setEventKey(Config.EVENT_ID);
-            matchJSON.setMatchKey(match.getMatchKey());
-            matchJSON.setTournamentLevel(match.getTournamentLevel());
-            matchJSON.setMatchName(match.getMatchName());
-            matchJSON.setPlayNumber(0);
-            matchJSON.setFieldNumber(match.getFieldNumber());
-            matchJSON.setCreatedBy("TOA-DataSync");
-            matchJSON.setCreatedOn(getCurrentTime());
-            requestBody.addValue(matchJSON);
+
+            // TODO - Needs testing!
+
+            boolean uploaded = false;
+            for (MatchGeneralJSON uploadedMatch : uploadedMatches) {
+                if (match.getMatchKey().equals(uploadedMatch.getMatchKey())) {
+                    uploaded = true;
+                }
+            }
+
+            if (!uploaded) {
+                MatchScheduleGeneralJSON matchJSON = new MatchScheduleGeneralJSON();
+                matchJSON.setEventKey(Config.EVENT_ID);
+                matchJSON.setMatchKey(match.getMatchKey());
+                matchJSON.setTournamentLevel(match.getTournamentLevel());
+                matchJSON.setMatchName(match.getMatchName());
+                matchJSON.setPlayNumber(0);
+                matchJSON.setFieldNumber(match.getFieldNumber());
+                matchJSON.setCreatedBy("TOA-DataSync");
+                matchJSON.setCreatedOn(getCurrentTime());
+                requestBody.addValue(matchJSON);
+            }
         }
         scheduleEndpoint.setBody(requestBody);
         scheduleEndpoint.execute(((response, success) -> {
