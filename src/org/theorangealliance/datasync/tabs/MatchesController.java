@@ -247,7 +247,7 @@ public class MatchesController {
         if (matchList.size() <= 0) {
             getMatchesByFile();
         } else {
-            File matchFile = new File(Config.SCORING_DIR + "\\matches.txt");
+            File matchFile = new File(Config.SCORING_DIR + File.separator + "matches.txt");
             if (matchFile.exists()) {
                 try {
                     uploadQueue.clear();

@@ -206,7 +206,7 @@ public class DataSyncController implements Initializable {
     public void testDirectory() {
         if (txtSetupDir.getText().length() > 0) {
             String root = txtSetupDir.getText();
-            File divisionsFile = new File(root + "\\divisions.txt");
+            File divisionsFile = new File(root + File.separator + "divisions.txt");
             if (divisionsFile.exists()) {
                 Config.SCORING_DIR = root;
 

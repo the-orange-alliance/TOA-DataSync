@@ -92,7 +92,7 @@ public class TeamsController {
     }
 
     public void getTeamsByFile() {
-        File teamsFile = new File(Config.SCORING_DIR + "\\teams.txt");
+        File teamsFile = new File(Config.SCORING_DIR + File.separator + "teams.txt");
         if (teamsFile.exists()) {
             try {
                 teamsList.clear();

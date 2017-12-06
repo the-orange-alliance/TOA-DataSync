@@ -55,9 +55,9 @@ public class RankingsController {
             try {
                 File rankReport;
                 if (Config.DUAL_DIVISION_EVENT) {
-                    rankReport = new File(Config.SCORING_DIR + "\\reports\\Rankings_" + Config.EVENT_NAME.replace(" ", "_") + "_" + Config.DIVISION_NAME.replace(" ", "_") + ".html");
+                    rankReport = new File(Config.SCORING_DIR + File.separator + "reports" + File.separator + "Rankings_" + Config.EVENT_NAME.replace(" ", "_") + "_" + Config.DIVISION_NAME.replace(" ", "_") + ".html");
                 } else {
-                    rankReport = new File(Config.SCORING_DIR + "\\reports\\Rankings_" + Config.EVENT_NAME.replace(" ", "_") + ".html");
+                    rankReport = new File(Config.SCORING_DIR + File.separator + "reports" + File.separator + "Rankings_" + Config.EVENT_NAME.replace(" ", "_") + ".html");
                 }
                 Document rankDoc = Jsoup.parse(rankReport, "UTF-8");
                 Element tableBody = rankDoc.body().getElementsByAttribute("cellpadding").first().child(0);
@@ -95,9 +95,9 @@ public class RankingsController {
         try {
             File rankReport;
             if (Config.DUAL_DIVISION_EVENT) {
-                rankReport = new File(Config.SCORING_DIR + "\\reports\\Rankings_" + Config.EVENT_NAME.replace(" ", "_") + "_" + Config.DIVISION_NAME.replace(" ", "_") + ".html");
+                rankReport = new File(Config.SCORING_DIR + File.separator + "reports" + File.separator + "Rankings_" + Config.EVENT_NAME.replace(" ", "_") + "_" + Config.DIVISION_NAME.replace(" ", "_") + ".html");
             } else {
-                rankReport = new File(Config.SCORING_DIR + "\\reports\\Rankings_" + Config.EVENT_NAME.replace(" ", "_") + ".html");
+                rankReport = new File(Config.SCORING_DIR + File.separator + "reports" + File.separator + "Rankings_" + Config.EVENT_NAME.replace(" ", "_") + ".html");
             }
             Document rankDoc = Jsoup.parse(rankReport, "UTF-8");
             Element tableBody = rankDoc.body().getElementsByAttribute("cellpadding").first().child(0);

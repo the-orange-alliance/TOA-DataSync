@@ -1,5 +1,6 @@
 package org.theorangealliance.datasync.logging;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.*;
 
@@ -22,7 +23,7 @@ public class TOALogger {
 
         Formatter logFormatter = new LogFileFormatter();
 
-        FileHandler logFile = new FileHandler("log.log", true);
+        FileHandler logFile = new FileHandler("log" + File.separator + "log.log", true);
         ConsoleHandler console = new ConsoleHandler();
 
         logFile.setFormatter(logFormatter);
