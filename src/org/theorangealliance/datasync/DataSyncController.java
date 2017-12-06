@@ -166,6 +166,8 @@ public class DataSyncController implements Initializable {
                         } else {
                             sendInfo("Connection to TOA was successful. Proceed to Scoring System setup.");
                         }
+                    } else {
+                        sendInfo("Connection to TOA was successful. Proceed to Scoring System setup.");
                     }
 
                     labelSetupTest.setText("Connection Successful");

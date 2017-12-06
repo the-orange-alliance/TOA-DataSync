@@ -33,8 +33,14 @@ public class SyncController implements Runnable {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Are you sure about this?");
         alert.setHeaderText("This operation cannot be undone.");
+        String matchesText;
+        if (this.controller.btnSyncMatches.selectedProperty().get()) {
+            matchesText = "Match results WILL AUTOMATICALLY BE UPLOADED ON COMPLETED MATCH.";
+        } else {
+            matchesText = "Match results, however, MUST be uploaded separately in the matches tab.";
+        }
         alert.setContentText("You are about to start AutoSync. This will automatically stage changes from the scoring system and make them ready to be uploaded. " +
-                "Rankings WILL AUTOMATICALLY BE UPLOADED ON COMPLETED MATCH. Match results, however, MUST be uploaded separately in the matches tab. Continue?");
+                "Rankings WILL AUTOMATICALLY BE UPLOADED ON COMPLETED MATCH. " + matchesText + " Continue?");
 
         ButtonType okayButton = new ButtonType("Sure?");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -57,7 +63,9 @@ public class SyncController implements Runnable {
         controller.btnSyncStart.setDisable(false);
         controller.btnSyncStop.setDisable(true);
         controller.btnSyncMatches.setDisable(false);
-        service.shutdownNow();
+        if (service != null) {
+            service.shutdownNow();
+        }
     }
 
     @Override

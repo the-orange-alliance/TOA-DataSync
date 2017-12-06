@@ -15,6 +15,7 @@ import org.theorangealliance.datasync.json.MatchDetailRelicJSON;
 import org.theorangealliance.datasync.json.MatchGeneralJSON;
 import org.theorangealliance.datasync.json.MatchScheduleGeneralJSON;
 import org.theorangealliance.datasync.json.MatchScheduleStationJSON;
+import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.models.MatchGeneral;
 import org.theorangealliance.datasync.models.ScheduleStation;
 import org.theorangealliance.datasync.util.Config;
@@ -27,6 +28,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Level;
 
 /**
  * Created by Kyle Flynn on 11/29/2017.
@@ -161,7 +163,7 @@ public class MatchesController {
     }
 
     public void checkMatchSchedule() {
-        this.controller.labelScheduleUploaded.setTextFill(Color.YELLOW);
+        this.controller.labelScheduleUploaded.setTextFill(Color.ORANGE);
         this.controller.labelScheduleUploaded.setText("Checking TOA...");
         TOAEndpoint matchesEndpoint = new TOAEndpoint("GET", "event/" + Config.EVENT_ID + "/matches");
         matchesEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
@@ -171,11 +173,9 @@ public class MatchesController {
                 if (uploadedMatches.size() > 0) {
                     this.controller.labelScheduleUploaded.setTextFill(Color.GREEN);
                     this.controller.labelScheduleUploaded.setText("Schedule Already Posted");
-//                    this.controller.sendInfo("Match Schedule Already Posted");
                 } else {
-                    this.controller.labelScheduleUploaded.setTextFill(Color.GREEN);
+                    this.controller.labelScheduleUploaded.setTextFill(Color.RED);
                     this.controller.labelScheduleUploaded.setText("Schedule NOT Posted");
-//                    this.controller.sendInfo("Match Schedule NOT Posted");
                 }
             } else {
                 this.controller.sendError("Error: " + response);
@@ -189,6 +189,7 @@ public class MatchesController {
         matchesEndpoint.execute(((response, success) -> {
             if (success) {
                 uploadedDetails = new HashSet<>(Arrays.asList(matchesEndpoint.getGson().fromJson(response, MatchDetailRelicJSON[].class)));
+                TOALogger.log(Level.INFO, "Grabbed match details for " + uploadedDetails.size() + " matches.");
             } else {
                 this.controller.sendError("Error: " + response);
             }
@@ -202,7 +203,7 @@ public class MatchesController {
             String resultStr = tie ? "TIE" : redWin ? "RED" : "BLUE";
 //            System.out.println(match.getMatchKey() + ": "  + resultStr);
             for (ScheduleStation station : stations) {
-                if (station.getTeamKey() != 0) {
+                if (station.getTeamKey() != 0 && station.getStationStatus() == 1) {
                     int WINS = 0;
                     int LOSS = 1;
                     int TIES = 2;
@@ -321,11 +322,14 @@ public class MatchesController {
                         count++;
 
                         if (match.isDone() && !match.isUploaded()) {
+                            TOALogger.log(Level.INFO, "Added match " + match.getMatchKey() + " to the upload queue.");
                             uploadQueue.add(match);
                         }
                     }
                     controller.tableMatches.refresh();
                     reader.close();
+
+                    TOALogger.log(Level.INFO, "Match sync complete.");
 
                     if (selectedMatch != null) {
                         selectedMatch = matchList.get(selectedMatch.getCanonicalMatchNumber()-1);
@@ -339,7 +343,7 @@ public class MatchesController {
     }
 
     public void getMatchesByFile() {
-        File matchFile = new File(Config.SCORING_DIR + "\\matches.txt");
+        File matchFile = new File(Config.SCORING_DIR + File.separator + "matches.txt");
         if (matchFile.exists()) {
             try {
                 controller.btnMatchUpload.setDisable(true);
@@ -380,6 +384,14 @@ public class MatchesController {
                     scheduleStations[3] = new ScheduleStation(match.getMatchKey(), 21, Integer.parseInt(teamInfo[3]));
                     scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, Integer.parseInt(teamInfo[4]));
                     scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, Integer.parseInt(teamInfo[5]));
+
+                    // Making sure the surrogates are correct.
+                    scheduleStations[0].setStationStatus(Integer.parseInt(teamInfo[18]) == 0 ? 1 : 0);
+                    scheduleStations[1].setStationStatus(Integer.parseInt(teamInfo[19]) == 0 ? 1 : 0);
+                    scheduleStations[2].setStationStatus(Integer.parseInt(teamInfo[20]) == 0 ? 1 : 0);
+                    scheduleStations[3].setStationStatus(Integer.parseInt(teamInfo[21]) == 0 ? 1 : 0);
+                    scheduleStations[4].setStationStatus(Integer.parseInt(teamInfo[22]) == 0 ? 1 : 0);
+                    scheduleStations[5].setStationStatus(Integer.parseInt(teamInfo[23]) == 0 ? 1 : 0);
 
                     // Field 24 will be whether or not score is SAVED.
                     // This is ALSO where the match details section begins.
@@ -460,7 +472,7 @@ public class MatchesController {
                     this.controller.btnMatchSync.setVisible(true);
                     this.controller.btnMatchOpen.setVisible(true);
                 }
-
+                TOALogger.log(Level.INFO, "Match import successful.");
             } catch (Exception e) {
                 e.printStackTrace();
                 controller.sendError("Could not open file. " + e.getLocalizedMessage());
@@ -507,9 +519,7 @@ public class MatchesController {
                 matchEndpoint.setBody(requestBody);
                 matchEndpoint.execute(((response, success) -> {
                     if (success) {
-                        controller.sendInfo("Successfully uploaded results to TOA. " + response);
-                    } else {
-                        controller.sendError("Connection to TOA unsuccessful. " + response);
+                        TOALogger.log(Level.INFO, "Successfully uploaded results to TOA. " + response);
                     }
                 }));
 
@@ -545,10 +555,8 @@ public class MatchesController {
                         uploadQueue.remove(completeMatch);
                         matchList.get(completeMatch.getCanonicalMatchNumber()-1).setIsUploaded(true);
                         controller.tableMatches.refresh();
-                        controller.sendInfo("Successfully uploaded detail results to TOA. " + response);
+                        TOALogger.log(Level.INFO, "Successfully uploaded detail results to TOA. " + response);
                         checkMatchDetails();
-                    } else {
-                        controller.sendError("Connection to TOA unsuccessful. " + response);
                     }
                 }));
             }
@@ -687,7 +695,7 @@ public class MatchesController {
                     stationJSON.setStation(station.getStation());
                     stationJSON.setStationKey(station.getStationKey());
                     stationJSON.setTeamKey(station.getTeamKey());
-                    stationJSON.setStationStatus(1);
+                    stationJSON.setStationStatus(station.getStationStatus());
                     requestBody.addValue(stationJSON);
                 }
             }

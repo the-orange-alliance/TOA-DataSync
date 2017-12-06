@@ -12,6 +12,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.TeamRankingJSON;
+import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.models.TeamRanking;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
@@ -22,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.logging.Level;
 
 /**
  * Created by Kyle Flynn on 12/1/2017.
@@ -85,8 +87,9 @@ public class RankingsController {
                     }
                 }
                 controller.tableRankings.refresh();
+                TOALogger.log(Level.INFO, "Rankings sync successful.");
             } catch (Exception e) {
-                e.printStackTrace();
+                TOALogger.log(Level.SEVERE, "Error reading rankings file: " + e.getLocalizedMessage());
             }
         }
     }
@@ -126,8 +129,9 @@ public class RankingsController {
                 }
                 this.controller.btnRankUpload.setDisable(false);
             }
+            TOALogger.log(Level.INFO, "Rankings import successful.");
         } catch (IOException ex) {
-            System.out.println("Error reading rankings file: " + ex.getLocalizedMessage());
+            TOALogger.log(Level.SEVERE, "Error reading rankings file: " + ex.getLocalizedMessage());
         }
     }
 
@@ -143,7 +147,7 @@ public class RankingsController {
             deleteEndpoint.setBody(deleteBody);
             deleteEndpoint.execute(((response, success) -> {
                 if (success) {
-                    System.out.println("Deleted rankings. Now POSTing rankings.");
+                    TOALogger.log(Level.INFO, "Deleted rankings. Now posting rankings.");
                     TOAEndpoint postEndpoint = new TOAEndpoint("POST", "upload/event/rankings");
                     postEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
                     TOARequestBody postBody = new TOARequestBody();
@@ -168,17 +172,13 @@ public class RankingsController {
                     postEndpoint.setBody(postBody);
                     postEndpoint.execute(((response1, success1) -> {
                         if (success1) {
-                            System.out.println("Successfully posted rankings.");
-                        } else {
-                            System.out.println("Unable to post rankings. " + response1);
+                            TOALogger.log(Level.INFO, "Successfully posted rankings.");
                         }
                     }));
-                } else {
-                    System.out.println(response);
                 }
             }));
         } else {
-            System.out.println("There are no team rankings to upload.");
+            TOALogger.log(Level.WARNING, "There are no team rankings to upload.");
         }
     }
 
@@ -202,9 +202,7 @@ public class RankingsController {
             rankingEndpoint.setBody(requestBody);
             rankingEndpoint.execute(((response, success) -> {
                 if (success) {
-                    System.out.println("Deleted rankings.");
-                } else {
-                    System.out.println(response);
+                    TOALogger.log(Level.INFO, "Deleted rankings.");
                 }
             }));
         }
