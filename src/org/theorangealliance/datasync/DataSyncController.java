@@ -11,6 +11,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import org.theorangealliance.datasync.json.EventJSON;
+import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.models.MatchGeneral;
 import org.theorangealliance.datasync.models.Team;
 import org.theorangealliance.datasync.models.TeamRanking;
@@ -31,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 
 /**
  * Created by Kyle Flynn on 11/28/2017.
@@ -299,7 +301,7 @@ public class DataSyncController implements Initializable {
         DataSync.getMainStage().setOnCloseRequest(closeEvent -> this.syncController.kill());
         this.syncController.execute((count) -> {
             Date date = new Date();
-            System.out.println("Executing update #" + count + " at " + DateFormat.getTimeInstance(DateFormat.SHORT).format(date));
+            TOALogger.log(Level.INFO, "Executing update #" + count + " at " + DateFormat.getTimeInstance(DateFormat.SHORT).format(date));
             Platform.runLater(() -> {
                 this.matchesController.syncMatches();
                 this.matchesController.checkMatchDetails();

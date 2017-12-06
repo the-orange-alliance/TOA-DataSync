@@ -3,14 +3,19 @@ package org.theorangealliance.datasync.util;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.application.Platform;
+import org.theorangealliance.datasync.json.ErrorJSON;
+import org.theorangealliance.datasync.logging.TOALogger;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * Created by Kyle Flynn on 11/28/2017.
@@ -65,13 +70,15 @@ public class TOAEndpoint implements Runnable {
                 con.setRequestProperty("X-TOA-Event", this.eventKey);
 
                 if (bodyJSON.length() > 1) {
-                    System.out.println("Making " + requestType + " with body " + bodyJSON);
+                    TOALogger.log(Level.INFO, "Making " + requestType + " with body " + bodyJSON);
                     con.setRequestProperty("Content-Type","application/json");
                     con.setDoOutput(true);
                     DataOutputStream stream = new DataOutputStream(con.getOutputStream());
                     stream.writeBytes(bodyJSON);
                     stream.flush();
                     stream.close();
+                } else {
+                    TOALogger.log(Level.INFO, "Making " + requestType + " to URL " + url.toString());
                 }
 
                 int responseCode = con.getResponseCode();
@@ -89,7 +96,7 @@ public class TOAEndpoint implements Runnable {
                         }
                     });
                 } else {
-                    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                    BufferedReader in = new BufferedReader(new InputStreamReader(con.getErrorStream()));
                     String inputLine;
                     StringBuilder response = new StringBuilder();
                     while ((inputLine = in.readLine()) != null) {
@@ -97,23 +104,18 @@ public class TOAEndpoint implements Runnable {
                     }
                     in.close();
 
-                    System.out.println(response);
+                    ErrorJSON error = getGson().fromJson(response.toString(), ErrorJSON.class);
+                    TOALogger.log(Level.WARNING, "URL " + error.getUrl() + " returned " + error.getStatus() + ": " + error.getCode());
 
                     Platform.runLater(() -> {
                         if (this.completeListener != null) {
-                            try {
-                                this.completeListener.onComplete(con.getResponseCode() + ": " + con.getResponseMessage(), false);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            this.completeListener.onComplete(error.getStatus() + ": " + error.getCode(), false);
                         }
                     });
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                Platform.runLater(() -> {
-                    this.completeListener.onComplete(e.getLocalizedMessage(), false);
-                });
+            } catch (IOException e) {
+                TOALogger.log(Level.WARNING, e.getMessage());
+                Platform.runLater(() -> this.completeListener.onComplete(e.getLocalizedMessage(), false));
             }
     }
 
