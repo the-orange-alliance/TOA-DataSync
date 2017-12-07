@@ -302,10 +302,12 @@ public class DataSyncController implements Initializable {
     public void startAutoSync() {
         DataSync.getMainStage().setOnCloseRequest(closeEvent -> this.syncController.kill());
         this.syncController.execute((count) -> {
-            Date date = new Date();
-            TOALogger.log(Level.INFO, "Executing update #" + count + " at " + DateFormat.getTimeInstance(DateFormat.SHORT).format(date));
             Platform.runLater(() -> {
+                Date date = new Date();
+                TOALogger.log(Level.INFO, "Executing update #" + count + " at " + DateFormat.getTimeInstance(DateFormat.SHORT).format(date));
+                TOALogger.log(Level.INFO, "There are " + Thread.activeCount() + " threads.");
                 this.matchesController.syncMatches();
+                this.matchesController.checkMatchSchedule();
                 this.matchesController.checkMatchDetails();
                 this.rankingsController.syncRankings();
                 this.rankingsController.postRankings();

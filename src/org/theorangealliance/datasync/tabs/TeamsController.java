@@ -163,6 +163,7 @@ public class TeamsController {
                     }
                 } else {
                     eventTeam.setParticipantKey(Config.EVENT_ID + "-T" + (i+1));
+                    eventTeam.setEventKey(Config.EVENT_ID);
                 }
                 eventTeam.setTeamKey(team.getTeamKey());
                 eventTeam.setIsActive(1);

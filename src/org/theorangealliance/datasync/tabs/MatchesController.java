@@ -7,7 +7,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableCell;
-import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.paint.Color;
 import org.theorangealliance.datasync.DataSyncController;
@@ -22,7 +21,6 @@ import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 import org.theorangealliance.datasync.util.TOARequestBody;
 
-import javax.jnlp.IntegrationService;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -111,7 +109,7 @@ public class MatchesController {
 
     private void openMatchView(MatchGeneral match) {
         controller.btnMatchOpen.setDisable(false);
-        if (match.isDone()) {
+        if (match.isDone() && uploadedMatches.size() > 0) {
             controller.btnMatchUpload.setDisable(false);
         } else {
             controller.btnMatchUpload.setDisable(true);
@@ -231,7 +229,9 @@ public class MatchesController {
                             result[LOSS] = 0;
                             result[TIES] = 0;
                         } else if (!redWin && station.getStation() > 20) {
-                            result[WINS]++;
+                            result[WINS] = 1;
+                            result[LOSS] = 0;
+                            result[TIES] = 0;
                         } else {
                             result[WINS] = 0;
                             result[LOSS] = 1;
@@ -256,7 +256,7 @@ public class MatchesController {
                     BufferedReader reader = new BufferedReader(new FileReader(matchFile));
                     String line;
                     int count = 0;
-                    while ((line = reader.readLine()) != null) {
+                    while ((line = reader.readLine()) != null && count < matchList.size()) {
                         MatchGeneral match = matchList.get(count);
                         String[] teamInfo = line.split("\\|\\|")[1].split("\\|");
                         // Field 24 will be whether or not score is SAVED.
@@ -267,10 +267,23 @@ public class MatchesController {
                             match.setIsDone(true);
                         }
 
+                        boolean fullyUploaded = false;
+
                         // Not very efficient, but it is what is is... I hate O(N^2) algorithms.
                         for (MatchDetailRelicJSON detail : uploadedDetails) {
                             if (detail.getMatchKey().equals(match.getMatchKey())) {
-                                match.setIsUploaded(true);
+//                                match.setIsUploaded(true);
+                                fullyUploaded = true;
+                            }
+                        }
+
+                        for (MatchGeneralJSON general : uploadedMatches) {
+                            if (general.getMatchKey().equals(match.getMatchKey())) {
+                                if (general.getPlayNumber() == 0) {
+                                    match.setIsUploaded(false);
+                                } else if (fullyUploaded) {
+                                    match.setIsUploaded(true);
+                                }
                             }
                         }
 
@@ -680,7 +693,27 @@ public class MatchesController {
 
             this.controller.btnMatchUpload.setVisible(true);
             this.controller.btnMatchSync.setVisible(true);
-            this.checkMatchSchedule();
+//            TOAEndpoint matchDel = new TOAEndpoint("DELETE", "upload/event/schedule/matches");
+//            TOARequestBody matchDelBody = new TOARequestBody();
+//            matchDel.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+//            matchDelBody.setEventKey(Config.EVENT_ID);
+//            matchDel.setBody(matchDelBody);
+//            matchDel.execute(((response, success) -> {
+//                if (success) {
+//                    TOAEndpoint teamDel = new TOAEndpoint("DELETE", "upload/event/schedule/teams");
+//                    teamDel.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+//                    teamDel.setBody(matchDelBody);
+//                    teamDel.execute(((response1, success1) -> {
+//                        if (success1) {
+//                            postMatchScheduleMatches();
+//                            postMatchScheduleTeams();
+//
+//                            this.controller.btnMatchUpload.setVisible(true);
+//                            this.controller.btnMatchSync.setVisible(true);
+//                        }
+//                    }));
+//                }
+//            }));
         }
     }
 
@@ -719,9 +752,12 @@ public class MatchesController {
         scheduleEndpoint.setBody(requestBody);
         scheduleEndpoint.execute(((response, success) -> {
             if (success) {
-                controller.sendInfo("Successfully uploaded data to TOA. " + response);
+                controller.sendInfo("Successfully uploaded match schedule team list to TOA. " + response);
+                TOALogger.log(Level.INFO, "Match schedule team list successfully posted.");
+                this.checkMatchSchedule();
             } else {
                 controller.sendError("Connection to TOA unsuccessful. " + response);
+                TOALogger.log(Level.SEVERE, "Error posting match schedule team list. " + response);
             }
         }));
     }
@@ -761,9 +797,11 @@ public class MatchesController {
         scheduleEndpoint.execute(((response, success) -> {
             if (success) {
                 controller.labelScheduleUploaded.setText("Schedule Already Posted.");
-                controller.sendInfo("Successfully uploaded data to TOA. " + response);
+                controller.sendInfo("Successfully uploaded match schedule to TOA. " + response);
+                TOALogger.log(Level.INFO, "Match schedule successfully posted.");
             } else {
                 controller.sendError("Connection to TOA unsuccessful. " + response);
+                TOALogger.log(Level.INFO, "Error posting match schedule. " + response);
             }
         }));
     }
