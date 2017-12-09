@@ -23,7 +23,26 @@ public class TOALogger {
 
         Formatter logFormatter = new LogFileFormatter();
 
-        FileHandler logFile = new FileHandler("log" + File.separator + "log.log", true);
+        File logDir = new File(System.getProperty("user.home") + File.separator + "log");
+
+        if (!logDir.exists()) {
+            System.out.println(logDir.getAbsolutePath());
+            logDir.mkdir();
+        }
+
+        File loggingFile = new File(logDir.getAbsolutePath() + File.separator + "log.log");
+
+        if (!loggingFile.exists()) {
+            loggingFile.createNewFile();
+        }
+
+        File lockFile = new File(logDir.getAbsolutePath() + File.separator + "log.log.lck");
+
+        if (!lockFile.exists()) {
+            lockFile.createNewFile();
+        }
+
+        FileHandler logFile = new FileHandler(loggingFile.getAbsolutePath());
         ConsoleHandler console = new ConsoleHandler();
 
         logFile.setFormatter(logFormatter);
