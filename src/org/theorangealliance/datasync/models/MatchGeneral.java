@@ -56,6 +56,17 @@ public class MatchGeneral {
             case 3:
                 level = 4;
                 break;
+            case 4:
+                if (matchNumber > 40) {
+                    level = 24;
+                } else if (matchNumber < 40 && matchNumber > 30) {
+                    level = 23;
+                } else if (matchNumber < 30 && matchNumber > 20) {
+                    level = 22;
+                } else {
+                    level = 21;
+                }
+                break;
         }
         return level;
     }
@@ -79,17 +90,20 @@ public class MatchGeneral {
             case 3:
                 matchName = "Finals";
                 break;
-            case 21:
-                matchName = "Quarters 1 Match";
-                break;
-            case 22:
-                matchName = "Quarters 2 Match";
-                break;
-            case 23:
-                matchName = "Quarters 3 Match";
-                break;
-            case 24:
-                matchName = "Quarters 4 Match";
+            case 4:
+                if (matchNumber > 40) {
+                    matchName = "Quarters 4 Match";
+                    matchNum = matchNumber - 40;
+                } else if (matchNumber < 40 && matchNumber > 30) {
+                    matchName = "Quarters 3 Match";
+                    matchNum = matchNumber - 30;
+                } else if (matchNumber < 30 && matchNumber > 20) {
+                    matchName = "Quarters 2 Match";
+                    matchNum = matchNumber - 20;
+                } else {
+                    matchName = "Quarters 1 Match";
+                    matchNum = matchNumber - 10;
+                }
                 break;
         }
         return matchName + " " + matchNum;

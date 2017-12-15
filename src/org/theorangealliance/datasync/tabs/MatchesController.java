@@ -385,7 +385,8 @@ public class MatchesController {
                     char qualChar = match.getMatchName().contains("Qual") ? 'Q' : 'E';
                     if (qualChar == 'E') {
                         elimCount++;
-                        match.setFieldNumber(match.getTournamentLevel() == 4 ? 1 : (match.getTournamentLevel() == 31 ? 1 : 2));
+                        int elimFieldNum = match.getTournamentLevel() % 2;
+                        match.setFieldNumber(match.getTournamentLevel() == 4 ? 1 : (elimFieldNum == 0 ? 2 : 1));
                         match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", elimCount) + "-1");
                     } else {
                         match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", match.getCanonicalMatchNumber()) + "-1");

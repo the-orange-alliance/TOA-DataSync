@@ -83,11 +83,17 @@
                                  <GridPane.margin>
                                     <Insets right="25.0" />
                                  </GridPane.margin>
+                                 <font>
+                                    <Font size="14.0" />
+                                 </font>
                               </Hyperlink>
                               <Label text="Copyright 2017 TheOrangeAlliance.org" GridPane.columnSpan="2147483647" GridPane.rowIndex="8">
                                  <GridPane.margin>
                                     <Insets left="10.0" />
                                  </GridPane.margin>
+                                 <font>
+                                    <Font size="11.0" />
+                                 </font>
                               </Label>
                            </children>
                         </GridPane>
@@ -163,7 +169,10 @@
                           </rowConstraints>
                            <children>
                               <Button fx:id="btnTeamsGetTOA" mnemonicParsing="false" onAction="#getTeamsByURL" text="Import From TOA" GridPane.halignment="CENTER" />
-                              <Button fx:id="btnTeamsGet" mnemonicParsing="false" onAction="#getTeamsByFile" text="Import From Scoring System" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                              <Button fx:id="btnTeamsGet" mnemonicParsing="false" onAction="#getTeamsByFile" text="Import From Scoring System" GridPane.columnIndex="1" GridPane.halignment="CENTER">
+                                 <font>
+                                    <Font size="12.0" />
+                                 </font></Button>
                               <Button fx:id="btnTeamsDelete" mnemonicParsing="false" onAction="#deleteEventTeams" text="Purge EventParticipants" GridPane.columnIndex="3" GridPane.halignment="CENTER" />
                               <Button fx:id="btnTeamsPost" mnemonicParsing="false" onAction="#postEventTeams" text="Upload to TOA" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
                            </children>
@@ -178,7 +187,7 @@
                         <TableView fx:id="tableMatches" prefHeight="425.0" prefWidth="225.0" AnchorPane.bottomAnchor="33.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <columns>
                             <TableColumn fx:id="colMatchName" prefWidth="75.0" sortable="false" text="Match" />
-                            <TableColumn fx:id="colMatchDone" prefWidth="75.0" resizable="false" sortable="false" text="Completed" />
+                            <TableColumn fx:id="colMatchDone" prefWidth="75.0" resizable="false" sortable="false" text="Done" />
                               <TableColumn fx:id="colMatchPosted" prefWidth="75.0" resizable="false" sortable="false" text="Uploaded" />
                           </columns>
                         </TableView>
@@ -321,8 +330,8 @@
                               <TableColumn fx:id="colRankTies" prefWidth="75.0" resizable="false" text="Ties" />
                               <TableColumn fx:id="colRankQP" prefWidth="60.0" resizable="false" text="QP" />
                               <TableColumn fx:id="colRankRP" prefWidth="60.0" resizable="false" text="RP" />
-                              <TableColumn fx:id="colRankScore" prefWidth="119.0" resizable="false" text="Highest Qual Score" />
-                              <TableColumn fx:id="colRankPlayed" prefWidth="105.0" resizable="false" text="Matches Played" />
+                              <TableColumn fx:id="colRankScore" prefWidth="119.0" resizable="false" text="Highest Score" />
+                              <TableColumn fx:id="colRankPlayed" prefWidth="105.0" resizable="false" text="Played" />
                           </columns>
                         </TableView>
                         <GridPane layoutY="376.0" prefHeight="50.0" prefWidth="720.0" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="376.0">
@@ -358,7 +367,7 @@
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
               </content>
             </Tab>
-            <Tab fx:id="tabSync" disable="true" text="Auto-Sync">
+            <Tab fx:id="tabSync" disable="true" text="Options">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
@@ -381,13 +390,13 @@
                               <Button fx:id="btnSyncStart" mnemonicParsing="false" onAction="#startAutoSync" text="Start Sync Loop" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
                               <Label text="Press this button to autosync" textAlignment="CENTER" wrapText="true" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1">
                                  <font>
-                                    <Font name="System Bold Italic" size="19.0" />
+                                    <Font name="System Bold Italic" size="18.0" />
                                  </font>
                               </Label>
                               <Button fx:id="btnSyncStop" mnemonicParsing="false" onAction="#stopAutoSync" text="Stop Sync Loop" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
                               <Label text="Press this button to not autosync" textAlignment="CENTER" wrapText="true" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="1">
                                  <font>
-                                    <Font name="System Bold Italic" size="19.0" />
+                                    <Font name="System Bold Italic" size="18.0" />
                                  </font>
                               </Label>
                               <CheckBox fx:id="btnSyncMatches" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="0.0" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.valignment="CENTER">
@@ -400,7 +409,7 @@
                               </CheckBox>
                               <Label text="Check this to autosync matches to TOA" textAlignment="CENTER" wrapText="true" GridPane.columnIndex="2" GridPane.rowIndex="3">
                                  <font>
-                                    <Font name="System Bold Italic" size="19.0" />
+                                    <Font name="System Bold Italic" size="18.0" />
                                  </font>
                               </Label>
                            </children>

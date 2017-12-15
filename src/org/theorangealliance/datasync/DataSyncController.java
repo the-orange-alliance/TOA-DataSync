@@ -309,7 +309,9 @@ public class DataSyncController implements Initializable {
                 this.matchesController.syncMatches();
                 this.matchesController.checkMatchSchedule();
                 this.matchesController.checkMatchDetails();
-                this.rankingsController.syncRankings();
+//                this.rankingsController.syncRankings();
+                // We're going to try THIS instead....
+                this.rankingsController.getRankingsByFile();
                 this.rankingsController.postRankings();
                 if (this.btnSyncMatches.selectedProperty().get()) {
                      this.matchesController.postCompletedMatches();
