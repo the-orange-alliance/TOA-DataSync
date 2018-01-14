@@ -74,6 +74,7 @@ public class RankingsController {
                         int highScore = Integer.parseInt(e.child(5).text());
                         int played = Integer.parseInt(e.child(6).text());
                         TeamRanking ranking = teamRankings.get(rank-1);
+                        ranking.setTeamKey(team); 
                         ranking.setQualPoints(qualPoints);
                         ranking.setRankPoints(rankPoints);
                         ranking.setHighestScore(highScore);
