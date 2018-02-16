@@ -32,12 +32,16 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.ResourceBundle;
+import java.util.Scanner;
 import java.util.logging.Level;
 
 /**
  * Created by Kyle Flynn on 11/28/2017.
  */
 public class DataSyncController implements Initializable {
+
+    /* File name for saving the Key/Id/Scoring System Directory */
+    private static final String SAVE_FILE_NAME = "Settings.txt";
 
     /* This is the left-side of the setup tab. */
     @FXML public Tab tabSetup;
@@ -135,6 +139,24 @@ public class DataSyncController implements Initializable {
         txtSetupDir.setEditable(false);
         btnSetupSelect.setDisable(true);
         btnSetupTestDir.setDisable(true);
+
+        //Check for default settings
+        try (Scanner scan = new Scanner(new File(SAVE_FILE_NAME))){
+
+            if(scan.hasNextLine()){
+                txtSetupKey.setText(scan.nextLine());
+            }
+            if(scan.hasNextLine()){
+                txtSetupID.setText(scan.nextLine());
+            }
+            if(scan.hasNextLine()){
+                txtSetupDir.setText(scan.nextLine());
+            }
+
+        } catch (FileNotFoundException e){
+            /* There were no saved strings, continue as is*/
+        }
+
     }
 
     @FXML
@@ -149,6 +171,7 @@ public class DataSyncController implements Initializable {
     @FXML
     public void testConnection() {
         if (txtSetupKey.getText().length() > 0 && txtSetupID.getText().length() > 0) {
+            saveSettings();
             // This will grab the base URL.
             TOAEndpoint testConnection = new TOAEndpoint("GET", "event/" + txtSetupID.getText());
             testConnection.setCredentials(txtSetupKey.getText(), txtSetupID.getText());
@@ -207,6 +230,7 @@ public class DataSyncController implements Initializable {
     @FXML
     public void testDirectory() {
         if (txtSetupDir.getText().length() > 0) {
+            saveSettings();
             String root = txtSetupDir.getText();
             File divisionsFile = new File(root + File.separator + "divisions.txt");
             if (divisionsFile.exists()) {
@@ -342,6 +366,24 @@ public class DataSyncController implements Initializable {
 
     public HashMap<Integer, int[]> getTeamWL() {
         return this.matchesController.getTeamWL();
+    }
+
+    private void saveSettings(){
+
+        try (PrintWriter out = new PrintWriter(SAVE_FILE_NAME)){
+
+            out.println(txtSetupKey.getText());
+            out.println(txtSetupID.getText());
+            out.println(txtSetupDir.getText());
+
+            out.close();
+
+        }catch (FileNotFoundException e){
+
+            TOALogger.log(Level.WARNING, "Error saving settings");
+
+        }
+
     }
 
 }
