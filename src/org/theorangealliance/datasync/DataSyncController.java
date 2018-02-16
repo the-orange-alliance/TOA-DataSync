@@ -148,7 +148,7 @@ public class DataSyncController implements Initializable {
 
     @FXML
     public void testConnection() {
-        if (txtSetupKey.getText().length() > 0 && txtSetupKey.getText().length() > 0) {
+        if (txtSetupKey.getText().length() > 0 && txtSetupID.getText().length() > 0) {
             // This will grab the base URL.
             TOAEndpoint testConnection = new TOAEndpoint("GET", "event/" + txtSetupID.getText());
             testConnection.setCredentials(txtSetupKey.getText(), txtSetupID.getText());
