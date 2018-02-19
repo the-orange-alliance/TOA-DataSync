@@ -1,7 +1,6 @@
 package org.theorangealliance.datasync;
 
 import com.sun.corba.se.impl.orbutil.concurrent.Sync;
-import com.sun.istack.internal.Nullable;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -26,7 +25,6 @@ import org.theorangealliance.datasync.util.TOAEndpoint;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
-import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -446,7 +444,7 @@ public class DataSyncController implements Initializable {
     }
 
     /* Prompts the user to select a file from the list, or run without a file */
-    @Nullable private String promptForSaveFile(ArrayList<String> files){
+    private String promptForSaveFile(ArrayList<String> files){
 
         //New pane without text
         JOptionPane fileSelector = new JOptionPane("");
