@@ -2,6 +2,6 @@
 out/production/
 log.log
 log/log.log.lck
-Settings.txt
-out/artifacts/
+*.txt
+out/artifacts/*
 !out/artifacts/TOA_DataSync_jar

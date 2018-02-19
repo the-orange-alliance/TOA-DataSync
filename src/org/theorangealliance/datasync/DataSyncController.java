@@ -1,6 +1,7 @@
 package org.theorangealliance.datasync;
 
 import com.sun.corba.se.impl.orbutil.concurrent.Sync;
+import com.sun.istack.internal.Nullable;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -22,17 +23,16 @@ import org.theorangealliance.datasync.tabs.TeamsController;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.ResourceBundle;
-import java.util.Scanner;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
@@ -40,10 +40,10 @@ import java.util.logging.Level;
  */
 public class DataSyncController implements Initializable {
 
-    /* File format for saving the Key/Id/Scoring System Directory */
-    private static final String[] SAVE_FILE_FORMAT = {"Settings" , ".txt"};
+    /* Save file extension */
+    private static final String SAVE_FILE_EXTENSION = ".txt";
     /* Default output file */
-    private String saveFileName = "Settings.txt";
+    private String saveFileName = "Settings" + SAVE_FILE_EXTENSION;
 
     /* This is the left-side of the setup tab. */
     @FXML public Tab tabSetup;
@@ -373,6 +373,7 @@ public class DataSyncController implements Initializable {
         return this.matchesController.getTeamWL();
     }
 
+    /* Outputs the current settings to the file specified by saveFileName (Default Settings.SAVE_FILE_EXTENSION) */
     private void saveSettings(){
 
         try (PrintWriter out = new PrintWriter(saveFileName)){
@@ -391,18 +392,29 @@ public class DataSyncController implements Initializable {
 
     }
 
+    /* Searches for files in the active directory with the proper extension, and then prompts the user for which one */
     private void readSettings(){
+
         //Check for saved settings
         try {
-            //Looks for files of the proper format
+            ArrayList<String> files = new ArrayList<>();
+            //Looks for files
             for(File file : new File(System.getProperty("user.dir")).listFiles()) {
                 String name = file.getName();
                 if (file.isFile() //Checks that the file is not a directory
-                        && name.length() >= SAVE_FILE_FORMAT[0].length() && name.length() >= SAVE_FILE_FORMAT[1].length() //Checks for really short file names
-                        && name.substring(0, SAVE_FILE_FORMAT[0].length()).equalsIgnoreCase(SAVE_FILE_FORMAT[0]) //Starts with intro string
-                        && name.substring(name.length() - SAVE_FILE_FORMAT[1].length(), name.length()).equalsIgnoreCase(SAVE_FILE_FORMAT[1])) { //Ends with proper file type
+                        && name.substring(name.length() - SAVE_FILE_EXTENSION.length(), name.length()).equals(SAVE_FILE_EXTENSION)) { //Ends with proper file type
+                    files.add(name);
+                }
+            }
 
-                    saveFileName = name;
+            //If it found any files, will prompt the user for which one
+            if(files.size() > 0) {
+
+                String file = promptForSaveFile(files);
+
+                if(file != null){
+
+                    saveFileName = file;
 
                     Scanner scan = new Scanner(new File(saveFileName));
                     while (scan.hasNextLine()) {
@@ -424,19 +436,37 @@ public class DataSyncController implements Initializable {
 
                             }
                         }
-
                     }
-                    break; //Only read the first settings file found
                 }
             }
 
         } catch (FileNotFoundException e){
             /* Error opening file, continue with defaults */
-        } catch (NullPointerException e){
-            /* Possible error with the system property */
         }
     }
 
+    /* Prompts the user to select a file from the list, or run without a file */
+    @Nullable private String promptForSaveFile(ArrayList<String> files){
+
+        //New pane without text
+        JOptionPane fileSelector = new JOptionPane("");
+
+        //Buttons
+        fileSelector.setOptions(new String[] {"Select File", "Run without a file"});
+
+        //Dropdown menu
+        fileSelector.setSelectionValues(files.toArray());
+
+        //Makes and shows the window
+        JDialog window = fileSelector.createDialog(null, "Select a Settings File");
+        window.setVisible(true);
+
+        //returns the selected value if "Select File" was pressed, null otherwise
+        return fileSelector.getValue().equals("Select File") ? (String)fileSelector.getInputValue() : null;
+
+    }
+
+    /* Enables all windows, only used when BETA testing */
     private void enableAllWindows(){
 
         tabAdvancement.setDisable(false);
