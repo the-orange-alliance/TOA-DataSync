@@ -40,7 +40,7 @@ import java.util.logging.Level;
  */
 public class DataSyncController implements Initializable {
 
-    /* File name for saving the Key/Id/Scoring System Directory */
+    /* File format for saving the Key/Id/Scoring System Directory */
     private static final String[] SAVE_FILE_FORMAT = {"Settings" , ".txt"};
     /* Default output file */
     private String saveFileName = "Settings.txt";
@@ -116,6 +116,15 @@ public class DataSyncController implements Initializable {
     @FXML public TableColumn<TeamRanking, Integer> colRankPlayed;
     @FXML public Button btnRankUpload;
 
+    /* This is for our alliances tab */
+    @FXML public Tab tabAllianceSelection;
+
+    /* This is for our awards tab */
+    @FXML public Tab tabAwards;
+
+    /* This is for our advancement tab */
+    @FXML public Tab tabAdvancement;
+
     /* This is for our sync tab. */
     @FXML public Tab tabSync;
     @FXML public Button btnSyncStart;
@@ -138,9 +147,18 @@ public class DataSyncController implements Initializable {
         labelSetupTest.setTextFill(Color.RED);
         labelSetupDir.setTextFill(Color.RED);
 
-        txtSetupDir.setEditable(false);
-        btnSetupSelect.setDisable(true);
-        btnSetupTestDir.setDisable(true);
+
+        if(!Config.BETA_TESTING){
+
+            txtSetupDir.setEditable(false);
+            btnSetupSelect.setDisable(true);
+            btnSetupTestDir.setDisable(true);
+
+        }else{
+
+            enableAllWindows();
+
+        }
 
         readSettings();
 
@@ -376,22 +394,21 @@ public class DataSyncController implements Initializable {
     private void readSettings(){
         //Check for saved settings
         try {
-
             //Looks for files of the proper format
             for(File file : new File(System.getProperty("user.dir")).listFiles()) {
                 String name = file.getName();
-                if(file.isFile() //Not a directory
-                        && name.length() >= SAVE_FILE_FORMAT[0].length()
-                        && name.substring(0,SAVE_FILE_FORMAT[0].length()).equalsIgnoreCase(SAVE_FILE_FORMAT[0])//Starts with intro string
-                        && name.substring(name.length()-SAVE_FILE_FORMAT[1].length(),name.length()).equalsIgnoreCase(SAVE_FILE_FORMAT[1])) {//Ends with proper file type
+                if (file.isFile() //Checks that the file is not a directory
+                        && name.length() >= SAVE_FILE_FORMAT[0].length() && name.length() >= SAVE_FILE_FORMAT[1].length() //Checks for really short file names
+                        && name.substring(0, SAVE_FILE_FORMAT[0].length()).equalsIgnoreCase(SAVE_FILE_FORMAT[0]) //Starts with intro string
+                        && name.substring(name.length() - SAVE_FILE_FORMAT[1].length(), name.length()).equalsIgnoreCase(SAVE_FILE_FORMAT[1])) { //Ends with proper file type
 
                     saveFileName = name;
 
                     Scanner scan = new Scanner(new File(saveFileName));
-                    while(scan.hasNextLine()){
+                    while (scan.hasNextLine()) {
                         String[] line = scan.nextLine().split(":");
 
-                        if(line.length > 1) {
+                        if (line.length > 1) {
                             if (line[0].equalsIgnoreCase("Key")) {
 
                                 txtSetupKey.setText(line[1]);
@@ -418,5 +435,18 @@ public class DataSyncController implements Initializable {
         } catch (NullPointerException e){
             /* Possible error with the system property */
         }
+    }
+
+    private void enableAllWindows(){
+
+        tabAdvancement.setDisable(false);
+        tabAllianceSelection.setDisable(false);
+        tabAwards.setDisable(false);
+        tabMatches.setDisable(false);
+        tabRankings.setDisable(false);
+        tabSetup.setDisable(false);
+        tabSync.setDisable(false);
+        tabTeams.setDisable(false);
+
     }
 }
