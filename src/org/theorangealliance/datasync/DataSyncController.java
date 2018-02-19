@@ -41,7 +41,9 @@ import java.util.logging.Level;
 public class DataSyncController implements Initializable {
 
     /* File name for saving the Key/Id/Scoring System Directory */
-    private static final String SAVE_FILE_NAME = "Settings.txt";
+    private static final String[] SAVE_FILE_FORMAT = {"Settings" , ".txt"};
+    /* Default output file */
+    private String saveFileName = "Settings.txt";
 
     /* This is the left-side of the setup tab. */
     @FXML public Tab tabSetup;
@@ -140,22 +142,7 @@ public class DataSyncController implements Initializable {
         btnSetupSelect.setDisable(true);
         btnSetupTestDir.setDisable(true);
 
-        //Check for default settings
-        try (Scanner scan = new Scanner(new File(SAVE_FILE_NAME))){
-
-            if(scan.hasNextLine()){
-                txtSetupKey.setText(scan.nextLine());
-            }
-            if(scan.hasNextLine()){
-                txtSetupID.setText(scan.nextLine());
-            }
-            if(scan.hasNextLine()){
-                txtSetupDir.setText(scan.nextLine());
-            }
-
-        } catch (FileNotFoundException e){
-            /* There were no saved strings, continue as is*/
-        }
+        readSettings();
 
     }
 
@@ -370,11 +357,11 @@ public class DataSyncController implements Initializable {
 
     private void saveSettings(){
 
-        try (PrintWriter out = new PrintWriter(SAVE_FILE_NAME)){
+        try (PrintWriter out = new PrintWriter(saveFileName)){
 
-            out.println(txtSetupKey.getText());
-            out.println(txtSetupID.getText());
-            out.println(txtSetupDir.getText());
+            out.println("Key:" + txtSetupKey.getText());
+            out.println("ID:" + txtSetupID.getText());
+            out.println("Directory:" + txtSetupDir.getText());
 
             out.close();
 
@@ -386,4 +373,50 @@ public class DataSyncController implements Initializable {
 
     }
 
+    private void readSettings(){
+        //Check for saved settings
+        try {
+
+            //Looks for files of the proper format
+            for(File file : new File(System.getProperty("user.dir")).listFiles()) {
+                String name = file.getName();
+                if(file.isFile() //Not a directory
+                        && name.length() >= SAVE_FILE_FORMAT[0].length()
+                        && name.substring(0,SAVE_FILE_FORMAT[0].length()).equalsIgnoreCase(SAVE_FILE_FORMAT[0])//Starts with intro string
+                        && name.substring(name.length()-SAVE_FILE_FORMAT[1].length(),name.length()).equalsIgnoreCase(SAVE_FILE_FORMAT[1])) {//Ends with proper file type
+
+                    saveFileName = name;
+
+                    Scanner scan = new Scanner(new File(saveFileName));
+                    while(scan.hasNextLine()){
+                        String[] line = scan.nextLine().split(":");
+
+                        if(line.length > 1) {
+                            if (line[0].equalsIgnoreCase("Key")) {
+
+                                txtSetupKey.setText(line[1]);
+
+                            } else if (line[0].equalsIgnoreCase("ID")) {
+
+                                txtSetupID.setText(line[1]);
+
+                            } else if (line[0].equalsIgnoreCase("Directory")) {
+
+                                txtSetupDir.setText(line[1]);
+                                txtSetupDir.setEditable(false);
+
+                            }
+                        }
+
+                    }
+                    break; //Only read the first settings file found
+                }
+            }
+
+        } catch (FileNotFoundException e){
+            /* Error opening file, continue with defaults */
+        } catch (NullPointerException e){
+            /* Possible error with the system property */
+        }
+    }
 }
