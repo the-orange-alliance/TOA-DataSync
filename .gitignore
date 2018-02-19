@@ -3,4 +3,5 @@ out/production/
 log.log
 log/log.log.lck
 Settings.txt
-out/artifacts/TOA_DataSync_AGardner/
+out/artifacts/
+!out/artifacts/TOA_DataSync_jar
