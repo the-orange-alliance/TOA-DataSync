@@ -12,8 +12,8 @@
    <children>
       <TabPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="455.0" prefWidth="720.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.025" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <tabs>
-          <Tab fx:id="tabSetup" closable="false" text="Setup">
-            <content>
+            <Tab fx:id="tabSetup" closable="false" text="Setup">
+                <content>
               <AnchorPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="426.0" prefWidth="720.0">
                      <children>
                         <Separator layoutX="357.0" layoutY="13.0" orientation="VERTICAL" prefHeight="400.0" />
@@ -141,45 +141,45 @@
                         </GridPane>
                      </children></AnchorPane>
             </content>
-          </Tab>
-          <Tab fx:id="tabTeams" closable="false" disable="true" text="Teams">
-            <content>
-              <AnchorPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="451.0" prefWidth="720.0">
-                     <children>
-                        <TableView fx:id="tableTeams" prefHeight="385.0" prefWidth="720.0" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                          <columns>
-                            <TableColumn fx:id="colTeamsTeam" prefWidth="75.0" resizable="false" text="TeamID" />
-                              <TableColumn fx:id="colTeamDiv" prefWidth="34.0" resizable="false" text="Div." />
-                            <TableColumn fx:id="colTeamsRegion" prefWidth="85.0" resizable="false" text="RegionID" />
-                              <TableColumn fx:id="colTeamsLeague" prefWidth="85.0" resizable="false" text="LeagueID" />
-                              <TableColumn fx:id="colTeamsShort" prefWidth="150.0" resizable="false" text="Team Name (Short)" />
-                              <TableColumn fx:id="colTeamsLong" prefWidth="165.0" resizable="false" text="Team Name (Long)" />
-                              <TableColumn fx:id="colTeamsLocation" minWidth="-1.0" prefWidth="125.0" resizable="false" text="Location" />
-                          </columns>
-                        </TableView>
-                        <GridPane layoutY="385.0" prefHeight="42.0" prefWidth="720.0">
-                          <columnConstraints>
-                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                          </columnConstraints>
-                          <rowConstraints>
-                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                          </rowConstraints>
-                           <children>
-                              <Button fx:id="btnTeamsGetTOA" mnemonicParsing="false" onAction="#getTeamsByURL" text="Import From TOA" GridPane.halignment="CENTER" />
-                              <Button fx:id="btnTeamsGet" mnemonicParsing="false" onAction="#getTeamsByFile" text="Import From Scoring System" GridPane.columnIndex="1" GridPane.halignment="CENTER">
-                                 <font>
-                                    <Font size="12.0" />
-                                 </font></Button>
-                              <Button fx:id="btnTeamsDelete" mnemonicParsing="false" onAction="#deleteEventTeams" text="Purge EventParticipants" GridPane.columnIndex="3" GridPane.halignment="CENTER" />
-                              <Button fx:id="btnTeamsPost" mnemonicParsing="false" onAction="#postEventTeams" text="Upload to TOA" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
-                           </children>
-                        </GridPane>
-                     </children></AnchorPane>
-            </content>
-          </Tab>
+            </Tab>
+            <Tab fx:id="tabTeams" closable="false" disable="true" text="Teams">
+                <content>
+                  <AnchorPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="451.0" prefWidth="720.0">
+                         <children>
+                            <TableView fx:id="tableTeams" prefHeight="385.0" prefWidth="720.0" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                              <columns>
+                                <TableColumn fx:id="colTeamsTeam" prefWidth="75.0" resizable="false" text="TeamID" />
+                                  <TableColumn fx:id="colTeamDiv" prefWidth="34.0" resizable="false" text="Div." />
+                                <TableColumn fx:id="colTeamsRegion" prefWidth="85.0" resizable="false" text="RegionID" />
+                                  <TableColumn fx:id="colTeamsLeague" prefWidth="85.0" resizable="false" text="LeagueID" />
+                                  <TableColumn fx:id="colTeamsShort" prefWidth="150.0" resizable="false" text="Team Name (Short)" />
+                                  <TableColumn fx:id="colTeamsLong" prefWidth="165.0" resizable="false" text="Team Name (Long)" />
+                                  <TableColumn fx:id="colTeamsLocation" minWidth="-1.0" prefWidth="125.0" resizable="false" text="Location" />
+                              </columns>
+                            </TableView>
+                            <GridPane layoutY="385.0" prefHeight="42.0" prefWidth="720.0">
+                              <columnConstraints>
+                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              </columnConstraints>
+                              <rowConstraints>
+                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              </rowConstraints>
+                               <children>
+                                  <Button fx:id="btnTeamsGetTOA" mnemonicParsing="false" onAction="#getTeamsByURL" text="Import From TOA" GridPane.halignment="CENTER" />
+                                  <Button fx:id="btnTeamsGet" mnemonicParsing="false" onAction="#getTeamsByFile" text="Import From Scoring System" GridPane.columnIndex="1" GridPane.halignment="CENTER">
+                                     <font>
+                                        <Font size="12.0" />
+                                     </font></Button>
+                                  <Button fx:id="btnTeamsDelete" mnemonicParsing="false" onAction="#deleteEventTeams" text="Purge EventParticipants" GridPane.columnIndex="3" GridPane.halignment="CENTER" />
+                                  <Button fx:id="btnTeamsPost" mnemonicParsing="false" onAction="#postEventTeams" text="Upload to TOA" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
+                               </children>
+                            </GridPane>
+                         </children></AnchorPane>
+                </content>
+            </Tab>
             <Tab fx:id="tabMatches" disable="true" text="Matches">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
