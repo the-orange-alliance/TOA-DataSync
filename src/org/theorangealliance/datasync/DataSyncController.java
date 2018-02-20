@@ -416,7 +416,7 @@ public class DataSyncController implements Initializable {
 
                     Scanner scan = new Scanner(new File(saveFileName));
                     while (scan.hasNextLine()) {
-                        String[] line = scan.nextLine().split(":");
+                        String[] line = scan.nextLine().split(":", 2);
 
                         if (line.length > 1) {
                             if (line[0].equalsIgnoreCase("Key")) {
