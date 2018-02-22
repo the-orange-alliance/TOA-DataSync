@@ -22,6 +22,7 @@ import org.theorangealliance.datasync.tabs.TeamsController;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.net.URI;
@@ -29,15 +30,18 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
  * Created by Kyle Flynn on 11/28/2017.
  */
 public class DataSyncController implements Initializable {
+
+    /* Save file extension */
+    private static final String SAVE_FILE_EXTENSION = ".txt";
+    /* Default output file */
+    private String saveFileName = "Settings" + SAVE_FILE_EXTENSION;
 
     /* This is the left-side of the setup tab. */
     @FXML public Tab tabSetup;
@@ -110,6 +114,15 @@ public class DataSyncController implements Initializable {
     @FXML public TableColumn<TeamRanking, Integer> colRankPlayed;
     @FXML public Button btnRankUpload;
 
+    /* This is for our alliances tab */
+    @FXML public Tab tabAllianceSelection;
+
+    /* This is for our awards tab */
+    @FXML public Tab tabAwards;
+
+    /* This is for our advancement tab */
+    @FXML public Tab tabAdvancement;
+
     /* This is for our sync tab. */
     @FXML public Tab tabSync;
     @FXML public Button btnSyncStart;
@@ -132,9 +145,21 @@ public class DataSyncController implements Initializable {
         labelSetupTest.setTextFill(Color.RED);
         labelSetupDir.setTextFill(Color.RED);
 
-        txtSetupDir.setEditable(false);
-        btnSetupSelect.setDisable(true);
-        btnSetupTestDir.setDisable(true);
+
+        if(!Config.BETA_TESTING){
+
+            txtSetupDir.setEditable(false);
+            btnSetupSelect.setDisable(true);
+            btnSetupTestDir.setDisable(true);
+
+        }else{
+
+            enableAllWindows();
+
+        }
+
+        readSettings();
+
     }
 
     @FXML
@@ -148,7 +173,8 @@ public class DataSyncController implements Initializable {
 
     @FXML
     public void testConnection() {
-        if (txtSetupKey.getText().length() > 0 && txtSetupKey.getText().length() > 0) {
+        if (txtSetupKey.getText().length() > 0 && txtSetupID.getText().length() > 0) {
+            saveSettings();
             // This will grab the base URL.
             TOAEndpoint testConnection = new TOAEndpoint("GET", "event/" + txtSetupID.getText());
             testConnection.setCredentials(txtSetupKey.getText(), txtSetupID.getText());
@@ -207,6 +233,7 @@ public class DataSyncController implements Initializable {
     @FXML
     public void testDirectory() {
         if (txtSetupDir.getText().length() > 0) {
+            saveSettings();
             String root = txtSetupDir.getText();
             File divisionsFile = new File(root + File.separator + "divisions.txt");
             if (divisionsFile.exists()) {
@@ -344,4 +371,110 @@ public class DataSyncController implements Initializable {
         return this.matchesController.getTeamWL();
     }
 
+    /* Outputs the current settings to the file specified by saveFileName (Default Settings.SAVE_FILE_EXTENSION) */
+    private void saveSettings(){
+
+        try (PrintWriter out = new PrintWriter(saveFileName)){
+
+            out.println("Key:" + txtSetupKey.getText());
+            out.println("ID:" + txtSetupID.getText());
+            out.println("Directory:" + txtSetupDir.getText());
+
+            out.close();
+
+        }catch (FileNotFoundException e){
+
+            TOALogger.log(Level.WARNING, "Error saving settings");
+
+        }
+
+    }
+
+    /* Searches for files in the active directory with the proper extension, and then prompts the user for which one */
+    private void readSettings(){
+
+        //Check for saved settings
+        try {
+            ArrayList<String> files = new ArrayList<>();
+            //Looks for files
+            for(File file : new File(System.getProperty("user.dir")).listFiles()) {
+                String name = file.getName();
+                if (file.isFile() //Checks that the file is not a directory
+                        && name.substring(name.length() - SAVE_FILE_EXTENSION.length(), name.length()).equals(SAVE_FILE_EXTENSION)) { //Ends with proper file type
+                    files.add(name);
+                }
+            }
+
+            //If it found any files, will prompt the user for which one
+            if(files.size() > 0) {
+
+                String file = promptForSaveFile(files);
+
+                if(file != null){
+
+                    saveFileName = file;
+
+                    Scanner scan = new Scanner(new File(saveFileName));
+                    while (scan.hasNextLine()) {
+                        String[] line = scan.nextLine().split(":", 2);
+
+                        if (line.length > 1) {
+                            if (line[0].equalsIgnoreCase("Key")) {
+
+                                txtSetupKey.setText(line[1]);
+
+                            } else if (line[0].equalsIgnoreCase("ID")) {
+
+                                txtSetupID.setText(line[1]);
+
+                            } else if (line[0].equalsIgnoreCase("Directory")) {
+
+                                txtSetupDir.setText(line[1]);
+                                txtSetupDir.setEditable(false);
+
+                            }
+                        }
+                    }
+                }
+            }
+
+        } catch (FileNotFoundException e){
+            /* Error opening file, continue with defaults */
+        }
+    }
+
+    /* Prompts the user to select a file from the list, or run without a file */
+    private String promptForSaveFile(ArrayList<String> files){
+
+        //New pane without text
+        JOptionPane fileSelector = new JOptionPane("");
+
+        //Buttons
+        fileSelector.setOptions(new String[] {"Select File", "Run without a file"});
+
+        //Dropdown menu
+        fileSelector.setSelectionValues(files.toArray());
+
+        //Makes and shows the window
+        JDialog window = fileSelector.createDialog(null, "Select a Settings File");
+        window.setVisible(true);
+
+        //returns the selected value if "Select File" was pressed, null otherwise
+        return fileSelector.getValue().equals("Select File") ? (String)fileSelector.getInputValue() : null;
+
+    }
+
+    /* Enables all windows, only used when BETA testing */
+    private void enableAllWindows(){
+
+        tabAdvancement.setDisable(false);
+        tabAllianceSelection.setDisable(false);
+        tabAwards.setDisable(false);
+        tabMatches.setDisable(false);
+        tabRankings.setDisable(false);
+        tabSetup.setDisable(false);
+        tabSync.setDisable(false);
+        tabTeams.setDisable(false);
+
+    }
 }
