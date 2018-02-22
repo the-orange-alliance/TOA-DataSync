@@ -809,6 +809,95 @@ public class MatchesController {
 
     public void deleteMatches(){
 
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Are you sure about this?");
+        alert.setHeaderText("This operation cannot be undone.");
+        alert.setContentText("You are about to purge matches in TOA's databases for event " + Config.EVENT_ID + ". Matches will become unavailable until you re-upload.");
+
+        ButtonType okayButton = new ButtonType("Purge Matches");
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(okayButton, cancelButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == okayButton) {
+
+
+
+        }
+
+    }
+
+    private void deleteMatchScheduleMatches(){
+
+        TOAEndpoint rankingEndpoint = new TOAEndpoint("DELETE", "upload/event/schedule/matches");
+        rankingEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        TOARequestBody requestBody = new TOARequestBody();
+        requestBody.setEventKey(Config.EVENT_ID);
+        rankingEndpoint.setBody(requestBody);
+        rankingEndpoint.execute(((response, success) -> {
+            if (success) {
+                TOALogger.log(Level.INFO, "Deleted Matches.");
+            }else{
+                TOALogger.log(Level.SEVERE, "Failed to delete matches from TOA.");
+            }
+        }));
+
+    }
+
+    private void deleteMatchScheduleTeams(){
+
+        TOAEndpoint rankingEndpoint = new TOAEndpoint("DELETE", "upload/event/schedule/teams");
+        rankingEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        TOARequestBody requestBody = new TOARequestBody();
+        requestBody.setEventKey(Config.EVENT_ID);
+        rankingEndpoint.setBody(requestBody);
+        rankingEndpoint.execute(((response, success) -> {
+            if (success) {
+                TOALogger.log(Level.INFO, "Deleted Match Teams.");
+            }else{
+                TOALogger.log(Level.SEVERE, "Failed to delete match teams from TOA.");
+            }
+        }));
+
+    }
+
+    private void deleteMatchData(){
+
+        TOAEndpoint matchesEndpoint = new TOAEndpoint("event/" + Config.EVENT_ID + "/matches");
+        matchesEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        matchesEndpoint.execute(((response, success) -> {
+            if (success) {
+                uploadedDetails.clear();
+                MatchGeneralJSON[] matches = matchesEndpoint.getGson().fromJson(response, MatchGeneralJSON[].class);
+                for (MatchGeneralJSON match : matches) {
+
+                    //purge the match
+
+                }
+
+            } else {
+                controller.sendError("Connection to TOA unsuccessful. " + response);
+            }
+        }));
+
+        for(MatchDetailRelicJSON match : uploadedDetails){
+
+            TOAEndpoint matchEndpoint = new TOAEndpoint("DELETE", "upload/event/match");
+            matchEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+            TOARequestBody requestBody = new TOARequestBody();
+            requestBody.setEventKey(Config.EVENT_ID);
+            requestBody.setMatchKey(match.getMatchKey());
+            matchEndpoint.setBody(requestBody);
+            matchEndpoint.execute(((response, success) -> {
+                if (success) {
+                    uploadedDetails.remove(match);
+                } else {
+                    TOALogger.log(Level.SEVERE, "Failed to remove match ");
+                }
+            }));
+
+        }
 
     }
 
