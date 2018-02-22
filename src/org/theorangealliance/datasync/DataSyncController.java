@@ -1,6 +1,5 @@
 package org.theorangealliance.datasync;
 
-import com.sun.corba.se.impl.orbutil.concurrent.Sync;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -29,7 +28,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -326,6 +324,11 @@ public class DataSyncController implements Initializable {
     }
 
     @FXML
+    public void deleteMatches(){
+        this.matchesController.deleteMatches();
+    }
+
+    @FXML
     public void startAutoSync() {
         DataSync.getMainStage().setOnCloseRequest(closeEvent -> this.syncController.kill());
         this.syncController.execute((count) -> {
@@ -457,10 +460,18 @@ public class DataSyncController implements Initializable {
 
         //Makes and shows the window
         JDialog window = fileSelector.createDialog(null, "Select a Settings File");
+        window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         window.setVisible(true);
 
         //returns the selected value if "Select File" was pressed, null otherwise
-        return fileSelector.getValue().equals("Select File") ? (String)fileSelector.getInputValue() : null;
+        try {
+            return fileSelector.getValue().equals("Select File") ? (String) fileSelector.getInputValue() : null;
+        }catch (NullPointerException e){//When the user closes the window
+            System.exit(0);
+        }
+
+        //We don't go here
+        return null;
 
     }
 

@@ -553,7 +553,7 @@ public class MatchesController {
 
                 MatchDetailRelicJSON detailJSON = null;
 
-                for (MatchDetailRelicJSON matchDetails : matchDetails.values()) {
+                for (MatchDetailRelicJSON matchDetails : this.matchDetails.values()) {
                     if (matchDetails.getMatchKey().equals(completeMatch.getMatchKey())) {
                         detailJSON = matchDetails;
                         break;
@@ -647,7 +647,7 @@ public class MatchesController {
 
                 MatchDetailRelicJSON detailJSON = null;
 
-                for (MatchDetailRelicJSON matchDetails : matchDetails.values()) {
+                for (MatchDetailRelicJSON matchDetails : this.matchDetails.values()) {
                     if (matchDetails.getMatchKey().equals(selectedMatch.getMatchKey())) {
                         detailJSON = matchDetails;
                         break;
@@ -805,6 +805,11 @@ public class MatchesController {
                 TOALogger.log(Level.INFO, "Error posting match schedule. " + response);
             }
         }));
+    }
+
+    public void deleteMatches(){
+
+
     }
 
     private String getCurrentTime() {
