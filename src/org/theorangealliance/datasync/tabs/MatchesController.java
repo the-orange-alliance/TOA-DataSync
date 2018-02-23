@@ -822,7 +822,9 @@ public class MatchesController {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == okayButton) {
 
-
+            deleteMatchData();
+            deleteMatchScheduleMatches();
+            deleteMatchScheduleTeams();
 
         }
 
@@ -864,15 +866,52 @@ public class MatchesController {
 
     private void deleteMatchData(){
 
+        //Grab list of matches currently on the TOA servers
         TOAEndpoint matchesEndpoint = new TOAEndpoint("event/" + Config.EVENT_ID + "/matches");
         matchesEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
         matchesEndpoint.execute(((response, success) -> {
             if (success) {
-                uploadedDetails.clear();
-                MatchGeneralJSON[] matches = matchesEndpoint.getGson().fromJson(response, MatchGeneralJSON[].class);
-                for (MatchGeneralJSON match : matches) {
 
-                    //purge the match
+                //Clear local cache
+                uploadedDetails.clear();
+                uploadQueue.clear();
+                uploadedMatches.clear();
+
+                try {
+                    //Get the list of matches from the JSON file
+                    MatchGeneralJSON[] matches = matchesEndpoint.getGson().fromJson(response, MatchGeneralJSON[].class);
+                    for (MatchGeneralJSON match : matches) {
+
+                        //Purge Match Data
+                        TOAEndpoint matchEndpoint = new TOAEndpoint("DELETE", "upload/event/match");
+                        matchEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                        TOARequestBody requestBody = new TOARequestBody();
+                        requestBody.setEventKey(Config.EVENT_ID);
+                        requestBody.setMatchKey(match.getMatchKey());
+                        matchEndpoint.setBody(requestBody);
+                        matchEndpoint.execute(((response1, success1) -> {
+                            if (!success1) {
+                                TOALogger.log(Level.WARNING, "Failed to remove match: " + match.getMatchKey());
+                            }
+                        }));
+
+                        //Purge Match Details
+                        matchEndpoint = new TOAEndpoint("DELETE", "upload/event/match/detail");
+                        matchEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                        requestBody = new TOARequestBody();
+                        requestBody.setEventKey(Config.EVENT_ID);
+                        requestBody.setMatchKey(match.getMatchKey());
+                        matchEndpoint.setBody(requestBody);
+                        matchEndpoint.execute(((response1, success1) -> {
+                            if (!success1) {
+                                TOALogger.log(Level.WARNING, "Failed to remove match details for: " + match.getMatchKey());
+                            }
+                        }));
+
+                    }
+                }catch (NullPointerException e){
+
+                    TOALogger.log(Level.SEVERE, "Error reading HTTP input for match list.");
 
                 }
 
@@ -880,24 +919,6 @@ public class MatchesController {
                 controller.sendError("Connection to TOA unsuccessful. " + response);
             }
         }));
-
-        for(MatchDetailRelicJSON match : uploadedDetails){
-
-            TOAEndpoint matchEndpoint = new TOAEndpoint("DELETE", "upload/event/match");
-            matchEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
-            TOARequestBody requestBody = new TOARequestBody();
-            requestBody.setEventKey(Config.EVENT_ID);
-            requestBody.setMatchKey(match.getMatchKey());
-            matchEndpoint.setBody(requestBody);
-            matchEndpoint.execute(((response, success) -> {
-                if (success) {
-                    uploadedDetails.remove(match);
-                } else {
-                    TOALogger.log(Level.SEVERE, "Failed to remove match ");
-                }
-            }));
-
-        }
 
     }
 
