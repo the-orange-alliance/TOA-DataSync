@@ -8,6 +8,7 @@ public class ScheduleStation {
     private String stationKey;
     private String matchKey;
     private int station;
+    //-2:Disqualified -1:No Show 0:Surrogate 1:Nothing 2: Yellow Card
     private int stationStatus;
     private int teamKey;
 
@@ -42,6 +43,25 @@ public class ScheduleStation {
                 break;
         }
         return suffix;
+    }
+
+    public String getStatusString(){
+
+        switch(stationStatus){
+
+            case -2:
+                return "(Disqualified)";
+            case -1:
+                return "(No Show)";
+            case 0:
+                return "*";
+            case 2:
+                return "(Yellow Card)";
+            default:
+                return "";
+
+        }
+
     }
 
     public String getStationKey() {

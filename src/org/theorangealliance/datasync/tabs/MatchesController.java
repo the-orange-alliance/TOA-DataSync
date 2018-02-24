@@ -116,10 +116,10 @@ public class MatchesController {
         }
         ScheduleStation[] teams = matchStations.get(match);
         if (teams != null) {
-            String redTeams = teams[0].getTeamKey() + " " + teams[1].getTeamKey();
-            String redFinalTeam = (teams[2].getTeamKey() == 0 ? "" : teams[2].getTeamKey() + "");
-            String blueTeams = teams[3].getTeamKey() + " " + teams[4].getTeamKey();
-            String blueFinalTeam = (teams[5].getTeamKey() == 0 ? "" : teams[5].getTeamKey() + "");
+            String redTeams = teams[0].getTeamKey() + teams[0].getStatusString() + " " + teams[1].getTeamKey() + teams[1].getStatusString();
+            String redFinalTeam = (teams[2].getTeamKey() == 0 ? "" : teams[2].getTeamKey() + teams[2].getStatusString() + "");
+            String blueTeams = teams[3].getTeamKey() + teams[3].getStatusString() + " " + teams[4].getTeamKey() + teams[4].getStatusString();
+            String blueFinalTeam = (teams[5].getTeamKey() == 0 ? "" : teams[5].getTeamKey() + teams[5].getStatusString() + "");
             controller.labelRedTeams.setText(redTeams + " " + redFinalTeam);
             controller.labelBlueTeams.setText(blueTeams + " " + blueFinalTeam);
         }
@@ -201,7 +201,7 @@ public class MatchesController {
             String resultStr = tie ? "TIE" : redWin ? "RED" : "BLUE";
 //            System.out.println(match.getMatchKey() + ": "  + resultStr);
             for (ScheduleStation station : stations) {
-                if (station.getTeamKey() != 0 && station.getStationStatus() == 1) {
+                if (station.getTeamKey() != 0 && station.getStationStatus() >= 1) {
                     int WINS = 0;
                     int LOSS = 1;
                     int TIES = 2;
@@ -402,13 +402,13 @@ public class MatchesController {
                     scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, Integer.parseInt(teamInfo[4]));
                     scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, Integer.parseInt(teamInfo[5]));
 
-                    // Making sure the surrogates are correct.
-                    scheduleStations[0].setStationStatus(Integer.parseInt(teamInfo[18]) == 0 ? 1 : 0);
-                    scheduleStations[1].setStationStatus(Integer.parseInt(teamInfo[19]) == 0 ? 1 : 0);
-                    scheduleStations[2].setStationStatus(Integer.parseInt(teamInfo[20]) == 0 ? 1 : 0);
-                    scheduleStations[3].setStationStatus(Integer.parseInt(teamInfo[21]) == 0 ? 1 : 0);
-                    scheduleStations[4].setStationStatus(Integer.parseInt(teamInfo[22]) == 0 ? 1 : 0);
-                    scheduleStations[5].setStationStatus(Integer.parseInt(teamInfo[23]) == 0 ? 1 : 0);
+                    /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
+                    scheduleStations[0].setStationStatus(Integer.parseInt(teamInfo[6]) == 2 ? -2 : Integer.parseInt(teamInfo[6]) == 1 ? -1 : Integer.parseInt(teamInfo[18]) == 1 ? 0 : teamInfo[9].equals("true") ? 2 : 1);
+                    scheduleStations[1].setStationStatus(Integer.parseInt(teamInfo[7]) == 2 ? -2 : Integer.parseInt(teamInfo[7]) == 1 ? -1 : Integer.parseInt(teamInfo[19]) == 1 ? 0 : teamInfo[10].equals("true") ? 2 : 1);
+                    scheduleStations[2].setStationStatus(Integer.parseInt(teamInfo[8]) == 2 ? -2 : Integer.parseInt(teamInfo[8]) == 1 ? -1 : Integer.parseInt(teamInfo[20]) == 1 ? 0 : teamInfo[11].equals("true") ? 2 : 1);
+                    scheduleStations[3].setStationStatus(Integer.parseInt(teamInfo[12]) == 2 ? -2 : Integer.parseInt(teamInfo[12]) == 1 ? -1 : Integer.parseInt(teamInfo[21]) == 1 ? 0 : teamInfo[15].equals("true") ? 2 : 1);
+                    scheduleStations[4].setStationStatus(Integer.parseInt(teamInfo[13]) == 2 ? -2 : Integer.parseInt(teamInfo[13]) == 1 ? -1 : Integer.parseInt(teamInfo[22]) == 1 ? 0 : teamInfo[16].equals("true") ? 2 : 1);
+                    scheduleStations[5].setStationStatus(Integer.parseInt(teamInfo[14]) == 2 ? -2 : Integer.parseInt(teamInfo[14]) == 1 ? -1 : Integer.parseInt(teamInfo[23]) == 1 ? 0 : teamInfo[17].equals("true") ? 2 : 1);
 
                     // Field 24 will be whether or not score is SAVED.
                     // This is ALSO where the match details section begins.
@@ -553,7 +553,7 @@ public class MatchesController {
 
                 MatchDetailRelicJSON detailJSON = null;
 
-                for (MatchDetailRelicJSON matchDetails : matchDetails.values()) {
+                for (MatchDetailRelicJSON matchDetails : this.matchDetails.values()) {
                     if (matchDetails.getMatchKey().equals(completeMatch.getMatchKey())) {
                         detailJSON = matchDetails;
                         break;
@@ -647,7 +647,7 @@ public class MatchesController {
 
                 MatchDetailRelicJSON detailJSON = null;
 
-                for (MatchDetailRelicJSON matchDetails : matchDetails.values()) {
+                for (MatchDetailRelicJSON matchDetails : this.matchDetails.values()) {
                     if (matchDetails.getMatchKey().equals(selectedMatch.getMatchKey())) {
                         detailJSON = matchDetails;
                         break;
@@ -805,6 +805,125 @@ public class MatchesController {
                 TOALogger.log(Level.INFO, "Error posting match schedule. " + response);
             }
         }));
+    }
+
+    public void deleteMatches(){
+
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Are you sure about this?");
+        alert.setHeaderText("This operation cannot be undone.");
+        alert.setContentText("You are about to purge matches in TOA's databases for event " + Config.EVENT_ID + ". Matches will become unavailable until you re-upload.");
+
+        ButtonType okayButton = new ButtonType("Purge Matches");
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(okayButton, cancelButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == okayButton) {
+
+            deleteMatchData();
+            deleteMatchScheduleMatches();
+            deleteMatchScheduleTeams();
+
+            for(MatchGeneral match : matchList){
+                match.setIsUploaded(false);
+            }
+
+        }
+
+    }
+
+    private void deleteMatchScheduleMatches(){
+
+        TOAEndpoint rankingEndpoint = new TOAEndpoint("DELETE", "upload/event/schedule/matches");
+        rankingEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        TOARequestBody requestBody = new TOARequestBody();
+        requestBody.setEventKey(Config.EVENT_ID);
+        rankingEndpoint.setBody(requestBody);
+        rankingEndpoint.execute(((response, success) -> {
+            if (success) {
+                TOALogger.log(Level.INFO, "Deleted Matches.");
+            }else{
+                TOALogger.log(Level.SEVERE, "Failed to delete matches from TOA.");
+            }
+        }));
+
+    }
+
+    private void deleteMatchScheduleTeams(){
+
+        TOAEndpoint rankingEndpoint = new TOAEndpoint("DELETE", "upload/event/schedule/teams");
+        rankingEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        TOARequestBody requestBody = new TOARequestBody();
+        requestBody.setEventKey(Config.EVENT_ID);
+        rankingEndpoint.setBody(requestBody);
+        rankingEndpoint.execute(((response, success) -> {
+            if (success) {
+                TOALogger.log(Level.INFO, "Deleted Match Teams.");
+            }else{
+                TOALogger.log(Level.SEVERE, "Failed to delete match teams from TOA.");
+            }
+        }));
+
+    }
+
+    private void deleteMatchData(){
+
+        //Grab list of matches currently on the TOA servers
+        TOAEndpoint matchesEndpoint = new TOAEndpoint("event/" + Config.EVENT_ID + "/matches");
+        matchesEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        matchesEndpoint.execute(((response, success) -> {
+            if (success) {
+
+                //Clear local cache
+                uploadedDetails.clear();
+                uploadQueue.clear();
+                uploadedMatches.clear();
+
+                try {
+                    //Get the list of matches from the JSON file
+                    MatchGeneralJSON[] matches = matchesEndpoint.getGson().fromJson(response, MatchGeneralJSON[].class);
+                    for (MatchGeneralJSON match : matches) {
+
+                        //Purge Match Data
+                        TOAEndpoint matchEndpoint = new TOAEndpoint("DELETE", "upload/event/match");
+                        matchEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                        TOARequestBody requestBody = new TOARequestBody();
+                        requestBody.setEventKey(Config.EVENT_ID);
+                        requestBody.setMatchKey(match.getMatchKey());
+                        matchEndpoint.setBody(requestBody);
+                        matchEndpoint.execute(((response1, success1) -> {
+                            if (!success1) {
+                                TOALogger.log(Level.WARNING, "Failed to remove match: " + match.getMatchKey());
+                            }
+                        }));
+
+                        //Purge Match Details
+                        matchEndpoint = new TOAEndpoint("DELETE", "upload/event/match/detail");
+                        matchEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                        requestBody = new TOARequestBody();
+                        requestBody.setEventKey(Config.EVENT_ID);
+                        requestBody.setMatchKey(match.getMatchKey());
+                        matchEndpoint.setBody(requestBody);
+                        matchEndpoint.execute(((response1, success1) -> {
+                            if (!success1) {
+                                TOALogger.log(Level.WARNING, "Failed to remove match details for: " + match.getMatchKey());
+                            }
+                        }));
+
+                    }
+                }catch (NullPointerException e){
+
+                    TOALogger.log(Level.SEVERE, "Error reading HTTP input for match list.");
+
+                }
+
+            } else {
+                controller.sendError("Connection to TOA unsuccessful. " + response);
+            }
+        }));
+
     }
 
     private String getCurrentTime() {
