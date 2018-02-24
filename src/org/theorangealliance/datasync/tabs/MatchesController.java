@@ -116,10 +116,10 @@ public class MatchesController {
         }
         ScheduleStation[] teams = matchStations.get(match);
         if (teams != null) {
-            String redTeams = teams[0].getTeamKey() + " " + teams[1].getTeamKey();
-            String redFinalTeam = (teams[2].getTeamKey() == 0 ? "" : teams[2].getTeamKey() + "");
-            String blueTeams = teams[3].getTeamKey() + " " + teams[4].getTeamKey();
-            String blueFinalTeam = (teams[5].getTeamKey() == 0 ? "" : teams[5].getTeamKey() + "");
+            String redTeams = teams[0].getTeamKey() + teams[0].getStatusString() + " " + teams[1].getTeamKey() + teams[1].getStatusString();
+            String redFinalTeam = (teams[2].getTeamKey() == 0 ? "" : teams[2].getTeamKey() + teams[2].getStatusString() + "");
+            String blueTeams = teams[3].getTeamKey() + teams[3].getStatusString() + " " + teams[4].getTeamKey() + teams[4].getStatusString();
+            String blueFinalTeam = (teams[5].getTeamKey() == 0 ? "" : teams[5].getTeamKey() + teams[5].getStatusString() + "");
             controller.labelRedTeams.setText(redTeams + " " + redFinalTeam);
             controller.labelBlueTeams.setText(blueTeams + " " + blueFinalTeam);
         }
@@ -201,7 +201,7 @@ public class MatchesController {
             String resultStr = tie ? "TIE" : redWin ? "RED" : "BLUE";
 //            System.out.println(match.getMatchKey() + ": "  + resultStr);
             for (ScheduleStation station : stations) {
-                if (station.getTeamKey() != 0 && station.getStationStatus() == 1) {
+                if (station.getTeamKey() != 0 && station.getStationStatus() >= 1) {
                     int WINS = 0;
                     int LOSS = 1;
                     int TIES = 2;
@@ -402,13 +402,13 @@ public class MatchesController {
                     scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, Integer.parseInt(teamInfo[4]));
                     scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, Integer.parseInt(teamInfo[5]));
 
-                    // Making sure the surrogates are correct.
-                    scheduleStations[0].setStationStatus(Integer.parseInt(teamInfo[18]) == 0 ? 1 : 0);
-                    scheduleStations[1].setStationStatus(Integer.parseInt(teamInfo[19]) == 0 ? 1 : 0);
-                    scheduleStations[2].setStationStatus(Integer.parseInt(teamInfo[20]) == 0 ? 1 : 0);
-                    scheduleStations[3].setStationStatus(Integer.parseInt(teamInfo[21]) == 0 ? 1 : 0);
-                    scheduleStations[4].setStationStatus(Integer.parseInt(teamInfo[22]) == 0 ? 1 : 0);
-                    scheduleStations[5].setStationStatus(Integer.parseInt(teamInfo[23]) == 0 ? 1 : 0);
+                    /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
+                    scheduleStations[0].setStationStatus(Integer.parseInt(teamInfo[6]) == 2 ? -2 : Integer.parseInt(teamInfo[6]) == 1 ? -1 : Integer.parseInt(teamInfo[18]) == 1 ? 0 : teamInfo[9].equals("true") ? 2 : 1);
+                    scheduleStations[1].setStationStatus(Integer.parseInt(teamInfo[7]) == 2 ? -2 : Integer.parseInt(teamInfo[7]) == 1 ? -1 : Integer.parseInt(teamInfo[19]) == 1 ? 0 : teamInfo[10].equals("true") ? 2 : 1);
+                    scheduleStations[2].setStationStatus(Integer.parseInt(teamInfo[8]) == 2 ? -2 : Integer.parseInt(teamInfo[8]) == 1 ? -1 : Integer.parseInt(teamInfo[20]) == 1 ? 0 : teamInfo[11].equals("true") ? 2 : 1);
+                    scheduleStations[3].setStationStatus(Integer.parseInt(teamInfo[12]) == 2 ? -2 : Integer.parseInt(teamInfo[12]) == 1 ? -1 : Integer.parseInt(teamInfo[21]) == 1 ? 0 : teamInfo[15].equals("true") ? 2 : 1);
+                    scheduleStations[4].setStationStatus(Integer.parseInt(teamInfo[13]) == 2 ? -2 : Integer.parseInt(teamInfo[13]) == 1 ? -1 : Integer.parseInt(teamInfo[22]) == 1 ? 0 : teamInfo[16].equals("true") ? 2 : 1);
+                    scheduleStations[5].setStationStatus(Integer.parseInt(teamInfo[14]) == 2 ? -2 : Integer.parseInt(teamInfo[14]) == 1 ? -1 : Integer.parseInt(teamInfo[23]) == 1 ? 0 : teamInfo[17].equals("true") ? 2 : 1);
 
                     // Field 24 will be whether or not score is SAVED.
                     // This is ALSO where the match details section begins.
@@ -825,6 +825,10 @@ public class MatchesController {
             deleteMatchData();
             deleteMatchScheduleMatches();
             deleteMatchScheduleTeams();
+
+            for(MatchGeneral match : matchList){
+                match.setIsUploaded(false);
+            }
 
         }
 
