@@ -54,7 +54,7 @@ public class SyncController implements Runnable {
             this.totalSyncs = 0;
             controller.btnSyncStop.setDisable(false);
             controller.btnSyncMatches.setDisable(true);
-            service.scheduleAtFixedRate(this, 0, 5, TimeUnit.SECONDS);
+            service.scheduleAtFixedRate(this, 0, 30, TimeUnit.SECONDS);
             executeAdapter = toaExecuteAdapter;
         }
     }
