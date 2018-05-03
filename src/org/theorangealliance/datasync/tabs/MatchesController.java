@@ -112,7 +112,7 @@ public class MatchesController {
     }
 
     private void openMatchView(MatchGeneral match) {
-        controller.btnMatchOpen.setDisable(false);
+        controller.btnMatchOpen.setDisable(true);
         if (match.isDone() && uploadedMatches.size() > 0) {
             controller.btnMatchUpload.setDisable(false);
         } else {
