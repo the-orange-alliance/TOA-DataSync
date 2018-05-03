@@ -690,6 +690,7 @@ public class MatchesController {
                         controller.tableMatches.refresh();
                         controller.sendInfo("Successfully uploaded detail results to TOA. " + response);
                         checkMatchDetails();
+                        controller.btnMatchBrowserView.setDisable(false);
                     } else {
                         controller.sendError("Connection to TOA unsuccessful. " + response);
                     }
