@@ -73,7 +73,7 @@ public class DataSyncController implements Initializable {
     @FXML public Button btnMatchImport;
     @FXML public Button btnMatchScheduleUpload;
     @FXML public Button btnMatchUpload;
-    @FXML public Button btnMatchSync;
+    @FXML public Button btnMatchBrowserView;
     @FXML public Button btnMatchOpen;
     @FXML public TableView<MatchGeneral> tableMatches;
     @FXML public TableColumn<MatchGeneral, String> colMatchName;
@@ -316,6 +316,11 @@ public class DataSyncController implements Initializable {
     @FXML
     public void postSelectedMatch() {
         this.matchesController.postSelectedMatch();
+    }
+
+    @FXML
+    public void viewFromTOA(){
+        this.matchesController.viewFromTOA();
     }
 
     @FXML

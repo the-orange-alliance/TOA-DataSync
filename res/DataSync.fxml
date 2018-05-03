@@ -269,7 +269,7 @@
                                  </GridPane.margin>
                               </Label>
                               <Button fx:id="btnMatchUpload" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#postSelectedMatch" prefWidth="85.0" text="Upload" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="6" />
-                              <Button fx:id="btnMatchSync" mnemonicParsing="false" text="View From TOA" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="6" />
+                              <Button fx:id="btnMatchBrowserView" mnemonicParsing="false" text="View From TOA" onAction="#viewFromTOA" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="6" />
                               <Label text="Red Alliance" textFill="RED" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                                  <font>
                                     <Font name="System Bold" size="18.0" />

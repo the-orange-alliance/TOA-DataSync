@@ -21,9 +21,13 @@ import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 import org.theorangealliance.datasync.util.TOARequestBody;
 
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -101,8 +105,8 @@ public class MatchesController {
         this.controller.btnMatchScheduleUpload.setDisable(true);
         this.controller.btnMatchUpload.setVisible(false);
         this.controller.btnMatchUpload.setDisable(true);
-        this.controller.btnMatchSync.setVisible(false);
-        this.controller.btnMatchSync.setDisable(true);
+        this.controller.btnMatchBrowserView.setVisible(false);
+        this.controller.btnMatchBrowserView.setDisable(true);
         this.controller.btnMatchOpen.setVisible(false);
         this.controller.btnMatchOpen.setDisable(true);
     }
@@ -114,6 +118,12 @@ public class MatchesController {
         } else {
             controller.btnMatchUpload.setDisable(true);
         }
+        if (match.isUploaded()) {
+            controller.btnMatchBrowserView.setDisable(false);
+        } else {
+            controller.btnMatchBrowserView.setDisable(true);
+        }
+
         ScheduleStation[] teams = matchStations.get(match);
         if (teams != null) {
             String redTeams = teams[0].getTeamKey() + teams[0].getStatusString() + " " + teams[1].getTeamKey() + teams[1].getStatusString();
@@ -158,6 +168,19 @@ public class MatchesController {
 
     public void openMatchDetails() {
         // TODO - Actually make
+    }
+
+    public void viewFromTOA(){
+
+        try {
+            Desktop.getDesktop().browse(new URI("https://theorangealliance.org/matches/" + controller.labelMatchKey.getText()));
+        }catch (URISyntaxException e){
+            TOALogger.log(Level.WARNING, "Error Assembling TOA Match URL");
+        }catch (IOException e){
+            TOALogger.log(Level.WARNING, "Error Opening Browser");
+        }
+
+
     }
 
     public void checkMatchSchedule() {
@@ -486,7 +509,7 @@ public class MatchesController {
                         controller.sendError("Successfully imported " + matchList.size() + " matches from the Scoring System. However, uploaded schedule and local schedule differ.");
                     }
                     this.controller.btnMatchUpload.setVisible(true);
-                    this.controller.btnMatchSync.setVisible(true);
+                    this.controller.btnMatchBrowserView.setVisible(true);
                     this.controller.btnMatchOpen.setVisible(true);
                 }
                 TOALogger.log(Level.INFO, "Match import successful.");
@@ -693,7 +716,7 @@ public class MatchesController {
             postMatchScheduleTeams();
 
             this.controller.btnMatchUpload.setVisible(true);
-            this.controller.btnMatchSync.setVisible(true);
+            this.controller.btnMatchBrowserView.setVisible(true);
 //            TOAEndpoint matchDel = new TOAEndpoint("DELETE", "upload/event/schedule/matches");
 //            TOARequestBody matchDelBody = new TOARequestBody();
 //            matchDel.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
