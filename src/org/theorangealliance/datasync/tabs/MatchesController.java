@@ -686,7 +686,13 @@ public class MatchesController {
                 detailEndpoint.setBody(detailBody);
                 detailEndpoint.execute(((response, success) -> {
                     if (success) {
-                        matchList.get(selectedMatch.getCanonicalMatchNumber()-1).setIsUploaded(true);
+                        for(int i = 0; i < matchList.size(); i++){
+
+                            if(matchList.get(i).getMatchName().equals(selectedMatch.getMatchName())){
+                                matchList.get(i).setIsUploaded(true);
+                            }
+
+                        }
                         controller.tableMatches.refresh();
                         controller.sendInfo("Successfully uploaded detail results to TOA. " + response);
                         checkMatchDetails();
