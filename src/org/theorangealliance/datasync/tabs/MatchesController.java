@@ -733,6 +733,7 @@ public class MatchesController {
                 if (match.getMatchKey().equals(stations[0].getMatchKey())) {
                     // This match has been uploaded, so do NOT proceed.
                     uploaded = true;
+                    break;
                 }
             }
 
@@ -778,6 +779,7 @@ public class MatchesController {
             for (MatchGeneralJSON uploadedMatch : uploadedMatches) {
                 if (match.getMatchKey().equals(uploadedMatch.getMatchKey())) {
                     uploaded = true;
+                    break;
                 }
             }
 
