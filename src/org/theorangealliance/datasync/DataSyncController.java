@@ -14,10 +14,7 @@ import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.models.MatchGeneral;
 import org.theorangealliance.datasync.models.Team;
 import org.theorangealliance.datasync.models.TeamRanking;
-import org.theorangealliance.datasync.tabs.MatchesController;
-import org.theorangealliance.datasync.tabs.RankingsController;
-import org.theorangealliance.datasync.tabs.SyncController;
-import org.theorangealliance.datasync.tabs.TeamsController;
+import org.theorangealliance.datasync.tabs.*;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 
@@ -114,6 +111,16 @@ public class DataSyncController implements Initializable {
 
     /* This is for our alliances tab */
     @FXML public Tab tabAllianceSelection;
+    @FXML public Label labelRedFinals;
+    @FXML public Label labelBlueFinals;
+    @FXML public Label labelRedFirstSemis;
+    @FXML public Label labelBlueFirstSemis;
+    @FXML public Label labelRedSecondSemis;
+    @FXML public Label labelBlueSecondSemis;
+    @FXML public Button btnAllianceImportScoring;
+    @FXML public Button btnAllianceImportTOA;
+    @FXML public Button btnUploadAlliances;
+    @FXML public Button btnPurgeAlliances;
 
     /* This is for our awards tab */
     @FXML public Tab tabAwards;
@@ -132,6 +139,7 @@ public class DataSyncController implements Initializable {
     private MatchesController matchesController;
     private RankingsController rankingsController;
     private SyncController syncController;
+    private AlliancesController alliancesController;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -139,6 +147,7 @@ public class DataSyncController implements Initializable {
         this.matchesController = new MatchesController(this);
         this.rankingsController = new RankingsController(this);
         this.syncController = new SyncController(this);
+        this.alliancesController = new AlliancesController(this);
 
         labelSetupTest.setTextFill(Color.RED);
         labelSetupDir.setTextFill(Color.RED);
@@ -255,11 +264,11 @@ public class DataSyncController implements Initializable {
                 labelSetupDir.setText("Valid Directory.");
 
                 sendInfo("Found divisions.txt");
-
                 tabTeams.setDisable(false);
                 tabMatches.setDisable(false);
                 tabRankings.setDisable(false);
                 tabSync.setDisable(false);
+                tabAllianceSelection.setDisable(false);
             } else {
                 sendError("Scoring System not setup. Are you using the right directory?");
             }
@@ -283,6 +292,8 @@ public class DataSyncController implements Initializable {
         txtConsole.setText(message);
     }
 
+    /* Teams Tab Functions */
+
     @FXML
     public void getTeamsByURL() {
         this.teamsController.getTeamsByURL();
@@ -302,6 +313,8 @@ public class DataSyncController implements Initializable {
     public void deleteEventTeams() {
         this.teamsController.deleteEventTeams();
     }
+
+    /* Matches Tab Functions */
 
     @FXML
     public void getMatchesByFile() {
@@ -333,6 +346,8 @@ public class DataSyncController implements Initializable {
         this.matchesController.deleteMatches();
     }
 
+    /* Sync Tab Functions */
+
     @FXML
     public void startAutoSync() {
         DataSync.getMainStage().setOnCloseRequest(closeEvent -> this.syncController.kill());
@@ -360,6 +375,8 @@ public class DataSyncController implements Initializable {
         this.syncController.kill();
     }
 
+    /* Rankings Tab Functions */
+
     @FXML
     public void getRankingsByFile() {
         this.rankingsController.getRankingsByFile();
@@ -373,6 +390,28 @@ public class DataSyncController implements Initializable {
     @FXML
     public void deleteRankings() {
         this.rankingsController.deleteRankings();
+    }
+
+    /* Alliances Tab Functions */
+
+    @FXML
+    public void importAlliancesScoring(){
+        this.alliancesController.importAlliancesScoring(this.matchesController.getMatchDetails());
+    }
+
+    @FXML
+    public void importAlliancesTOA(){
+        this.alliancesController.importAlliancesTOA(this.matchesController.getMatchDetails());
+    }
+
+    @FXML
+    public void uploadAlliances(){
+        this.alliancesController.uploadAlliances();
+    }
+
+    @FXML
+    public void purgeAlliances(){
+        this.alliancesController.purgeAlliances();
     }
 
     public HashMap<Integer, int[]> getTeamWL() {

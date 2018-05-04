@@ -965,6 +965,12 @@ public class MatchesController {
         return sdf.format(dt);
     }
 
+    public HashMap<MatchGeneral, MatchDetailRelicJSON> getMatchDetails(){
+
+        return matchDetails;
+
+    }
+
     public HashMap<Integer, int[]> getTeamWL() {
         return teamWinLoss;
     }

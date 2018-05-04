@@ -422,32 +422,32 @@
                                         <RowConstraints maxHeight="53.0" minHeight="10.0" prefHeight="47.0" vgrow="SOMETIMES" />
                                       </rowConstraints>
                                        <children>
-                                           <Label fx:id="labelRedFinals" text="Red Finals Label" textFill="WHITE" GridPane.columnIndex="2" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                                           <Label fx:id="labelRedFinals" textFill="WHITE" GridPane.columnIndex="2" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                                                <font>
                                                    <Font size="28.0" />
                                                </font>
                                            </Label>
-                                           <Label fx:id="labelBlueFinals" text="Blue Finals Label" textFill="WHITE" GridPane.columnIndex="2" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                                           <Label fx:id="labelBlueFinals" textFill="WHITE" GridPane.columnIndex="2" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                                                <font>
                                                    <Font size="28.0" />
                                                </font>
                                            </Label>
-                                           <Label fx:id="labelRedFirstSemis" text="Red First Semis Label" textFill="WHITE" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.valignment="CENTER">
+                                           <Label fx:id="labelRedFirstSemis" textFill="WHITE" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.valignment="CENTER">
                                                <font>
                                                    <Font size="24.0" />
                                                </font>
                                            </Label>
-                                           <Label fx:id="labelBlueFirstSemis" text="Blue First Semis Label" textFill="WHITE" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER">
+                                           <Label fx:id="labelBlueFirstSemis" textFill="WHITE" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER">
                                                <font>
                                                    <Font size="24.0" />
                                                </font>
                                            </Label>
-                                           <Label fx:id="labelRedSecondSemis" text="Blue Second Semis Label" textFill="WHITE" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.valignment="CENTER">
+                                           <Label fx:id="labelRedSecondSemis" textFill="WHITE" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.valignment="CENTER">
                                                <font>
                                                    <Font size="24.0" />
                                                </font>
                                            </Label>
-                                           <Label fx:id="labelBlueSecondSemis" text="Blue Second Semis Label" textFill="WHITE" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER">
+                                           <Label fx:id="labelBlueSecondSemis" textFill="WHITE" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER">
                                                <font>
                                                    <Font size="24.0" />
                                                </font>
@@ -468,10 +468,10 @@
                                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                 </rowConstraints>
                                  <children>
-                                    <Button fx:id="btnAllianceImportScoring" mnemonicParsing="false" text="Import from Scoring" GridPane.halignment="CENTER" />
-                                    <Button fx:id="btnAllianceImportTOA" mnemonicParsing="false" text="Import from TOA" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
-                                    <Button fx:id="btnUploadAlliances" mnemonicParsing="false" text="Upload to TOA" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
-                                    <Button fx:id="btnPurgeAlliances" mnemonicParsing="false" text="Purge from TOA" GridPane.columnIndex="3" GridPane.halignment="CENTER" />
+                                    <Button fx:id="btnAllianceImportScoring" mnemonicParsing="false" onAction="#importAlliancesScoring" text="Import from Scoring" GridPane.halignment="CENTER" />
+                                    <Button fx:id="btnAllianceImportTOA" mnemonicParsing="false" onAction="#importAlliancesTOA" text="Import from TOA" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                                    <Button fx:id="btnUploadAlliances" disable="true" mnemonicParsing="false" onAction="#uploadAlliances" text="Upload to TOA" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
+                                    <Button fx:id="btnPurgeAlliances" disable="true" mnemonicParsing="false" onAction="#purgeAlliances" text="Purge from TOA" GridPane.columnIndex="3" GridPane.halignment="CENTER" />
                                  </children>
                               </GridPane>
                            </children>
