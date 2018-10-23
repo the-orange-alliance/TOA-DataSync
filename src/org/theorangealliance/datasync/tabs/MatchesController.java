@@ -10,7 +10,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.paint.Color;
 import org.theorangealliance.datasync.DataSyncController;
-import org.theorangealliance.datasync.json.MatchDetailRelicJSON;
+import org.theorangealliance.datasync.json.MatchDetail1718JSON;
 import org.theorangealliance.datasync.json.MatchGeneralJSON;
 import org.theorangealliance.datasync.json.MatchScheduleGeneralJSON;
 import org.theorangealliance.datasync.json.MatchScheduleStationJSON;
@@ -40,10 +40,10 @@ public class MatchesController {
     private DataSyncController controller;
     private ObservableList<MatchGeneral> matchList;
     private HashSet<MatchGeneralJSON> uploadedMatches;
-    private HashSet<MatchDetailRelicJSON> uploadedDetails;
+    private HashSet<MatchDetail1718JSON> uploadedDetails;
 
     private HashMap<MatchGeneral, ScheduleStation[]> matchStations;
-    private HashMap<MatchGeneral, MatchDetailRelicJSON> matchDetails;
+    private HashMap<MatchGeneral, MatchDetail1718JSON> matchDetails;
     private MatchGeneral selectedMatch;
 
     private HashMap<Integer, int[]> teamWinLoss;
@@ -209,7 +209,7 @@ public class MatchesController {
         matchesEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
         matchesEndpoint.execute(((response, success) -> {
             if (success) {
-                uploadedDetails = new HashSet<>(Arrays.asList(matchesEndpoint.getGson().fromJson(response, MatchDetailRelicJSON[].class)));
+                uploadedDetails = new HashSet<>(Arrays.asList(matchesEndpoint.getGson().fromJson(response, MatchDetail1718JSON[].class)));
                 TOALogger.log(Level.INFO, "Grabbed match details for " + uploadedDetails.size() + " matches.");
             } else {
                 this.controller.sendError("Error: " + response);
@@ -293,7 +293,7 @@ public class MatchesController {
                         boolean fullyUploaded = false;
 
                         // Not very efficient, but it is what is is... I hate O(N^2) algorithms.
-                        for (MatchDetailRelicJSON detail : uploadedDetails) {
+                        for (MatchDetail1718JSON detail : uploadedDetails) {
                             if (detail.getMatchKey().equals(match.getMatchKey())) {
 //                                match.setIsUploaded(true);
                                 fullyUploaded = true;
@@ -310,7 +310,7 @@ public class MatchesController {
                             }
                         }
 
-                        MatchDetailRelicJSON detailJSON = matchDetails.get(match);
+                        MatchDetail1718JSON detailJSON = matchDetails.get(match);
                         detailJSON.setRedAutoJewel(Integer.parseInt(teamInfo[25]));
                         detailJSON.setRedAutoGlyphs(Integer.parseInt(teamInfo[26]));
                         detailJSON.setRedAutoKeys(Integer.parseInt(teamInfo[27]));
@@ -442,13 +442,13 @@ public class MatchesController {
                     }
 
                     // Not very efficient, but it is what is is... I hate O(N^2) algorithms.
-                    for (MatchDetailRelicJSON detail : uploadedDetails) {
+                    for (MatchDetail1718JSON detail : uploadedDetails) {
                         if (detail.getMatchKey().equals(match.getMatchKey())) {
                             match.setIsUploaded(true);
                         }
                     }
 
-                    MatchDetailRelicJSON detailJSON = new MatchDetailRelicJSON();
+                    MatchDetail1718JSON detailJSON = new MatchDetail1718JSON();
                     detailJSON.setRedAutoJewel(Integer.parseInt(teamInfo[25]));
                     detailJSON.setRedAutoGlyphs(Integer.parseInt(teamInfo[26]));
                     detailJSON.setRedAutoKeys(Integer.parseInt(teamInfo[27]));
@@ -567,16 +567,16 @@ public class MatchesController {
                 if (completeMatch.isUploaded()) {
                     methodType = "PUT";
                 } else {
-                    for (MatchDetailRelicJSON detail : uploadedDetails) {
+                    for (MatchDetail1718JSON detail : uploadedDetails) {
                         if (detail.getMatchKey().equals(completeMatch.getMatchKey())) {
                             methodType = "PUT";
                         }
                     }
                 }
 
-                MatchDetailRelicJSON detailJSON = null;
+                MatchDetail1718JSON detailJSON = null;
 
-                for (MatchDetailRelicJSON matchDetails : this.matchDetails.values()) {
+                for (MatchDetail1718JSON matchDetails : this.matchDetails.values()) {
                     if (matchDetails.getMatchKey().equals(completeMatch.getMatchKey())) {
                         detailJSON = matchDetails;
                         break;
@@ -661,16 +661,16 @@ public class MatchesController {
                 if (selectedMatch.isUploaded()) {
                     methodType = "PUT";
                 } else {
-                    for (MatchDetailRelicJSON detail : uploadedDetails) {
+                    for (MatchDetail1718JSON detail : uploadedDetails) {
                         if (detail.getMatchKey().equals(selectedMatch.getMatchKey())) {
                             methodType = "PUT";
                         }
                     }
                 }
 
-                MatchDetailRelicJSON detailJSON = null;
+                MatchDetail1718JSON detailJSON = null;
 
-                for (MatchDetailRelicJSON matchDetails : this.matchDetails.values()) {
+                for (MatchDetail1718JSON matchDetails : this.matchDetails.values()) {
                     if (matchDetails.getMatchKey().equals(selectedMatch.getMatchKey())) {
                         detailJSON = matchDetails;
                         break;
@@ -965,7 +965,7 @@ public class MatchesController {
         return sdf.format(dt);
     }
 
-    public HashMap<MatchGeneral, MatchDetailRelicJSON> getMatchDetails(){
+    public HashMap<MatchGeneral, MatchDetail1718JSON> getMatchDetails(){
 
         return matchDetails;
 

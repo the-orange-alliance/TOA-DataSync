@@ -1,7 +1,7 @@
 package org.theorangealliance.datasync.tabs;
 
 import org.theorangealliance.datasync.DataSyncController;
-import org.theorangealliance.datasync.json.MatchDetailRelicJSON;
+import org.theorangealliance.datasync.json.MatchDetail1718JSON;
 import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.models.Alliance;
 import org.theorangealliance.datasync.models.MatchGeneral;
@@ -24,7 +24,7 @@ public class AlliancesController {
 
     }
 
-    public void importAlliancesScoring(HashMap<MatchGeneral, MatchDetailRelicJSON> scores){
+    public void importAlliancesScoring(HashMap<MatchGeneral, MatchDetail1718JSON> scores){
         File allianceFile = new File(Config.SCORING_DIR + File.separator + "alliances.txt");
         if (allianceFile.exists()) {
             try {
@@ -53,7 +53,7 @@ public class AlliancesController {
         }
     }
 
-    public void importAlliancesTOA(HashMap<MatchGeneral, MatchDetailRelicJSON> scores){
+    public void importAlliancesTOA(HashMap<MatchGeneral, MatchDetail1718JSON> scores){
 
         //TODO - This (May need the API updates from below to test)
         updateAllianceLabels(scores);
@@ -68,7 +68,7 @@ public class AlliancesController {
         // TODO - Waiting on API updates
     }
 
-    private void updateAllianceLabels(HashMap<MatchGeneral, MatchDetailRelicJSON> scores){
+    private void updateAllianceLabels(HashMap<MatchGeneral, MatchDetail1718JSON> scores){
 
         int redS1 = 0, blueS1 = 0, redS2 = 0, blueS2 = 0;
 

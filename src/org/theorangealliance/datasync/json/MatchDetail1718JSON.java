@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Created by Kyle Flynn on 11/30/2017.
  */
-public class MatchDetailRelicJSON {
+public class MatchDetail1718JSON {
 
     @SerializedName("match_detail_key")
     String matchDtlKey;

@@ -11,10 +11,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
-import java.util.List;
 import java.util.logging.Level;
 
 /**
@@ -22,7 +19,7 @@ import java.util.logging.Level;
  */
 public class TOAEndpoint implements Runnable {
 
-    private final String BASE_URL = "https://theorangealliance.org/apiv2/";
+    private final String BASE_URL = "https://theorangealliance.org/api/";
 //    private final String BASE_URL = "http://localhost:8080/apiv2/";
     private String endpoint;
     private String requestType;
@@ -69,10 +66,10 @@ public class TOAEndpoint implements Runnable {
                 con.setRequestProperty("X-Application-Origin", "TOA-DataSync");
                 con.setRequestProperty("X-TOA-Key", this.apiKey);
                 con.setRequestProperty("X-TOA-Event", this.eventKey);
+                con.setRequestProperty("Content-Type","application/json");
 
                 if (bodyJSON.length() > 1) {
                     TOALogger.log(Level.INFO, "Making " + requestType + " with body " + bodyJSON);
-                    con.setRequestProperty("Content-Type","application/json");
                     con.setDoOutput(true);
                     DataOutputStream stream = new DataOutputStream(con.getOutputStream());
                     stream.writeBytes(bodyJSON);
@@ -97,6 +94,7 @@ public class TOAEndpoint implements Runnable {
                         }
                     });
                 } else {
+                    TOALogger.log(Level.WARNING, con.getResponseMessage());
                     BufferedReader in = new BufferedReader(new InputStreamReader(con.getErrorStream()));
                     String inputLine;
                     StringBuilder response = new StringBuilder();
