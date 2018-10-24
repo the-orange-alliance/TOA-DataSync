@@ -48,8 +48,9 @@ public class DataSyncController implements Initializable {
 
     /* This is the right-side of the setup tab. */
     @FXML public TextField txtSetupDir;
-    @FXML public Button btnSetupSelect;
-    @FXML public Button btnSetupTestDir;
+    @FXML public Button btnSetupSelect; //Used to get events from new scoring system
+    @FXML public Button btnSetupTestDir; //Used to load selected event from scoring system
+    @FXML public RadioButton rbNewScore; 
     @FXML public Label labelSetupDir;
 
     /* This is for our teams tab. */
