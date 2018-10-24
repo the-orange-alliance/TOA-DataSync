@@ -16,6 +16,8 @@ import org.theorangealliance.datasync.models.Team;
 import org.theorangealliance.datasync.models.TeamRanking;
 import org.theorangealliance.datasync.tabs.*;
 import org.theorangealliance.datasync.util.Config;
+import org.theorangealliance.datasync.util.FIRSTEndpoint;
+import org.theorangealliance.datasync.util.FIRSTEventsBody;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 
 import javax.swing.*;
@@ -50,7 +52,8 @@ public class DataSyncController implements Initializable {
     @FXML public TextField txtSetupDir;
     @FXML public Button btnSetupSelect; //Used to get events from new scoring system
     @FXML public Button btnSetupTestDir; //Used to load selected event from scoring system
-    @FXML public RadioButton rbNewScore; 
+    @FXML public RadioButton rbNewScore;
+    @FXML public ComboBox<String> cbFirstEvents;
     @FXML public Label labelSetupDir;
 
     /* This is for our teams tab. */
@@ -227,15 +230,61 @@ public class DataSyncController implements Initializable {
 
     @FXML
     public void openScoringDialog() {
-        DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle("Select Scoring System Directory");
-        File file = directoryChooser.showDialog(DataSync.getMainStage());
+        if (!rbNewScore.isSelected()) {
+            //Old Scoring System
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+            directoryChooser.setTitle("Select Scoring System Directory");
+            File file = directoryChooser.showDialog(DataSync.getMainStage());
 
-        if (file != null && file.isDirectory()) {
-            txtSetupDir.setText(file.getAbsolutePath());
+            if (file != null && file.isDirectory()) {
+                txtSetupDir.setText(file.getAbsolutePath());
+            } else {
+                sendError("Error in selecting scoring system directory.");
+            }
         } else {
-            sendError("Error in selecting scoring system directory.");
+            //New Scoring (ooooo fancy)
+            //We want to contact the IP address and GET the events if the IP is correct. If it isn't... The Ip is wrong.
+            if (txtSetupDir.getText().length() > 1) {
+                Config.FIRST_API_IP = txtSetupDir.getText();
+                FIRSTEndpoint firstEvent = new FIRSTEndpoint("events/");
+                firstEvent.execute(((response, success) -> {
+                    if (success) {
+                        sendInfo("Successfully pulled events from FIRST scoring system.");
+                        //TOALogger.log(Level.INFO, response);
+                        FIRSTEventsBody events = firstEvent.getGson().fromJson(response, FIRSTEventsBody.class);
+                        for (String eventName : events.getEventName()) {
+                            cbFirstEvents.getItems().add(eventName);
+                        }
+
+                        if (events.getEventName().length == 0) {
+                            //Set Success but 0 events Text
+                            labelSetupDir.setText("Found Zero Events. Please create an event within the scoring system and try again.");
+                            labelSetupDir.setTextFill(Color.YELLOW);
+                            //Disable input devices
+                            cbFirstEvents.setDisable(true);
+                            btnSetupTestDir.setDisable(true);
+                        } else {
+                            //Set Success Text
+                            labelSetupDir.setText("Connection Successful. Found " + events.getEventName().length + " event(s).");
+                            labelSetupDir.setTextFill(Color.GREEN);
+                            //Enable Input Devices
+                            cbFirstEvents.setDisable(false);
+                            btnSetupTestDir.setDisable(false);
+                        }
+
+                    } else {
+                        sendError("Connection to FIRST Scoring system unsuccessful. " + response);
+                        cbFirstEvents.setDisable(true);
+                        btnSetupTestDir.setDisable(true);
+                    }
+                }));
+            } else {
+                //No IP address entered
+                labelSetupDir.setText("Please Enter an IP Address");
+                labelSetupDir.setTextFill(Color.RED);
+            }
         }
+
     }
 
     @FXML

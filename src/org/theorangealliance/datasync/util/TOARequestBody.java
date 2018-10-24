@@ -14,7 +14,6 @@ public class TOARequestBody {
     private String eventKey;
 
     @SerializedName("match_key")
-
     private String matchKey;
 
     @SerializedName("team_rank_key")

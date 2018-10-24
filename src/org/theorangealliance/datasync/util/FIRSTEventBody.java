@@ -1,5 +1,5 @@
 package org.theorangealliance.datasync.util;
 
-public class FIRSTRequestBody {
+public class FIRSTEventBody {
 
 }
