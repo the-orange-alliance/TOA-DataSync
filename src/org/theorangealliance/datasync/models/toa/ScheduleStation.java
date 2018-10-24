@@ -1,4 +1,4 @@
-package org.theorangealliance.datasync.models;
+package org.theorangealliance.datasync.models.toa;
 
 /**
  * Created by Kyle Flynn on 11/29/2017.

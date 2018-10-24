@@ -1,4 +1,4 @@
-package org.theorangealliance.datasync.models;
+package org.theorangealliance.datasync.models.toa;
 
 public class Alliance {
 

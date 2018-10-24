@@ -13,15 +13,13 @@ import org.jsoup.select.Elements;
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.TeamRankingJSON;
 import org.theorangealliance.datasync.logging.TOALogger;
-import org.theorangealliance.datasync.models.TeamRanking;
+import org.theorangealliance.datasync.models.toa.TeamRanking;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 import org.theorangealliance.datasync.util.TOARequestBody;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Optional;
 import java.util.logging.Level;
 

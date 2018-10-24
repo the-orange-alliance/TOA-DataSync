@@ -11,13 +11,14 @@ import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import org.theorangealliance.datasync.json.EventJSON;
 import org.theorangealliance.datasync.logging.TOALogger;
-import org.theorangealliance.datasync.models.MatchGeneral;
-import org.theorangealliance.datasync.models.Team;
-import org.theorangealliance.datasync.models.TeamRanking;
+import org.theorangealliance.datasync.models.first.Event;
+import org.theorangealliance.datasync.models.toa.MatchGeneral;
+import org.theorangealliance.datasync.models.toa.Team;
+import org.theorangealliance.datasync.models.toa.TeamRanking;
 import org.theorangealliance.datasync.tabs.*;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.FIRSTEndpoint;
-import org.theorangealliance.datasync.util.FIRSTEventsBody;
+import org.theorangealliance.datasync.models.first.Events;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 
 import javax.swing.*;
@@ -32,6 +33,8 @@ import java.util.logging.Level;
 
 /**
  * Created by Kyle Flynn on 11/28/2017.
+ * Updated For 2018 Scoring System by Soren Zaiser
+ * Starting on Oct 23, 2018
  */
 public class DataSyncController implements Initializable {
 
@@ -251,12 +254,12 @@ public class DataSyncController implements Initializable {
                     if (success) {
                         sendInfo("Successfully pulled events from FIRST scoring system.");
                         //TOALogger.log(Level.INFO, response);
-                        FIRSTEventsBody events = firstEvent.getGson().fromJson(response, FIRSTEventsBody.class);
-                        for (String eventName : events.getEventName()) {
+                        Events events = firstEvent.getGson().fromJson(response, Events.class);
+                        for (String eventName : events.getEventID()) {
                             cbFirstEvents.getItems().add(eventName);
                         }
 
-                        if (events.getEventName().length == 0) {
+                        if (events.getEventID().length == 0) {
                             //Set Success but 0 events Text
                             labelSetupDir.setText("Found Zero Events. Please create an event within the scoring system and try again.");
                             labelSetupDir.setTextFill(Color.YELLOW);
@@ -265,7 +268,7 @@ public class DataSyncController implements Initializable {
                             btnSetupTestDir.setDisable(true);
                         } else {
                             //Set Success Text
-                            labelSetupDir.setText("Connection Successful. Found " + events.getEventName().length + " event(s).");
+                            labelSetupDir.setText("Connection Successful. Found " + events.getEventID().length + " event(s).");
                             labelSetupDir.setTextFill(Color.GREEN);
                             //Enable Input Devices
                             cbFirstEvents.setDisable(false);
@@ -289,6 +292,49 @@ public class DataSyncController implements Initializable {
 
     @FXML
     public void testDirectory() {
+        if(rbNewScore.isSelected()){
+            //2018 Scoring System
+            loadEventFromFIRST();
+        } else {
+            //Old Scoring System
+            testDirOldScoreing();
+        }
+    }
+
+    private void loadEventFromFIRST() {
+        if (cbFirstEvents.getSelectionModel() != null) {
+            FIRSTEndpoint firstEventData = new FIRSTEndpoint("events/" + cbFirstEvents.getSelectionModel().getSelectedItem());
+            firstEventData.execute(((response, success) -> {
+                if (success) {
+                    sendInfo("Successfully pulled event info from FIRST scoring system.");
+
+                    //TODO: Fix Division Stuff When Scorekeeping App Is Updated!!!!
+                    Event eventData = firstEventData.getGson().fromJson(response, Event.class);
+                    Config.DIVISION_NAME = eventData.getEventDivisionId() + "";
+
+                    labelSetupDir.setTextFill(Color.GREEN);
+                    labelSetupDir.setText("Loaded Event Successfully");
+
+                    sendInfo("Found division id " + Config.DIVISION_NAME);
+                    tabTeams.setDisable(false);
+                    tabMatches.setDisable(false);
+                    tabRankings.setDisable(false);
+                    tabSync.setDisable(false);
+                    tabAllianceSelection.setDisable(false);
+
+                } else {
+                    sendError("Connection to FIRST Scoring system unsuccessful. " + response);
+                    cbFirstEvents.setDisable(true);
+                    btnSetupTestDir.setDisable(true);
+                }
+            }));
+        } else {
+            labelSetupDir.setTextFill(Color.RED);
+            labelSetupDir.setText("Please select an event");
+        }
+    }
+
+    private void testDirOldScoreing() {
         if (txtSetupDir.getText().length() > 0) {
             saveSettings();
             String root = txtSetupDir.getText();

@@ -1,4 +1,4 @@
-package org.theorangealliance.datasync.models;
+package org.theorangealliance.datasync.models.toa;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;

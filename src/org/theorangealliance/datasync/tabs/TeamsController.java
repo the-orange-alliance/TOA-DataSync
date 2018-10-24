@@ -1,6 +1,5 @@
 package org.theorangealliance.datasync.tabs;
 
-import com.google.gson.annotations.SerializedName;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
@@ -10,17 +9,15 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.EventParticipantJSON;
 import org.theorangealliance.datasync.json.TeamJSON;
-import org.theorangealliance.datasync.models.Team;
+import org.theorangealliance.datasync.models.toa.Team;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 import org.theorangealliance.datasync.util.TOARequestBody;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.text.SimpleDateFormat;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.Optional;
 

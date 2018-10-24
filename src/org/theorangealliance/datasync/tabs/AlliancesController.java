@@ -3,8 +3,8 @@ package org.theorangealliance.datasync.tabs;
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.MatchDetail1718JSON;
 import org.theorangealliance.datasync.logging.TOALogger;
-import org.theorangealliance.datasync.models.Alliance;
-import org.theorangealliance.datasync.models.MatchGeneral;
+import org.theorangealliance.datasync.models.toa.Alliance;
+import org.theorangealliance.datasync.models.toa.MatchGeneral;
 import org.theorangealliance.datasync.util.Config;
 
 import java.io.BufferedReader;
