@@ -14,7 +14,7 @@ public class TeamJSON {
     private String eventKey;
 
     @SerializedName("team_key")
-    private int teamKey;
+    private String teamKey;
 
     @SerializedName("region_key")
     private String regionKey;
@@ -48,7 +48,7 @@ public class TeamJSON {
         return eventKey;
     }
 
-    public int getTeamKey() {
+    public String getTeamKey() {
         return teamKey;
     }
 

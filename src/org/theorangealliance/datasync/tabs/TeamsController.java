@@ -6,11 +6,15 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.paint.Color;
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.EventParticipantJSON;
 import org.theorangealliance.datasync.json.TeamJSON;
+import org.theorangealliance.datasync.models.first.TeamFIRST;
+import org.theorangealliance.datasync.models.first.Teams;
 import org.theorangealliance.datasync.models.toa.Team;
 import org.theorangealliance.datasync.util.Config;
+import org.theorangealliance.datasync.util.FIRSTEndpoint;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 import org.theorangealliance.datasync.util.TOARequestBody;
 
@@ -75,8 +79,8 @@ public class TeamsController {
                            team.getLocation());
                    teamsList.add(eventTeam);
                }
-
-               teamsList.sort((team1, team2) -> (team1.getTeamKey() > team2.getTeamKey() ? 1 : -1));
+                //TODO: Fix for International Team
+               teamsList.sort((team1, team2) -> (Integer.parseInt(team1.getTeamKey()) > Integer.parseInt(team2.getTeamKey()) ? 1 : -1));
 
                controller.btnTeamsPost.setDisable(false);
                controller.btnTeamsDelete.setDisable(false);
@@ -98,7 +102,7 @@ public class TeamsController {
                 while ((line = reader.readLine()) != null) {
                     String[] values = line.split("\\|");
                     Team team = new Team(
-                            Integer.parseInt(values[1]),
+                            convertTeamNumToTOA(Integer.parseInt(values[1]), values[6]),
                             Integer.parseInt(values[0]),
                             "",
                             "",
@@ -122,6 +126,47 @@ public class TeamsController {
         }
     }
 
+    public void getTeamsFromFIRSTApi() {
+        FIRSTEndpoint firstEventTeams = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/teams/");
+        firstEventTeams.execute(((response, success) -> {
+            if (success) {
+                teamsList.clear();
+                controller.sendInfo("Successfully pulled teams from FIRST scoring system.");
+
+                //Get Team list from score system
+                Teams teams = firstEventTeams.getGson().fromJson(response, Teams.class);
+
+                //Now get team data
+                for (int tN : teams.getTeamNumber()) {
+                    FIRSTEndpoint firstTeamData = new FIRSTEndpoint("teams/" + tN + "/");
+                    firstTeamData.execute(((r, s) -> {
+                        if(s) {
+                            TeamFIRST t = firstTeamData.getGson().fromJson(r, TeamFIRST.class);
+                            //TODO: FIX DIVISION INFO
+                            Team team = new Team(
+                                    convertTeamNumToTOA(t.getTeamNumber(),
+                                    t.getTeamCountry()),
+                                    0,
+                                    getRegion(t.getTeamStateProv(), t.getTeamCountry()),
+                                    null,
+                                    t.getTeamNameShort(),
+                                    t.getTeamNameLong(),
+                                    t.getTeamCity() + ", " + t.getTeamStateProv() + ", " + t.getTeamCountry());
+                            teamsList.add(team);
+                        } //We have bigger problems if this fails
+                    }));
+                }
+
+                controller.btnTeamsPost.setDisable(false);
+                controller.btnTeamsDelete.setDisable(false);
+                controller.sendInfo("Successfully imported " + teamsList.size() + " teams from the Scoring System.");
+
+            } else {
+                controller.sendError("Connection to FIRST Scoring system unsuccessful. " + response);
+            }
+        }));
+    }
+
     public void postEventTeams() {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Are you sure about this?");
@@ -135,7 +180,8 @@ public class TeamsController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == okayButton) {
-            teamsList.sort((team1, team2) -> (team1.getTeamKey() > team2.getTeamKey() ? 1 : -1));
+            //TODO: Fix For international teams at some point
+            teamsList.sort((team1, team2) -> (Integer.parseInt(team1.getTeamKey()) > Integer.parseInt(team2.getTeamKey()) ? 1 : -1));
             controller.sendInfo("Uploading data from event " + Config.EVENT_ID + "...");
             TOAEndpoint deleteEndpoint = new TOAEndpoint("POST", "upload/event/teams");
             deleteEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
@@ -215,6 +261,86 @@ public class TeamsController {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         return sdf.format(dt);
+    }
+
+    private String getRegion(String state, String country){
+        if(country.equalsIgnoreCase("usa") || country.equalsIgnoreCase("canada")) {
+            if (state.equalsIgnoreCase("MI")) return "FIM";
+            else return state;
+        } else {
+            return countryCodeConvert(country);
+        }
+    }
+
+    private String convertTeamNumToTOA(int teamNum, String country){
+        if(country.equalsIgnoreCase("usa") || (country.equalsIgnoreCase("canada"))){
+            return teamNum + "";
+        } else {
+            return countryCodeConvert(country) + teamNum;
+        }
+    }
+
+    // Convert a country name to it's 3 digit UN identifier.
+    private String countryCodeConvert(String country) {
+        switch (country) {
+            case "Albania"              : return "ALB";
+            case "Australia"            : return "AUS";
+            case "Austria"              : return "AUT";
+            case "Bulgaria"             : return "BGR";
+            case "Cayman Islands"       : return "CYM";
+            case "Chile"                : return "CHL";
+            case "China"                : return "CHT";
+            case "Chinese Taipei"       : return "TWN";
+            case "Costa Rica"           : return "CRI";
+            case "Croatia"              : return "HRV";
+            case "Cyprus"               : return "CYP";
+            case "Czech Republic"       : return "CZE";
+            case "Egypt"                : return "EGY";
+            case "France"               : return "FRA";
+            case "Germany"              : return "DEU";
+            case "India"                : return "IND";
+            case "Israel"               : return "ISR";
+            case "Italy"                : return "ITA";
+            case "Latvia"               : return "LVA";
+            case "Lebanon"              : return "LBN";
+            case "Jamaica"              : return "JAM";
+            case "Japan"                : return "JPN";
+            case "Mali"                 : return "MLI";
+            case "Mexico"               : return "MEX";
+            case "Netherlands"          : return "NLD";
+            case "New Zealand"          : return "NZL";
+            case "Nigeria"              : return "NGA";
+            case "Norway"               : return "NOR";
+            case "Poland"               : return "POL";
+            case "Portugal"             : return "PRT";
+            case "Romania"              : return "ROU";
+            case "Russia"               : return "RUS";
+            case "Saudi Arabia"         : return "SAU";
+            case "South Korea"          : return "SKR";
+            case "South Africa"         : return "ZAF";
+            case "Serbia"               : return "SRB";
+            case "Singapore"            : return "SGP";
+            case "Slovenia"             : return "SVN";
+            case "Spain"                : return "ESP";
+            case "Sweden"               : return "SWE";
+            case "Taiwan"               : return "TWN";
+            case "Thailand"             : return "THA";
+            case "Tonga"                : return "TON";
+            case "Turkey"               : return "TUR";
+            case "Tunisia"              : return "TUN";
+            case "Uganda"               : return "UGA";
+            case "United Kingdom"       : return "GBR";
+            case "Ukraine"              : return "UKR";
+            case "Vietnam"              : return "VMN";
+            case "Zimbabwe"             : return "ZWE";
+            default:
+                //If we don't have a country code for right now, we'll print it out and then we'll take the first 3 digits of the name of the country
+                String threeDigitCode = country.substring(0, Math.min(country.length(), 3)).toUpperCase();
+                //Then We'll print it out, so this never happens again.
+                System.out.println("Didn't Have country code for '" + country + "'. Instead, went with '" + threeDigitCode + "'.");
+                return threeDigitCode;
+
+        }
     }
 
 }

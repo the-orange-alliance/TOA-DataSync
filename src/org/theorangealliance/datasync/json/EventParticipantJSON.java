@@ -14,7 +14,7 @@ public class EventParticipantJSON {
     private String eventKey;
 
     @SerializedName("team_key")
-    private int teamKey;
+    private String teamKey;
 
     @SerializedName("is_active")
     private int isActive;
@@ -47,11 +47,11 @@ public class EventParticipantJSON {
         this.eventKey = eventKey;
     }
 
-    public int getTeamKey() {
+    public String getTeamKey() {
         return teamKey;
     }
 
-    public void setTeamKey(int teamKey) {
+    public void setTeamKey(String teamKey) {
         this.teamKey = teamKey;
     }
 
