@@ -18,6 +18,7 @@ import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.models.toa.MatchGeneral;
 import org.theorangealliance.datasync.models.toa.ScheduleStation;
 import org.theorangealliance.datasync.util.Config;
+import org.theorangealliance.datasync.util.FIRSTEndpoint;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 import org.theorangealliance.datasync.util.TOARequestBody;
 
@@ -267,9 +268,10 @@ public class MatchesController {
         }
     }
 
+    //TODO: Definately Broken with New API, need to archive and add support for new API
     public void syncMatches() {
         if (matchList.size() <= 0) {
-            getMatchesByFile();
+            getMatchesByFile1718();
         } else {
             File matchFile = new File(Config.SCORING_DIR + File.separator + "matches.txt");
             if (matchFile.exists()) {
@@ -381,7 +383,7 @@ public class MatchesController {
         }
     }
 
-    public void getMatchesByFile() {
+    public void getMatchesByFile1718() {
         File matchFile = new File(Config.SCORING_DIR + File.separator + "matches.txt");
         if (matchFile.exists()) {
             try {
@@ -521,6 +523,30 @@ public class MatchesController {
             controller.sendError("Could not locate matches.txt from the Scoring System. Did you generate a match schedule?");
         }
     }
+
+    public void getMatchesFromFIRSTApi1819() {
+        /* Qualifacation Matches*/
+        FIRSTEndpoint firstEventTeams = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/matches/");
+        firstEventTeams.execute(((response, success) -> {
+            if (success) {
+                controller.btnMatchUpload.setDisable(true);
+                matchList.clear();
+                matchStations.clear();
+                matchDetails.clear();
+                teamWinLoss.clear();
+                
+
+
+
+
+                controller.sendInfo("Successfully imported " + matchDetails.size() + " matches from the Scoring System.");
+
+            } else {
+                controller.sendError("Connection to FIRST Scoring system unsuccessful. " + response);
+            }
+        }));
+    }
+
 
     public void postCompletedMatches() {
         if (uploadQueue.size() > 0) {

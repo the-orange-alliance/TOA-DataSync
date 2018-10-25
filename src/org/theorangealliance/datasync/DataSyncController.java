@@ -420,7 +420,12 @@ public class DataSyncController implements Initializable {
 
     @FXML
     public void getMatchesByFile() {
-        this.matchesController.getMatchesByFile();
+        if(rbNewScore.isSelected()){
+            this.matchesController.getMatchesFromFIRSTApi1819();
+        } else{
+            this.matchesController.getMatchesByFile1718();
+        }
+
     }
 
     @FXML
