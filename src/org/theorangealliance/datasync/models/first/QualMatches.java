@@ -5,14 +5,14 @@ import com.google.gson.annotations.SerializedName;
 public class QualMatches {
 
     public QualMatches() {
-        this.matchNumber = null;
+        this.matchNumber = 0;
         this.redAlliance = null;
         this.blueAlliance = null;
         this.isFinished = false;
     }
 
     @SerializedName("matchNumber")
-    public String matchNumber;
+    public int matchNumber;
 
     @SerializedName("red")
     public QualAlliance redAlliance;
@@ -23,11 +23,11 @@ public class QualMatches {
     @SerializedName("finished")
     public boolean isFinished;
 
-    public String getMatchNumber() {
+    public int getMatchNumber() {
         return matchNumber;
     }
 
-    public void setMatchNumber(String matchNumber) {
+    public void setMatchNumber(int matchNumber) {
         this.matchNumber = matchNumber;
     }
 

@@ -15,6 +15,7 @@ import org.theorangealliance.datasync.json.MatchGeneralJSON;
 import org.theorangealliance.datasync.json.MatchScheduleGeneralJSON;
 import org.theorangealliance.datasync.json.MatchScheduleStationJSON;
 import org.theorangealliance.datasync.logging.TOALogger;
+import org.theorangealliance.datasync.models.first.MatchScore;
 import org.theorangealliance.datasync.models.first.QualMatches;
 import org.theorangealliance.datasync.models.toa.MatchGeneral;
 import org.theorangealliance.datasync.models.toa.ScheduleStation;
@@ -542,6 +543,40 @@ public class MatchesController {
                     FIRSTEndpoint firstMatch = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/matches/" + m.matchNumber);
                     firstMatch.execute(((r, s) -> {
                         if (s) {
+                            MatchScore matchFIRST = firstMatch.getGson().fromJson(response, MatchScore.class);
+                            MatchGeneral match = new MatchGeneral(
+                                    MatchGeneral.buildMatchName(1, m.matchNumber),
+                                    MatchGeneral.buildTOATournamentLevel(1, m.matchNumber),
+                                    null,
+                                    0);
+                            char qualChar = match.getMatchName().contains("Qual") ? 'Q' : 'E';
+                            match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", match.getCanonicalMatchNumber()) + "-1");
+
+                            /* TODO: Parse the Elim matches because they aren't in the /matches/ endpoint
+                            if (qualChar == 'E') {
+                                elimCount++;
+                                int elimFieldNum = match.getTournamentLevel() % 2;
+                                match.setFieldNumber(match.getTournamentLevel() == 4 ? 1 : (elimFieldNum == 0 ? 2 : 1));
+                                match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", elimCount) + "-1");
+                            }*/
+
+                            /** TEAM info *
+                            ScheduleStation[] scheduleStations = new ScheduleStation[6];
+                            scheduleStations[0] = new ScheduleStation(match.getMatchKey(), 11, Integer.parseInt(teamInfo[0]));
+                            scheduleStations[1] = new ScheduleStation(match.getMatchKey(), 12, Integer.parseInt(teamInfo[1]));
+                            scheduleStations[2] = new ScheduleStation(match.getMatchKey(), 13, Integer.parseInt(teamInfo[2]));
+                            scheduleStations[3] = new ScheduleStation(match.getMatchKey(), 21, Integer.parseInt(teamInfo[3]));
+                            scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, Integer.parseInt(teamInfo[4]));
+                            scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, Integer.parseInt(teamInfo[5]));
+
+                            /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
+                            scheduleStations[0].setStationStatus(Integer.parseInt(teamInfo[6]) == 2 ? -2 : Integer.parseInt(teamInfo[6]) == 1 ? -1 : Integer.parseInt(teamInfo[18]) == 1 ? 0 : teamInfo[9].equals("true") ? 2 : 1);
+                            scheduleStations[1].setStationStatus(Integer.parseInt(teamInfo[7]) == 2 ? -2 : Integer.parseInt(teamInfo[7]) == 1 ? -1 : Integer.parseInt(teamInfo[19]) == 1 ? 0 : teamInfo[10].equals("true") ? 2 : 1);
+                            scheduleStations[2].setStationStatus(Integer.parseInt(teamInfo[8]) == 2 ? -2 : Integer.parseInt(teamInfo[8]) == 1 ? -1 : Integer.parseInt(teamInfo[20]) == 1 ? 0 : teamInfo[11].equals("true") ? 2 : 1);
+                            scheduleStations[3].setStationStatus(Integer.parseInt(teamInfo[12]) == 2 ? -2 : Integer.parseInt(teamInfo[12]) == 1 ? -1 : Integer.parseInt(teamInfo[21]) == 1 ? 0 : teamInfo[15].equals("true") ? 2 : 1);
+                            scheduleStations[4].setStationStatus(Integer.parseInt(teamInfo[13]) == 2 ? -2 : Integer.parseInt(teamInfo[13]) == 1 ? -1 : Integer.parseInt(teamInfo[22]) == 1 ? 0 : teamInfo[16].equals("true") ? 2 : 1);
+                            scheduleStations[5].setStationStatus(Integer.parseInt(teamInfo[14]) == 2 ? -2 : Integer.parseInt(teamInfo[14]) == 1 ? -1 : Integer.parseInt(teamInfo[23]) == 1 ? 0 : teamInfo[17].equals("true") ? 2 : 1);
+                            **/
 
                         } else {
                             controller.sendError("Connection to FIRST Scoring system unsuccessful. " + r);
