@@ -15,6 +15,7 @@ import org.theorangealliance.datasync.json.MatchGeneralJSON;
 import org.theorangealliance.datasync.json.MatchScheduleGeneralJSON;
 import org.theorangealliance.datasync.json.MatchScheduleStationJSON;
 import org.theorangealliance.datasync.logging.TOALogger;
+import org.theorangealliance.datasync.models.first.QualMatches;
 import org.theorangealliance.datasync.models.toa.MatchGeneral;
 import org.theorangealliance.datasync.models.toa.ScheduleStation;
 import org.theorangealliance.datasync.util.Config;
@@ -526,18 +527,27 @@ public class MatchesController {
 
     public void getMatchesFromFIRSTApi1819() {
         /* Qualifacation Matches*/
-        FIRSTEndpoint firstEventTeams = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/matches/");
-        firstEventTeams.execute(((response, success) -> {
+        FIRSTEndpoint firstMatches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/matches/");
+        firstMatches.execute(((response, success) -> {
             if (success) {
                 controller.btnMatchUpload.setDisable(true);
                 matchList.clear();
                 matchStations.clear();
                 matchDetails.clear();
                 teamWinLoss.clear();
-                
 
+                QualMatches[] matches = firstMatches.getGson().fromJson(response, QualMatches[].class);
 
+                for (QualMatches m : matches) {
+                    FIRSTEndpoint firstMatch = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/matches/" + m.matchNumber);
+                    firstMatch.execute(((r, s) -> {
+                        if (s) {
 
+                        } else {
+                            controller.sendError("Connection to FIRST Scoring system unsuccessful. " + r);
+                        }
+                    }));
+                }
 
                 controller.sendInfo("Successfully imported " + matchDetails.size() + " matches from the Scoring System.");
 

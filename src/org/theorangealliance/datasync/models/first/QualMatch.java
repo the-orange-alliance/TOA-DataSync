@@ -5,47 +5,28 @@ import com.google.gson.annotations.SerializedName;
 public class QualMatch {
 
     public QualMatch() {
-        this.matchNumber = null;
-        this.redAlliance = null;
-        this.blueAlliance = null;
         this.isFinished = false;
+        this.redScore = 0;
+        this.blueScore = 0;
+        this.redSpecifics = null;
+        this.blueSpecifics = null;
     }
-
-    @SerializedName("matchNumber")
-    public String matchNumber;
-
-    @SerializedName("red")
-    public QualAlliance redAlliance;
-
-    @SerializedName("blue")
-    public QualAlliance blueAlliance;
 
     @SerializedName("finished")
     public boolean isFinished;
 
-    public String getMatchNumber() {
-        return matchNumber;
-    }
+    @SerializedName("redScore")
+    public int redScore;
 
-    public void setMatchNumber(String matchNumber) {
-        this.matchNumber = matchNumber;
-    }
+    @SerializedName("blueScore")
+    public int blueScore;
 
-    public QualAlliance getRedAlliance() {
-        return redAlliance;
-    }
+    @SerializedName("red")
+    public MatchScore redSpecifics;
 
-    public void setRedAlliance(QualAlliance redAlliance) {
-        this.redAlliance = redAlliance;
-    }
+    @SerializedName("blue")
+    public MatchScore blueSpecifics;
 
-    public QualAlliance getBlueAlliance() {
-        return blueAlliance;
-    }
-
-    public void setBlueAlliance(QualAlliance blueAlliance) {
-        this.blueAlliance = blueAlliance;
-    }
 
     public boolean isFinished() {
         return isFinished;
@@ -53,5 +34,37 @@ public class QualMatch {
 
     public void setFinished(boolean finished) {
         isFinished = finished;
+    }
+
+    public int getRedScore() {
+        return redScore;
+    }
+
+    public void setRedScore(int redScore) {
+        this.redScore = redScore;
+    }
+
+    public int getBlueScore() {
+        return blueScore;
+    }
+
+    public void setBlueScore(int blueScore) {
+        this.blueScore = blueScore;
+    }
+
+    public MatchScore getRedSpecifics() {
+        return redSpecifics;
+    }
+
+    public void setRedSpecifics(MatchScore redSpecifics) {
+        this.redSpecifics = redSpecifics;
+    }
+
+    public MatchScore getBlueSpecifics() {
+        return blueSpecifics;
+    }
+
+    public void setBlueSpecifics(MatchScore blueSpecifics) {
+        this.blueSpecifics = blueSpecifics;
     }
 }
