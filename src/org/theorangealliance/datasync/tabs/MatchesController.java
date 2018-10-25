@@ -537,6 +537,7 @@ public class MatchesController {
                 matchDetails.clear();
                 teamWinLoss.clear();
 
+                //TODO: Reminder for myself Later. This Is broken. JSON returns first an Object, then an Array. Need to enter into that OBJ first before trying to access the array.
                 QualMatches[] matches = firstMatches.getGson().fromJson(response, QualMatches[].class);
 
                 for (QualMatches m : matches) {
@@ -552,6 +553,8 @@ public class MatchesController {
                             char qualChar = match.getMatchName().contains("Qual") ? 'Q' : 'E';
                             match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", match.getCanonicalMatchNumber()) + "-1");
 
+
+
                             /* TODO: Parse the Elim matches because they aren't in the /matches/ endpoint
                             if (qualChar == 'E') {
                                 elimCount++;
@@ -560,23 +563,29 @@ public class MatchesController {
                                 match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", elimCount) + "-1");
                             }*/
 
-                            /** TEAM info *
+                            /** TEAM info **/
                             ScheduleStation[] scheduleStations = new ScheduleStation[6];
-                            scheduleStations[0] = new ScheduleStation(match.getMatchKey(), 11, Integer.parseInt(teamInfo[0]));
-                            scheduleStations[1] = new ScheduleStation(match.getMatchKey(), 12, Integer.parseInt(teamInfo[1]));
-                            scheduleStations[2] = new ScheduleStation(match.getMatchKey(), 13, Integer.parseInt(teamInfo[2]));
-                            scheduleStations[3] = new ScheduleStation(match.getMatchKey(), 21, Integer.parseInt(teamInfo[3]));
-                            scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, Integer.parseInt(teamInfo[4]));
-                            scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, Integer.parseInt(teamInfo[5]));
+                            scheduleStations[0] = new ScheduleStation(match.getMatchKey(), 11, m.getRedAlliance().team1);
+                            scheduleStations[1] = new ScheduleStation(match.getMatchKey(), 12, m.getRedAlliance().team2);
+                            scheduleStations[2] = new ScheduleStation(match.getMatchKey(), 13, 0);
+                            scheduleStations[3] = new ScheduleStation(match.getMatchKey(), 21, m.getBlueAlliance().getTeam1());
+                            scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, m.getBlueAlliance().getTeam2());
+                            scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, 0);
 
                             /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
-                            scheduleStations[0].setStationStatus(Integer.parseInt(teamInfo[6]) == 2 ? -2 : Integer.parseInt(teamInfo[6]) == 1 ? -1 : Integer.parseInt(teamInfo[18]) == 1 ? 0 : teamInfo[9].equals("true") ? 2 : 1);
-                            scheduleStations[1].setStationStatus(Integer.parseInt(teamInfo[7]) == 2 ? -2 : Integer.parseInt(teamInfo[7]) == 1 ? -1 : Integer.parseInt(teamInfo[19]) == 1 ? 0 : teamInfo[10].equals("true") ? 2 : 1);
-                            scheduleStations[2].setStationStatus(Integer.parseInt(teamInfo[8]) == 2 ? -2 : Integer.parseInt(teamInfo[8]) == 1 ? -1 : Integer.parseInt(teamInfo[20]) == 1 ? 0 : teamInfo[11].equals("true") ? 2 : 1);
-                            scheduleStations[3].setStationStatus(Integer.parseInt(teamInfo[12]) == 2 ? -2 : Integer.parseInt(teamInfo[12]) == 1 ? -1 : Integer.parseInt(teamInfo[21]) == 1 ? 0 : teamInfo[15].equals("true") ? 2 : 1);
-                            scheduleStations[4].setStationStatus(Integer.parseInt(teamInfo[13]) == 2 ? -2 : Integer.parseInt(teamInfo[13]) == 1 ? -1 : Integer.parseInt(teamInfo[22]) == 1 ? 0 : teamInfo[16].equals("true") ? 2 : 1);
-                            scheduleStations[5].setStationStatus(Integer.parseInt(teamInfo[14]) == 2 ? -2 : Integer.parseInt(teamInfo[14]) == 1 ? -1 : Integer.parseInt(teamInfo[23]) == 1 ? 0 : teamInfo[17].equals("true") ? 2 : 1);
-                            **/
+                            //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
+                            //TODO: Update when Elim parsing is clarified
+                            scheduleStations[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getRedAlliance().isTeam1Surrogate ? 0 : /*YCard*/false ? 2 : 1);
+                            scheduleStations[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getRedAlliance().isTeam2Surrogate ? 0 : /*YCard*/false ? 2 : 1);
+                            scheduleStations[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                            scheduleStations[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getBlueAlliance().isTeam1Surrogate ? 0 : /*YCard*/false ? 2 : 1);
+                            scheduleStations[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getBlueAlliance().isTeam2Surrogate ? 0 : /*YCard*/false ? 2 : 1);
+                            scheduleStations[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+
+                            calculateWL(match, scheduleStations);
+
+                            matchList.add(match);
+
 
                         } else {
                             controller.sendError("Connection to FIRST Scoring system unsuccessful. " + r);
