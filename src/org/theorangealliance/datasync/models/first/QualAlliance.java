@@ -39,7 +39,7 @@ public class QualAlliance {
         this.team2 = team2;
     }
 
-    public boolean isTeam1Surrogate() {
+    public boolean getIsTeam1Surrogate() {
         return isTeam1Surrogate;
     }
 
@@ -47,7 +47,7 @@ public class QualAlliance {
         isTeam1Surrogate = team1Surrogate;
     }
 
-    public boolean isTeam2Surrogate() {
+    public boolean getIsTeam2Surrogate() {
         return isTeam2Surrogate;
     }
 

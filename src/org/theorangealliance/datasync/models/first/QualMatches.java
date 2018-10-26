@@ -54,4 +54,6 @@ public class QualMatches {
     public void setFinished(boolean finished) {
         isFinished = finished;
     }
+
+
 }
