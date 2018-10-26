@@ -593,7 +593,7 @@ public class MatchesController {
         /*SF1 Matches*/
         int[] iarr = {0}; //Because Stupid Lambdas
         FIRSTEndpoint firstSF1Matches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/1");
-        firstMatches.execute(((response, success) -> {
+        firstSF1Matches.execute(((response, success) -> {
             if (success && !response.contains("NOT_READY")) {
                 ElimMatchesArray matches = firstSF1Matches.getGson().fromJson(response, ElimMatchesArray.class);
 
