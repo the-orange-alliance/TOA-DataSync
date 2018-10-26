@@ -16,6 +16,7 @@ import org.theorangealliance.datasync.json.MatchScheduleGeneralJSON;
 import org.theorangealliance.datasync.json.MatchScheduleStationJSON;
 import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.models.first.MatchScore;
+import org.theorangealliance.datasync.models.first.QualMatchesArray;
 import org.theorangealliance.datasync.models.first.QualMatches;
 import org.theorangealliance.datasync.models.toa.MatchGeneral;
 import org.theorangealliance.datasync.models.toa.ScheduleStation;
@@ -537,10 +538,10 @@ public class MatchesController {
                 matchDetails.clear();
                 teamWinLoss.clear();
 
-                //TODO: Reminder for myself Later. This Is broken. JSON returns first an Object, then an Array. Need to enter into that OBJ first before trying to access the array.
-                QualMatches[] matches = firstMatches.getGson().fromJson(response, QualMatches[].class);
 
-                for (QualMatches m : matches) {
+                QualMatchesArray matches = firstMatches.getGson().fromJson(response, QualMatchesArray.class);
+
+                for (QualMatches m : matches.getQualMatches()) {
                     FIRSTEndpoint firstMatch = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/matches/" + m.matchNumber);
                     firstMatch.execute(((r, s) -> {
                         if (s) {
@@ -599,6 +600,8 @@ public class MatchesController {
                 controller.sendError("Connection to FIRST Scoring system unsuccessful. " + response);
             }
         }));
+        //Oh god not again
+        /*SF Elim Matches*/
     }
 
 
