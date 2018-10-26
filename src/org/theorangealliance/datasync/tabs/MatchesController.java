@@ -589,15 +589,16 @@ public class MatchesController {
             }
         }));
         //Oh god not again
-        /*SF Elim Matches*/
-        /*SF1 Matches*/
+        /*Elim Matches*/
+        //TODO: Find a way to not put a lambda inside of a lambda inside of a lambda
+        /* SF1/SF2/Finals Matches*/
         int[] elimMatches = {0}; //Because Stupid Lambdas
         FIRSTEndpoint firstSF1Matches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/1");
-        firstSF1Matches.execute(((response, success) -> {
-            if (success && !response.contains("NOT_READY")) {
-                ElimMatchesArray matches = firstSF1Matches.getGson().fromJson(response, ElimMatchesArray.class);
+        firstSF1Matches.execute(((responseSF1, successSF1) -> {
+            if (successSF1 && !responseSF1.contains("NOT_READY")) {
+                ElimMatchesArray matchesSF1 = firstSF1Matches.getGson().fromJson(responseSF1, ElimMatchesArray.class);
 
-                for(ElimMatches m : matches.getElimMatches()) {
+                for(ElimMatches m : matchesSF1.getElimMatches()) {
                     FIRSTEndpoint firstSF1Match = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/1/" + m.getMatchNumber().substring(4));
                     firstSF1Match.execute(((r, s) -> {
 
@@ -614,7 +615,7 @@ public class MatchesController {
                                     MatchGeneral.buildTOATournamentLevel(2, sfMatchNum),
                                     null,
                                     0);
-                            match.setMatchKey(Config.EVENT_ID + "-SF" + String.format("%03d", elimMatches[0]) + "-1");
+                            match.setMatchKey(Config.EVENT_ID + "-E" + String.format("%03d", elimMatches[0]) + "-1");
 
                             /** TEAM info **/
                             ScheduleStation[] scheduleStations = new ScheduleStation[6];
@@ -646,72 +647,137 @@ public class MatchesController {
 
                     }));
                 }
+
+                /*UGGGHHHHHHHH*/
+                /* SF2/Finals Matches*/
+                FIRSTEndpoint firstSF2Matches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/2");
+                firstSF2Matches.execute(((responceSF2, successSF2) -> {
+                    if (successSF2 && !responceSF2.contains("NOT_READY")) {
+                        ElimMatchesArray matchesSF2 = firstSF2Matches.getGson().fromJson(responceSF2, ElimMatchesArray.class);
+
+                        for(ElimMatches m : matchesSF2.getElimMatches()) {
+                            FIRSTEndpoint firstSF1Match = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/2/" + m.getMatchNumber().substring(4));
+                            firstSF1Match.execute(((r, s) -> {
+
+                                if(s) {
+                                    elimMatches[0]++;
+                            /* TODO: Fix Field Number
+                            int elimFieldNum = match.getTournamentLevel() % 2;
+                            match.setFieldNumber(match.getTournamentLevel() == 4 ? 1 : (elimFieldNum == 0 ? 2 : 1));
+                            */
+                                    //We Get A string that looks like "SF1-1" We Remove the SF, then Replace the "-" with an empty string.
+                                    int sfMatchNum = Integer.parseInt(m.matchNumber.substring(2).replace("-", ""));
+                                    MatchGeneral match = new MatchGeneral(
+                                            MatchGeneral.buildMatchName(2, sfMatchNum),
+                                            MatchGeneral.buildTOATournamentLevel(2, sfMatchNum),
+                                            null,
+                                            0);
+                                    match.setMatchKey(Config.EVENT_ID + "-E" + String.format("%03d", elimMatches[0]) + "-1");
+
+                                    /** TEAM info **/
+                                    ScheduleStation[] scheduleStations = new ScheduleStation[6];
+                                    scheduleStations[0] = new ScheduleStation(match.getMatchKey(), 11, m.getRedAlliance().getAllianceCaptain());
+                                    scheduleStations[1] = new ScheduleStation(match.getMatchKey(), 12, m.getRedAlliance().getAlliancePick1());
+                                    scheduleStations[2] = new ScheduleStation(match.getMatchKey(), 13, (m.getRedAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
+                                    scheduleStations[3] = new ScheduleStation(match.getMatchKey(), 21, m.getBlueAlliance().getAllianceCaptain());
+                                    scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, m.getBlueAlliance().getAlliancePick1());
+                                    scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, (m.getBlueAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
+
+                                    /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
+                                    //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
+                                    //TODO: Update when Elim parsing is clarified
+                                    scheduleStations[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                    scheduleStations[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                    scheduleStations[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                    scheduleStations[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                    scheduleStations[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                    scheduleStations[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+
+                                    calculateWL(match, scheduleStations);
+
+                                    matchList.add(match);
+                                    matchStations.put(match, scheduleStations);
+
+                                } else {
+                                    controller.sendError("Unable to get score for " + m.getMatchNumber());
+                                }
+
+                            }));
+
+                        }
+                        /*Last....Time....*/
+                        /* Finals Matches */
+                        FIRSTEndpoint firstFMatches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/finals/");
+                        firstFMatches.execute(((responceF, successF) -> {
+                            if (successF && !responceF.contains("NOT_READY")) {
+                                ElimMatchesArray matchesF = firstFMatches.getGson().fromJson(responceF, ElimMatchesArray.class);
+
+                                for(ElimMatches m : matchesF.getElimMatches()) {
+                                    FIRSTEndpoint firstSF1Match = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/finals/" + m.getMatchNumber().substring(2));
+                                    firstSF1Match.execute(((r, s) -> {
+
+                                        if(s) {
+                                            elimMatches[0]++;
+                            /* TODO: Fix Field Number
+                            int elimFieldNum = match.getTournamentLevel() % 2;
+                            match.setFieldNumber(match.getTournamentLevel() == 4 ? 1 : (elimFieldNum == 0 ? 2 : 1));
+                            */
+                                            //We Get A string that looks like "F-1" We Remove the "F-"
+                                            int fMatchNum = Integer.parseInt(m.matchNumber.substring(2));
+                                            MatchGeneral match = new MatchGeneral(
+                                                    MatchGeneral.buildMatchName(3, fMatchNum),
+                                                    MatchGeneral.buildTOATournamentLevel(3, fMatchNum),
+                                                    null,
+                                                    0);
+                                            match.setMatchKey(Config.EVENT_ID + "-E" + String.format("%03d", elimMatches[0]) + "-1");
+
+                                            /** TEAM info **/
+                                            ScheduleStation[] scheduleStations = new ScheduleStation[6];
+                                            scheduleStations[0] = new ScheduleStation(match.getMatchKey(), 11, m.getRedAlliance().getAllianceCaptain());
+                                            scheduleStations[1] = new ScheduleStation(match.getMatchKey(), 12, m.getRedAlliance().getAlliancePick1());
+                                            scheduleStations[2] = new ScheduleStation(match.getMatchKey(), 13, (m.getRedAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
+                                            scheduleStations[3] = new ScheduleStation(match.getMatchKey(), 21, m.getBlueAlliance().getAllianceCaptain());
+                                            scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, m.getBlueAlliance().getAlliancePick1());
+                                            scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, (m.getBlueAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
+
+                                            /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
+                                            //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
+                                            //TODO: Update when Elim parsing is clarified
+                                            scheduleStations[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                            scheduleStations[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                            scheduleStations[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                            scheduleStations[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                            scheduleStations[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                            scheduleStations[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+
+                                            calculateWL(match, scheduleStations);
+
+                                            matchList.add(match);
+                                            matchStations.put(match, scheduleStations);
+
+                                        } else {
+                                            controller.sendError("Unable to get score for " + m.getMatchNumber());
+                                        }
+
+                                    }));
+                                }
+
+                            } else {
+                                controller.sendError("Unable to get Finals matches");
+                            }
+                        }));
+
+                    } else {
+                        controller.sendError("Unable to get SF 2 matches");
+                    }
+                }));
+
 
             } else {
                 controller.sendError("Unable to get SF 1 matches");
             }
         }));
-        /*UGGGHHHHHHHH*/
-        /*SF 2 Matches*/
-        FIRSTEndpoint firstSF2Matches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/2");
-        firstSF2Matches.execute(((response, success) -> {
-            if (success && !response.contains("NOT_READY")) {
-                ElimMatchesArray matches = firstSF2Matches.getGson().fromJson(response, ElimMatchesArray.class);
 
-                for(ElimMatches m : matches.getElimMatches()) {
-                    FIRSTEndpoint firstSF1Match = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/2/" + m.getMatchNumber().substring(4));
-                    firstSF1Match.execute(((r, s) -> {
-
-                        if(s) {
-                            elimMatches[0]++;
-                            /* TODO: Fix Field Number
-                            int elimFieldNum = match.getTournamentLevel() % 2;
-                            match.setFieldNumber(match.getTournamentLevel() == 4 ? 1 : (elimFieldNum == 0 ? 2 : 1));
-                            */
-                            //We Get A string that looks like "SF1-1" We Remove the SF, then Replace the "-" with an empty string.
-                            int sfMatchNum = Integer.parseInt(m.matchNumber.substring(2).replace("-", ""));
-                            MatchGeneral match = new MatchGeneral(
-                                    MatchGeneral.buildMatchName(2, sfMatchNum),
-                                    MatchGeneral.buildTOATournamentLevel(2, sfMatchNum),
-                                    null,
-                                    0);
-                            match.setMatchKey(Config.EVENT_ID + "-SF" + String.format("%03d", elimMatches[0]) + "-1");
-
-                            /** TEAM info **/
-                            ScheduleStation[] scheduleStations = new ScheduleStation[6];
-                            scheduleStations[0] = new ScheduleStation(match.getMatchKey(), 11, m.getRedAlliance().getAllianceCaptain());
-                            scheduleStations[1] = new ScheduleStation(match.getMatchKey(), 12, m.getRedAlliance().getAlliancePick1());
-                            scheduleStations[2] = new ScheduleStation(match.getMatchKey(), 13, (m.getRedAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
-                            scheduleStations[3] = new ScheduleStation(match.getMatchKey(), 21, m.getBlueAlliance().getAllianceCaptain());
-                            scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, m.getBlueAlliance().getAlliancePick1());
-                            scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, (m.getBlueAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
-
-                            /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
-                            //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
-                            //TODO: Update when Elim parsing is clarified
-                            scheduleStations[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-
-                            calculateWL(match, scheduleStations);
-
-                            matchList.add(match);
-                            matchStations.put(match, scheduleStations);
-
-                        } else {
-                            controller.sendError("Unable to get score for " + m.getMatchNumber());
-                        }
-
-                    }));
-                }
-
-            } else {
-                controller.sendError("Unable to get SF 2 matches");
-            }
-        }));
     }
 
 
