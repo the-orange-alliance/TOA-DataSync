@@ -15,9 +15,7 @@ import org.theorangealliance.datasync.json.MatchGeneralJSON;
 import org.theorangealliance.datasync.json.MatchScheduleGeneralJSON;
 import org.theorangealliance.datasync.json.MatchScheduleStationJSON;
 import org.theorangealliance.datasync.logging.TOALogger;
-import org.theorangealliance.datasync.models.first.MatchScore;
-import org.theorangealliance.datasync.models.first.QualMatchesArray;
-import org.theorangealliance.datasync.models.first.QualMatches;
+import org.theorangealliance.datasync.models.first.*;
 import org.theorangealliance.datasync.models.toa.MatchGeneral;
 import org.theorangealliance.datasync.models.toa.ScheduleStation;
 import org.theorangealliance.datasync.util.Config;
@@ -554,16 +552,6 @@ public class MatchesController {
                             char qualChar = match.getMatchName().contains("Qual") ? 'Q' : 'E';
                             match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", match.getCanonicalMatchNumber()) + "-1");
 
-
-
-                            /* TODO: Parse the Elim matches because they aren't in the /matches/ endpoint
-                            if (qualChar == 'E') {
-                                elimCount++;
-                                int elimFieldNum = match.getTournamentLevel() % 2;
-                                match.setFieldNumber(match.getTournamentLevel() == 4 ? 1 : (elimFieldNum == 0 ? 2 : 1));
-                                match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", elimCount) + "-1");
-                            }*/
-
                             /** TEAM info **/
                             ScheduleStation[] scheduleStations = new ScheduleStation[6];
                             scheduleStations[0] = new ScheduleStation(match.getMatchKey(), 11, m.getRedAlliance().team1);
@@ -597,11 +585,71 @@ public class MatchesController {
                 controller.sendInfo("Successfully imported " + matchDetails.size() + " matches from the Scoring System.");
 
             } else {
-                controller.sendError("Connection to FIRST Scoring system unsuccessful. " + response);
+                controller.sendError("Connection to FIRST Scoring system unsuccessful.  Did not get Qualifier Matches " + response);
             }
         }));
         //Oh god not again
         /*SF Elim Matches*/
+        /*SF1 Matches*/
+        int[] iarr = {0}; //Because Stupid Lambdas
+        FIRSTEndpoint firstSF1Matches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/1");
+        firstMatches.execute(((response, success) -> {
+            if (success && !response.contains("NOT_READY")) {
+                ElimMatchesArray matches = firstSF1Matches.getGson().fromJson(response, ElimMatchesArray.class);
+
+                for(ElimMatches m : matches.getElimMatches()) {
+                    FIRSTEndpoint firstSF1Match = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/1/" + m.getMatchNumber().substring(4));
+                    firstSF1Match.execute(((r, s) -> {
+
+                        if(s) {
+                            iarr[0]++;
+                            /* TODO: Fix Field Number
+                            int elimFieldNum = match.getTournamentLevel() % 2;
+                            match.setFieldNumber(match.getTournamentLevel() == 4 ? 1 : (elimFieldNum == 0 ? 2 : 1));
+                            */
+                            //We Get A string that looks like "SF1-1" We Remove the SF, then Replace the "-" with an empty string.
+                            int sfMatchNum = Integer.parseInt(m.matchNumber.substring(2).replace("-", ""));
+                            MatchGeneral match = new MatchGeneral(
+                                    MatchGeneral.buildMatchName(2, sfMatchNum),
+                                    MatchGeneral.buildTOATournamentLevel(2, sfMatchNum),
+                                    null,
+                                    0);
+                            match.setMatchKey(Config.EVENT_ID + "-SF" + String.format("%03d", iarr[0]++) + "-1");
+
+                            /** TEAM info **/
+                            ScheduleStation[] scheduleStations = new ScheduleStation[6];
+                            scheduleStations[0] = new ScheduleStation(match.getMatchKey(), 11, m.getRedAlliance().getAllianceCaptain());
+                            scheduleStations[1] = new ScheduleStation(match.getMatchKey(), 12, m.getRedAlliance().getAlliancePick1());
+                            scheduleStations[2] = new ScheduleStation(match.getMatchKey(), 13, m.getRedAlliance().getAlliancePick2());
+                            scheduleStations[3] = new ScheduleStation(match.getMatchKey(), 21, m.getBlueAlliance().getAllianceCaptain());
+                            scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, m.getBlueAlliance().getAlliancePick1());
+                            scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, m.getBlueAlliance().getAllianceCaptain());
+
+                            /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
+                            //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
+                            //TODO: Update when Elim parsing is clarified
+                            scheduleStations[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                            scheduleStations[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                            scheduleStations[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                            scheduleStations[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                            scheduleStations[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                            scheduleStations[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+
+                            calculateWL(match, scheduleStations);
+
+                            matchList.add(match);
+
+                        } else {
+                            controller.sendError("Unable to get score for " + m.getMatchNumber());
+                        }
+
+                    }));
+                }
+
+            } else {
+
+            }
+        }));
     }
 
 
