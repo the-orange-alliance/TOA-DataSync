@@ -8,7 +8,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.toa.EventParticipantJSON;
-import org.theorangealliance.datasync.json.toa.TeamJSON;
+import org.theorangealliance.datasync.json.toa.EventParticipantTeamJSON;
 import org.theorangealliance.datasync.json.first.TeamFIRST;
 import org.theorangealliance.datasync.json.first.Teams;
 import org.theorangealliance.datasync.models.Team;
@@ -51,13 +51,14 @@ public class TeamsController {
 
     public void getTeamsByURL() {
         TOAEndpoint teamsEndpoint = new TOAEndpoint("event/" + Config.EVENT_ID + "/teams");
-        teamsEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        teamsEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         teamsEndpoint.execute(((response, success) -> {
+
            if (success) {
                teamsList.clear();
                controller.sendInfo("Successfully pulled teams for event " + Config.EVENT_ID);
-               TeamJSON[] teams = teamsEndpoint.getGson().fromJson(response, TeamJSON[].class);
-               for (TeamJSON team : teams) {
+               EventParticipantTeamJSON[] teams = teamsEndpoint.getGson().fromJson(response, EventParticipantTeamJSON[].class);
+               for (EventParticipantTeamJSON team : teams) {
                    int divKey = 1;
                    if (Config.DUAL_DIVISION_EVENT) {
                        String[] args = team.getParticipantKey().split("-");
@@ -71,11 +72,11 @@ public class TeamsController {
                    Team eventTeam = new Team(
                            team.getTeamKey(),
                            divKey,
-                           team.getRegionKey(),
-                           team.getLeagueKey(),
-                           team.getTeamNameShort(),
-                           team.getTeamNameLong(),
-                           team.getLocation());
+                           team.getTeamSpecifics().getTeamRegionKey(),
+                           team.getTeamSpecifics().getTeamLeagueKey(),
+                           team.getTeamSpecifics().getTeamNameShort(),
+                           team.getTeamSpecifics().getTeamNameLong(),
+                           team.getTeamSpecifics().getTeamCity() + ", " + team.getTeamSpecifics().getTeamCity() + ", " + team.getTeamSpecifics().getTeamCountry());
                    teamsList.add(eventTeam);
                }
                 //TODO: Fix for International Team
@@ -126,7 +127,7 @@ public class TeamsController {
     }
 
     public void getTeamsFromFIRSTApi() {
-        FIRSTEndpoint firstEventTeams = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/teams/");
+        FIRSTEndpoint firstEventTeams = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/teams/");
         firstEventTeams.execute(((response, success) -> {
             if (success) {
                 teamsList.clear();
@@ -183,7 +184,7 @@ public class TeamsController {
             teamsList.sort((team1, team2) -> (Integer.parseInt(team1.getTeamKey()) > Integer.parseInt(team2.getTeamKey()) ? 1 : -1));
             controller.sendInfo("Uploading data from event " + Config.EVENT_ID + "...");
             TOAEndpoint deleteEndpoint = new TOAEndpoint("POST", "upload/event/teams");
-            deleteEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+            deleteEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
             TOARequestBody requestBody = new TOARequestBody();
             requestBody.setEventKey(Config.EVENT_ID);
             int div1 = 0;
@@ -241,7 +242,7 @@ public class TeamsController {
             // Begin the purging of the data table...
             controller.sendInfo("Purging data from event " + Config.EVENT_ID + "...");
             TOAEndpoint deleteEndpoint = new TOAEndpoint("DELETE", "upload/event/teams");
-            deleteEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+            deleteEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
             TOARequestBody requestBody = new TOARequestBody();
             requestBody.setEventKey(Config.EVENT_ID);
             deleteEndpoint.setBody(requestBody);

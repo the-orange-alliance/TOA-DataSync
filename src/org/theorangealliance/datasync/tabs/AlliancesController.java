@@ -57,7 +57,7 @@ public class AlliancesController {
     }
 
     public void importAlliancesFIRSTApi(HashMap<MatchGeneral, MatchDetail1718JSON> scores){
-        FIRSTEndpoint firstAlliances = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/alliances/");
+        FIRSTEndpoint firstAlliances = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/elim/alliances/");
         firstAlliances.execute(((response, success) -> {
             if (success && !response.contains("NOT_READY")) {
 

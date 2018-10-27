@@ -13,6 +13,19 @@ public class MatchDetail1718JSON {
     @SerializedName("match_key")
     String matchKey;
 
+    @SerializedName("blue_min_pen")
+    int blueMinPen;
+
+    @SerializedName("red_min_pen")
+    int redMinPen;
+
+
+    @SerializedName("blue_maj_pen")
+    int blueMajPen;
+
+    @SerializedName("red_maj_pen")
+    int redMajPen;
+
     @SerializedName("red_auto_jewel")
     int redAutoJewel;
 
@@ -46,17 +59,11 @@ public class MatchDetail1718JSON {
     @SerializedName("red_end_relic_3")
     int redEndRelic3;
 
-    @SerializedName("red_end_relic_up")
+    @SerializedName("red_end_relic_standing")
     int redEndRelicUp;
 
-    @SerializedName("red_end_robot_bal")
+    @SerializedName("red_end_robot_balances")
     int redEndRobotBal;
-
-    @SerializedName("red_min_pen")
-    int redMinPen;
-
-    @SerializedName("red_maj_pen")
-    int redMajPen;
 
     @SerializedName("blue_auto_jewel")
     int blueAutoJewel;
@@ -91,17 +98,11 @@ public class MatchDetail1718JSON {
     @SerializedName("blue_end_relic_3")
     int blueEndRelic3;
 
-    @SerializedName("blue_end_relic_up")
+    @SerializedName("blue_end_relic_standing")
     int blueEndRelicUp;
 
-    @SerializedName("blue_end_robot_bal")
+    @SerializedName("blue_end_robot_balances")
     int blueEndRobotBal;
-
-    @SerializedName("blue_min_pen")
-    int blueMinPen;
-
-    @SerializedName("blue_maj_pen")
-    int blueMajPen;
 
     public String getMatchDtlKey() {
         return matchDtlKey;
@@ -117,6 +118,38 @@ public class MatchDetail1718JSON {
 
     public void setMatchKey(String matchKey) {
         this.matchKey = matchKey;
+    }
+
+    public int getBlueMinPen() {
+        return blueMinPen;
+    }
+
+    public void setBlueMinPen(int blueMinPen) {
+        this.blueMinPen = blueMinPen;
+    }
+
+    public int getRedMinPen() {
+        return redMinPen;
+    }
+
+    public void setRedMinPen(int redMinPen) {
+        this.redMinPen = redMinPen;
+    }
+
+    public int getBlueMajPen() {
+        return blueMajPen;
+    }
+
+    public void setBlueMajPen(int blueMajPen) {
+        this.blueMajPen = blueMajPen;
+    }
+
+    public int getRedMajPen() {
+        return redMajPen;
+    }
+
+    public void setRedMajPen(int redMajPen) {
+        this.redMajPen = redMajPen;
     }
 
     public int getRedAutoJewel() {
@@ -223,22 +256,6 @@ public class MatchDetail1718JSON {
         this.redEndRobotBal = redEndRobotBal;
     }
 
-    public int getRedMinPen() {
-        return redMinPen;
-    }
-
-    public void setRedMinPen(int redMinPen) {
-        this.redMinPen = redMinPen;
-    }
-
-    public int getRedMajPen() {
-        return redMajPen;
-    }
-
-    public void setRedMajPen(int redMajPen) {
-        this.redMajPen = redMajPen;
-    }
-
     public int getBlueAutoJewel() {
         return blueAutoJewel;
     }
@@ -341,21 +358,5 @@ public class MatchDetail1718JSON {
 
     public void setBlueEndRobotBal(int blueEndRobotBal) {
         this.blueEndRobotBal = blueEndRobotBal;
-    }
-
-    public int getBlueMinPen() {
-        return blueMinPen;
-    }
-
-    public void setBlueMinPen(int blueMinPen) {
-        this.blueMinPen = blueMinPen;
-    }
-
-    public int getBlueMajPen() {
-        return blueMajPen;
-    }
-
-    public void setBlueMajPen(int blueMajPen) {
-        this.blueMajPen = blueMajPen;
     }
 }

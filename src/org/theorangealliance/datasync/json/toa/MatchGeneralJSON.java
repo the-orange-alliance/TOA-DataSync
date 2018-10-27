@@ -17,14 +17,14 @@ public class MatchGeneralJSON {
     @SerializedName("event_key")
     private String eventKey;
 
-    @SerializedName("match_name")
-    private String matchName;
-
     @SerializedName("tournament_level")
     private int tournamentLevel;
 
     @SerializedName("scheduled_time")
     private Date scheduledTime;
+
+    @SerializedName("match_name")
+    private String matchName;
 
     @SerializedName("play_number")
     private int playNumber;
@@ -62,11 +62,23 @@ public class MatchGeneralJSON {
     @SerializedName("blue_end_score")
     private int blueEndScore;
 
+    @SerializedName("video_url")
+    private String videoURL;
+
+    @SerializedName("participants")
+    private MatchParticipantJSON[] participant;
+
     @SerializedName("created_by")
     private String createdBy;
 
     @SerializedName("created_on")
     private String createdOn;
+
+    @SerializedName("modified_by")
+    private String modifiedBy;
+
+    @SerializedName("modified_on")
+    private String modifiedOn;
 
     public String getMatchKey() {
         return matchKey;
@@ -84,14 +96,6 @@ public class MatchGeneralJSON {
         this.eventKey = eventKey;
     }
 
-    public String getMatchName() {
-        return matchName;
-    }
-
-    public void setMatchName(String matchName) {
-        this.matchName = matchName;
-    }
-
     public int getTournamentLevel() {
         return tournamentLevel;
     }
@@ -106,6 +110,14 @@ public class MatchGeneralJSON {
 
     public void setScheduledTime(Date scheduledTime) {
         this.scheduledTime = scheduledTime;
+    }
+
+    public String getMatchName() {
+        return matchName;
+    }
+
+    public void setMatchName(String matchName) {
+        this.matchName = matchName;
     }
 
     public int getPlayNumber() {
@@ -204,6 +216,22 @@ public class MatchGeneralJSON {
         this.blueEndScore = blueEndScore;
     }
 
+    public String getVideoURL() {
+        return videoURL;
+    }
+
+    public void setVideoURL(String videoURL) {
+        this.videoURL = videoURL;
+    }
+
+    public MatchParticipantJSON[] getParticipant() {
+        return participant;
+    }
+
+    public void setParticipant(MatchParticipantJSON[] participant) {
+        this.participant = participant;
+    }
+
     public String getCreatedBy() {
         return createdBy;
     }
@@ -218,5 +246,21 @@ public class MatchGeneralJSON {
 
     public void setCreatedOn(String createdOn) {
         this.createdOn = createdOn;
+    }
+
+    public String getModifiedBy() {
+        return modifiedBy;
+    }
+
+    public void setModifiedBy(String modifiedBy) {
+        this.modifiedBy = modifiedBy;
+    }
+
+    public String getModifiedOn() {
+        return modifiedOn;
+    }
+
+    public void setModifiedOn(String modifiedOn) {
+        this.modifiedOn = modifiedOn;
     }
 }

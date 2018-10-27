@@ -138,7 +138,7 @@ public class RankingsController {
 
     public void getRankingsFIRSTApi(){
         //TODO: Add Division Support
-        FIRSTEndpoint firstRankings = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/rankings/");
+        FIRSTEndpoint firstRankings = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/rankings/");
         firstRankings.execute(((response, success) -> {
             if (success) {
                 TeamRankingFIRSTArray ranks = firstRankings.getGson().fromJson(response, TeamRankingFIRSTArray.class);
@@ -172,7 +172,7 @@ public class RankingsController {
             // This is because MySQL UPDATE query does not
             // allow multiple row updates...
             TOAEndpoint deleteEndpoint = new TOAEndpoint("DELETE", "upload/event/rankings");
-            deleteEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+            deleteEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
             TOARequestBody deleteBody = new TOARequestBody();
             deleteBody.setEventKey(Config.EVENT_ID);
             deleteEndpoint.setBody(deleteBody);
@@ -180,7 +180,7 @@ public class RankingsController {
                 if (success) {
                     TOALogger.log(Level.INFO, "Deleted rankings. Now posting rankings.");
                     TOAEndpoint postEndpoint = new TOAEndpoint("POST", "upload/event/rankings");
-                    postEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                    postEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                     TOARequestBody postBody = new TOARequestBody();
                     postBody.setEventKey(Config.EVENT_ID);
                     for (TeamRanking ranking : teamRankings) {
@@ -227,7 +227,7 @@ public class RankingsController {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == okayButton) {
             TOAEndpoint rankingEndpoint = new TOAEndpoint("DELETE", "upload/event/rankings");
-            rankingEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+            rankingEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
             TOARequestBody requestBody = new TOARequestBody();
             requestBody.setEventKey(Config.EVENT_ID);
             rankingEndpoint.setBody(requestBody);

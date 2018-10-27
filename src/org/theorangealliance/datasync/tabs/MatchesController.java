@@ -200,7 +200,7 @@ public class MatchesController {
         this.controller.labelScheduleUploaded.setTextFill(Color.ORANGE);
         this.controller.labelScheduleUploaded.setText("Checking TOA...");
         TOAEndpoint matchesEndpoint = new TOAEndpoint("GET", "event/" + Config.EVENT_ID + "/matches");
-        matchesEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        matchesEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         matchesEndpoint.execute(((response, success) -> {
             if (success) {
                 uploadedMatches = new HashSet<>(Arrays.asList(matchesEndpoint.getGson().fromJson(response, MatchGeneralJSON[].class)));
@@ -219,7 +219,7 @@ public class MatchesController {
 
     public void checkMatchDetails() {
         TOAEndpoint matchesEndpoint = new TOAEndpoint("GET", "event/" + Config.EVENT_ID + "/matches/details");
-        matchesEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        matchesEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         matchesEndpoint.execute(((response, success) -> {
             if (success) {
                 uploadedDetails = new HashSet<>(Arrays.asList(matchesEndpoint.getGson().fromJson(response, MatchDetail1718JSON[].class)));
@@ -554,7 +554,7 @@ public class MatchesController {
 
     public void getMatchesFromFIRSTApi1819() {
         /* Qualifacation Matches*/
-        FIRSTEndpoint firstMatches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/matches/");
+        FIRSTEndpoint firstMatches = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/matches/");
         firstMatches.execute(((response, success) -> {
             if (success) {
                 qualSche.clear();
@@ -570,7 +570,7 @@ public class MatchesController {
                 QualMatchesArray matches = firstMatches.getGson().fromJson(response, QualMatchesArray.class);
 
                 for (QualMatches m : matches.getQualMatches()) {
-                    FIRSTEndpoint firstMatch = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/matches/" + m.getMatchNumber());
+                    FIRSTEndpoint firstMatch = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/matches/" + m.getMatchNumber());
                     firstMatch.execute(((r, s) -> {
                         if (s) {
                             Match qualMatch = firstMatch.getGson().fromJson(r, Match.class);
@@ -647,13 +647,13 @@ public class MatchesController {
 
         sf1Sche.clear();
         sf1Matches.clear();
-        FIRSTEndpoint firstSF1Matches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/1");
+        FIRSTEndpoint firstSF1Matches = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/elim/sf/1");
         firstSF1Matches.execute(((responseSF1, successSF1) -> {
             if (successSF1 && !responseSF1.contains("NOT_READY")) {
                 ElimMatchesArray matchesSF1 = firstSF1Matches.getGson().fromJson(responseSF1, ElimMatchesArray.class);
 
                 for(ElimMatches m : matchesSF1.getElimMatches()) {
-                    FIRSTEndpoint firstSF1Match = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/1/" + m.getMatchNumber().substring(4));
+                    FIRSTEndpoint firstSF1Match = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/elim/sf/1/" + m.getMatchNumber().substring(4));
                     firstSF1Match.execute(((r, s) -> {
 
                         if(s) {
@@ -722,13 +722,13 @@ public class MatchesController {
                 /* SF2/Finals Matches*/
                 sf2Sche.clear();
                 sf2Matches.clear();
-                FIRSTEndpoint firstSF2Matches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/2");
+                FIRSTEndpoint firstSF2Matches = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/elim/sf/2");
                 firstSF2Matches.execute(((responceSF2, successSF2) -> {
                     if (successSF2 && !responceSF2.contains("NOT_READY")) {
                         ElimMatchesArray matchesSF2 = firstSF2Matches.getGson().fromJson(responceSF2, ElimMatchesArray.class);
 
                         for(ElimMatches m : matchesSF2.getElimMatches()) {
-                            FIRSTEndpoint firstSF1Match = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/2/" + m.getMatchNumber().substring(4));
+                            FIRSTEndpoint firstSF1Match = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/elim/sf/2/" + m.getMatchNumber().substring(4));
                             firstSF1Match.execute(((r, s) -> {
 
                                 if(s) {
@@ -798,13 +798,13 @@ public class MatchesController {
                         /* Finals Matches */
                         fSche.clear();
                         fMatches.clear();
-                        FIRSTEndpoint firstFMatches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/finals/");
+                        FIRSTEndpoint firstFMatches = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/elim/finals/");
                         firstFMatches.execute(((responceF, successF) -> {
                             if (successF && !responceF.contains("NOT_READY")) {
                                 ElimMatchesArray matchesF = firstFMatches.getGson().fromJson(responceF, ElimMatchesArray.class);
 
                                 for(ElimMatches m : matchesF.getElimMatches()) {
-                                    FIRSTEndpoint firstSF1Match = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/finals/" + m.getMatchNumber().substring(2));
+                                    FIRSTEndpoint firstSF1Match = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/elim/finals/" + m.getMatchNumber().substring(2));
                                     firstSF1Match.execute(((r, s) -> {
 
                                         if(s) {
@@ -1028,7 +1028,7 @@ public class MatchesController {
                     }
                 }
                 TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "upload/event/match");
-                matchEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody requestBody = new TOARequestBody();
                 requestBody.setEventKey(Config.EVENT_ID);
                 requestBody.setMatchKey(completeMatch.getMatchKey());
@@ -1080,7 +1080,7 @@ public class MatchesController {
                 }
 
                 TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "upload/event/match/detail");
-                detailEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                detailEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody detailBody = new TOARequestBody();
                 detailBody.setEventKey(Config.EVENT_ID);
                 detailBody.setMatchKey(completeMatch.getMatchKey());
@@ -1120,7 +1120,7 @@ public class MatchesController {
                     }
                 }
                 TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "upload/event/match");
-                matchEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody requestBody = new TOARequestBody();
                 requestBody.setEventKey(Config.EVENT_ID);
                 requestBody.setMatchKey(selectedMatch.getMatchKey());
@@ -1174,7 +1174,7 @@ public class MatchesController {
                 }
 
                 TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "upload/event/match/detail");
-                detailEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                detailEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody detailBody = new TOARequestBody();
                 detailBody.setEventKey(Config.EVENT_ID);
                 detailBody.setMatchKey(selectedMatch.getMatchKey());
@@ -1222,13 +1222,13 @@ public class MatchesController {
             this.controller.btnMatchBrowserView.setVisible(true);
 //            TOAEndpoint matchDel = new TOAEndpoint("DELETE", "upload/event/schedule/matches");
 //            TOARequestBody matchDelBody = new TOARequestBody();
-//            matchDel.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+//            matchDel.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
 //            matchDelBody.setEventKey(Config.EVENT_ID);
 //            matchDel.setBody(matchDelBody);
 //            matchDel.execute(((response, success) -> {
 //                if (success) {
 //                    TOAEndpoint teamDel = new TOAEndpoint("DELETE", "upload/event/schedule/teams");
-//                    teamDel.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+//                    teamDel.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
 //                    teamDel.setBody(matchDelBody);
 //                    teamDel.execute(((response1, success1) -> {
 //                        if (success1) {
@@ -1247,7 +1247,7 @@ public class MatchesController {
     private void postMatchScheduleTeams() {
         controller.sendInfo("Uploading station schedule data from event " + Config.EVENT_ID + "...");
         TOAEndpoint scheduleEndpoint = new TOAEndpoint("POST", "upload/event/schedule/teams");
-        scheduleEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        scheduleEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         TOARequestBody requestBody = new TOARequestBody();
         requestBody.setEventKey(Config.EVENT_ID);
         for (ScheduleStation[] stations : matchStations.values()) {
@@ -1293,7 +1293,7 @@ public class MatchesController {
     private void postMatchScheduleMatches() {
         controller.sendInfo("Uploading match schedule data from event " + Config.EVENT_ID + "...");
         TOAEndpoint scheduleEndpoint = new TOAEndpoint("POST", "upload/event/schedule/matches");
-        scheduleEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        scheduleEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         TOARequestBody requestBody = new TOARequestBody();
         requestBody.setEventKey(Config.EVENT_ID);
         for (int i = 0; i < matchList.size(); i++) {
@@ -1365,7 +1365,7 @@ public class MatchesController {
     private void deleteMatchScheduleMatches(){
 
         TOAEndpoint rankingEndpoint = new TOAEndpoint("DELETE", "upload/event/schedule/matches");
-        rankingEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        rankingEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         TOARequestBody requestBody = new TOARequestBody();
         requestBody.setEventKey(Config.EVENT_ID);
         rankingEndpoint.setBody(requestBody);
@@ -1382,7 +1382,7 @@ public class MatchesController {
     private void deleteMatchScheduleTeams(){
 
         TOAEndpoint rankingEndpoint = new TOAEndpoint("DELETE", "upload/event/schedule/teams");
-        rankingEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        rankingEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         TOARequestBody requestBody = new TOARequestBody();
         requestBody.setEventKey(Config.EVENT_ID);
         rankingEndpoint.setBody(requestBody);
@@ -1400,7 +1400,7 @@ public class MatchesController {
 
         //Grab list of matches currently on the TOA servers
         TOAEndpoint matchesEndpoint = new TOAEndpoint("event/" + Config.EVENT_ID + "/matches");
-        matchesEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+        matchesEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         matchesEndpoint.execute(((response, success) -> {
             if (success) {
 
@@ -1416,7 +1416,7 @@ public class MatchesController {
 
                         //Purge Match Data
                         TOAEndpoint matchEndpoint = new TOAEndpoint("DELETE", "upload/event/match");
-                        matchEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                        matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                         TOARequestBody requestBody = new TOARequestBody();
                         requestBody.setEventKey(Config.EVENT_ID);
                         requestBody.setMatchKey(match.getMatchKey());
@@ -1429,7 +1429,7 @@ public class MatchesController {
 
                         //Purge Match Details
                         matchEndpoint = new TOAEndpoint("DELETE", "upload/event/match/detail");
-                        matchEndpoint.setCredentials(Config.EVENT_API_KEY, Config.EVENT_ID);
+                        matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                         requestBody = new TOARequestBody();
                         requestBody.setEventKey(Config.EVENT_ID);
                         requestBody.setMatchKey(match.getMatchKey());

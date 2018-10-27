@@ -2,37 +2,19 @@ package org.theorangealliance.datasync.json.toa;
 
 import com.google.gson.annotations.SerializedName;
 
-/**
- * Created by Kyle Flynn on 11/29/2017.
- */
 public class TeamJSON {
-
-    @SerializedName("event_participant_key")
-    private String participantKey;
-
-    @SerializedName("event_key")
-    private String eventKey;
 
     @SerializedName("team_key")
     private String teamKey;
 
     @SerializedName("region_key")
-    private String regionKey;
+    private String teamRegionKey;
 
     @SerializedName("league_key")
-    private String leagueKey;
+    private String teamLeagueKey;
 
-    @SerializedName("has_card")
-    private String hasCard;
-
-    @SerializedName("city")
-    private String city;
-
-    @SerializedName("state_prov")
-    private String stateProv;
-
-    @SerializedName("country")
-    private String country;
+    @SerializedName("team_number")
+    private int teamNumber;
 
     @SerializedName("team_name_short")
     private String teamNameShort;
@@ -40,40 +22,139 @@ public class TeamJSON {
     @SerializedName("team_name_long")
     private String teamNameLong;
 
-    public String getParticipantKey() {
-        return participantKey;
-    }
+    @SerializedName("robot_name")
+    private String teamRobotName;
 
-    public String getEventKey() {
-        return eventKey;
-    }
+    @SerializedName("last_active")
+    private String teamLastActive;
+
+    @SerializedName("city")
+    private String teamCity;
+
+    @SerializedName("state_prov")
+    private String teamStateProv;
+
+    @SerializedName("zip_code")
+    private String teamZipCode;
+
+    @SerializedName("country")
+    private String teamCountry;
+
+    @SerializedName("rookie_year")
+    private int teamRookieYear;
+
+    @SerializedName("website")
+    private String teamWebsite;
 
     public String getTeamKey() {
         return teamKey;
     }
 
-    public String getRegionKey() {
-        return regionKey;
+    public void setTeamKey(String teamKey) {
+        this.teamKey = teamKey;
     }
 
-    public String getLeagueKey() {
-        return leagueKey;
+    public String getTeamRegionKey() {
+        return teamRegionKey;
     }
 
-    public int hasCard() {
-        return Integer.parseInt(hasCard);
+    public void setTeamRegionKey(String teamRegionKey) {
+        this.teamRegionKey = teamRegionKey;
     }
 
-    public String getLocation() {
-        return city + ", " + stateProv + ", " + country;
+    public String getTeamLeagueKey() {
+        return teamLeagueKey;
+    }
+
+    public void setTeamLeagueKey(String teamLeagueKey) {
+        this.teamLeagueKey = teamLeagueKey;
+    }
+
+    public int getTeamNumber() {
+        return teamNumber;
+    }
+
+    public void setTeamNumber(int teamNumber) {
+        this.teamNumber = teamNumber;
     }
 
     public String getTeamNameShort() {
         return teamNameShort;
     }
 
+    public void setTeamNameShort(String teamNameShort) {
+        this.teamNameShort = teamNameShort;
+    }
+
     public String getTeamNameLong() {
         return teamNameLong;
     }
 
+    public void setTeamNameLong(String teamNameLong) {
+        this.teamNameLong = teamNameLong;
+    }
+
+    public String getTeamRobotName() {
+        return teamRobotName;
+    }
+
+    public void setTeamRobotName(String teamRobotName) {
+        this.teamRobotName = teamRobotName;
+    }
+
+    public String getTeamLastActive() {
+        return teamLastActive;
+    }
+
+    public void setTeamLastActive(String teamLastActive) {
+        this.teamLastActive = teamLastActive;
+    }
+
+    public String getTeamCity() {
+        return teamCity;
+    }
+
+    public void setTeamCity(String teamCity) {
+        this.teamCity = teamCity;
+    }
+
+    public String getTeamStateProv() {
+        return teamStateProv;
+    }
+
+    public void setTeamStateProv(String teamStateProv) {
+        this.teamStateProv = teamStateProv;
+    }
+
+    public String getTeamZipCode() {
+        return teamZipCode;
+    }
+
+    public void setTeamZipCode(String teamZipCode) {
+        this.teamZipCode = teamZipCode;
+    }
+
+    public String getTeamCountry() {
+        return teamCountry;
+    }
+
+    public void setTeamCountry(String teamCountry) {
+        this.teamCountry = teamCountry;
+    }
+
+    public int getTeamRookieYear() {
+        return teamRookieYear;
+    }
+
+    public void setTeamRookieYear(int teamRookieYear) {
+        this.teamRookieYear = teamRookieYear;
+    }
+
+    public String getTeamWebsite() {
+        return teamWebsite;
+    }
+
+    public void setTeamWebsite(String teamWebsite) {
+        this.teamWebsite = teamWebsite;
+    }
 }

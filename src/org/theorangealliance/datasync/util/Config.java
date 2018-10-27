@@ -8,8 +8,9 @@ public class Config {
     public static String VERSION = "v1.7.0";
 
     public static String FIRST_API_IP;
+    public static String FIRST_API_EVENT_ID;
 
-    public static String EVENT_API_KEY;
+    public static String TOA_API_KEY;
     public static String EVENT_ID;
     public static String EVENT_NAME;
     public static String SCORING_DIR;

@@ -195,7 +195,7 @@ public class DataSyncController implements Initializable {
             testConnection.execute((response, success) -> {
                 if (success) {
                     // Setup our local config
-                    Config.EVENT_API_KEY = txtSetupKey.getText();
+                    Config.TOA_API_KEY = txtSetupKey.getText();
                     Config.EVENT_ID = txtSetupID.getText();
 
                     EventJSON[] events = testConnection.getGson().fromJson(response, EventJSON[].class);
@@ -320,7 +320,7 @@ public class DataSyncController implements Initializable {
                     //TODO: Fix Division Stuff When Scorekeeping App Is Updated!!!!
                     Event eventData = firstEventData.getGson().fromJson(response, Event.class);
                     Config.DIVISION_NAME = eventData.getEventDivisionId() + "";
-                    Config.EVENT_API_KEY = eventID[0].substring(0,eventID[0].length() - 1);
+                    Config.FIRST_API_EVENT_ID = eventID[0].substring(0,eventID[0].length() - 1);
 
                     labelSetupDir.setTextFill(Color.GREEN);
                     labelSetupDir.setText("Loaded Event Successfully");
