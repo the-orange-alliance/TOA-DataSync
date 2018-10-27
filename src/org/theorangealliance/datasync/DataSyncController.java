@@ -249,14 +249,21 @@ public class DataSyncController implements Initializable {
             //We want to contact the IP address and GET the events if the IP is correct. If it isn't... The Ip is wrong.
             if (txtSetupDir.getText().length() > 1) {
                 Config.FIRST_API_IP = txtSetupDir.getText();
-                FIRSTEndpoint firstEvent = new FIRSTEndpoint("events/");
-                firstEvent.execute(((response, success) -> {
+                FIRSTEndpoint firstEvents = new FIRSTEndpoint("events/");
+                firstEvents.execute(((response, success) -> {
                     if (success) {
                         sendInfo("Successfully pulled events from FIRST scoring system.");
                         //TOALogger.log(Level.INFO, response);
-                        Events events = firstEvent.getGson().fromJson(response, Events.class);
+                        Events events = firstEvents.getGson().fromJson(response, Events.class);
+
                         for (String eventName : events.getEventID()) {
-                            cbFirstEvents.getItems().add(eventName);
+                            FIRSTEndpoint firstEvent = new FIRSTEndpoint("events/" + eventName);
+                            firstEvent.execute(((r, s) -> {
+                                if (success) {
+                                    Event e = firstEvent.getGson().fromJson(r, Event.class);
+                                    cbFirstEvents.getItems().add(e.getEventCode() + " | " + e.getEventName());
+                                    cbFirstEvents.getSelectionModel().selectFirst();
+                                }}));
                         }
 
                         if (events.getEventID().length == 0) {
@@ -272,6 +279,7 @@ public class DataSyncController implements Initializable {
                             labelSetupDir.setTextFill(Color.GREEN);
                             //Enable Input Devices
                             cbFirstEvents.setDisable(false);
+                            cbFirstEvents.getSelectionModel().selectFirst();
                             btnSetupTestDir.setDisable(false);
                         }
 
@@ -303,7 +311,8 @@ public class DataSyncController implements Initializable {
 
     private void loadEventFromFIRST() {
         if (cbFirstEvents.getSelectionModel() != null) {
-            FIRSTEndpoint firstEventData = new FIRSTEndpoint("events/" + cbFirstEvents.getSelectionModel().getSelectedItem());
+            String[] eventID = cbFirstEvents.getSelectionModel().getSelectedItem().split("\\|");
+            FIRSTEndpoint firstEventData = new FIRSTEndpoint("events/" + eventID[0].substring(0,eventID[0].length() - 1));//remove space at end
             firstEventData.execute(((response, success) -> {
                 if (success) {
                     sendInfo("Successfully pulled event info from FIRST scoring system.");
