@@ -3,7 +3,7 @@ package org.theorangealliance.datasync.util;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.application.Platform;
-import org.theorangealliance.datasync.json.ErrorJSON;
+import org.theorangealliance.datasync.json.toa.ErrorJSON;
 import org.theorangealliance.datasync.logging.TOALogger;
 
 import java.io.BufferedReader;
