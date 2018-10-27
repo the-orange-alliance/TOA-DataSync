@@ -32,11 +32,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.function.ToDoubleFunction;
-import java.util.function.ToIntFunction;
-import java.util.function.ToLongFunction;
 import java.util.logging.Level;
 
 /**
@@ -556,7 +551,8 @@ public class MatchesController {
                     FIRSTEndpoint firstMatch = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/matches/" + m.getMatchNumber());
                     firstMatch.execute(((r, s) -> {
                         if (s) {
-                            MatchScore matchFIRST = firstMatch.getGson().fromJson(response, MatchScore.class);
+                            Match qualMatch = firstMatch.getGson().fromJson(response, Match.class);
+
                             MatchGeneral match = new MatchGeneral(
                                     MatchGeneral.buildMatchName(1, m.getMatchNumber()),
                                     MatchGeneral.buildTOATournamentLevel(1, m.getMatchNumber()),
@@ -582,6 +578,21 @@ public class MatchesController {
                             scheduleStations[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getBlueAlliance().getIsTeam1Surrogate() ? 0 : /*YCard*/false ? 2 : 1);
                             scheduleStations[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getBlueAlliance().getIsTeam2Surrogate() ? 0 : /*YCard*/false ? 2 : 1);
                             scheduleStations[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+
+                            match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
+                            match.setIsDone(qualMatch.isFinished());
+
+                            match.setRedPenalty(qualMatch.getRedSpecifics().getPenaltyPoints());
+                            match.setBluePenalty(qualMatch.getBlueSpecifics().getPenaltyPoints());
+                            match.setRedAutoScore(qualMatch.getRedSpecifics().getAutoPoints());
+                            match.setBlueAutoScore(qualMatch.getBlueSpecifics().getAutoPoints());
+                            match.setRedTeleScore(qualMatch.getRedSpecifics().getTeleopPoints());
+                            match.setBlueTeleScore(qualMatch.getBlueSpecifics().getTeleopPoints());
+                            match.setRedEndScore(qualMatch.getRedSpecifics().getEndGamePoints());
+                            match.setBlueEndScore(qualMatch.getBlueSpecifics().getEndGamePoints());
+                            match.setRedScore(qualMatch.getRedScore());
+                            match.setBlueScore(qualMatch.getBlueScore());
+
 
                             calculateWL(match, scheduleStations);
 
@@ -619,6 +630,7 @@ public class MatchesController {
                     firstSF1Match.execute(((r, s) -> {
 
                         if(s) {
+                            Match qualMatch = firstSF1Match.getGson().fromJson(r, Match.class);
                             elimMatches[0]++;
                             /* TODO: Fix Field Number
                             int elimFieldNum = match.getTournamentLevel() % 2;
@@ -652,6 +664,20 @@ public class MatchesController {
                             scheduleStations[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
                             scheduleStations[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
 
+                            match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
+                            match.setIsDone(qualMatch.isFinished());
+
+                            match.setRedPenalty(qualMatch.getRedSpecifics().getPenaltyPoints());
+                            match.setBluePenalty(qualMatch.getBlueSpecifics().getPenaltyPoints());
+                            match.setRedAutoScore(qualMatch.getRedSpecifics().getAutoPoints());
+                            match.setBlueAutoScore(qualMatch.getBlueSpecifics().getAutoPoints());
+                            match.setRedTeleScore(qualMatch.getRedSpecifics().getTeleopPoints());
+                            match.setBlueTeleScore(qualMatch.getBlueSpecifics().getTeleopPoints());
+                            match.setRedEndScore(qualMatch.getRedSpecifics().getEndGamePoints());
+                            match.setBlueEndScore(qualMatch.getBlueSpecifics().getEndGamePoints());
+                            match.setRedScore(qualMatch.getRedScore());
+                            match.setBlueScore(qualMatch.getBlueScore());
+
                             calculateWL(match, scheduleStations);
 
                             //matchList.add(match);
@@ -680,6 +706,7 @@ public class MatchesController {
                             firstSF1Match.execute(((r, s) -> {
 
                                 if(s) {
+                                    Match qualMatch = firstSF1Match.getGson().fromJson(r, Match.class);
                                     elimMatches[0]++;
                             /* TODO: Fix Field Number
                             int elimFieldNum = match.getTournamentLevel() % 2;
@@ -713,6 +740,20 @@ public class MatchesController {
                                     scheduleStations[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
                                     scheduleStations[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
 
+                                    match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
+                                    match.setIsDone(qualMatch.isFinished());
+
+                                    match.setRedPenalty(qualMatch.getRedSpecifics().getPenaltyPoints());
+                                    match.setBluePenalty(qualMatch.getBlueSpecifics().getPenaltyPoints());
+                                    match.setRedAutoScore(qualMatch.getRedSpecifics().getAutoPoints());
+                                    match.setBlueAutoScore(qualMatch.getBlueSpecifics().getAutoPoints());
+                                    match.setRedTeleScore(qualMatch.getRedSpecifics().getTeleopPoints());
+                                    match.setBlueTeleScore(qualMatch.getBlueSpecifics().getTeleopPoints());
+                                    match.setRedEndScore(qualMatch.getRedSpecifics().getEndGamePoints());
+                                    match.setBlueEndScore(qualMatch.getBlueSpecifics().getEndGamePoints());
+                                    match.setRedScore(qualMatch.getRedScore());
+                                    match.setBlueScore(qualMatch.getBlueScore());
+
                                     calculateWL(match, scheduleStations);
 
                                     //matchList.add(match);
@@ -741,11 +782,12 @@ public class MatchesController {
                                     firstSF1Match.execute(((r, s) -> {
 
                                         if(s) {
+                                            Match qualMatch = firstSF1Match.getGson().fromJson(r, Match.class);
                                             elimMatches[0]++;
-                            /* TODO: Fix Field Number
-                            int elimFieldNum = match.getTournamentLevel() % 2;
-                            match.setFieldNumber(match.getTournamentLevel() == 4 ? 1 : (elimFieldNum == 0 ? 2 : 1));
-                            */
+                                            /* TODO: Fix Field Number
+                                            int elimFieldNum = match.getTournamentLevel() % 2;
+                                            match.setFieldNumber(match.getTournamentLevel() == 4 ? 1 : (elimFieldNum == 0 ? 2 : 1));
+                                            */
                                             //We Get A string that looks like "F-1" We Remove the "F-"
                                             int fMatchNum = Integer.parseInt(m.matchNumber.substring(2));
                                             MatchGeneral match = new MatchGeneral(
@@ -773,6 +815,20 @@ public class MatchesController {
                                             scheduleStations[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
                                             scheduleStations[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
                                             scheduleStations[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+
+                                            match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
+                                            match.setIsDone(qualMatch.isFinished());
+
+                                            match.setRedPenalty(qualMatch.getRedSpecifics().getPenaltyPoints());
+                                            match.setBluePenalty(qualMatch.getBlueSpecifics().getPenaltyPoints());
+                                            match.setRedAutoScore(qualMatch.getRedSpecifics().getAutoPoints());
+                                            match.setBlueAutoScore(qualMatch.getBlueSpecifics().getAutoPoints());
+                                            match.setRedTeleScore(qualMatch.getRedSpecifics().getTeleopPoints());
+                                            match.setBlueTeleScore(qualMatch.getBlueSpecifics().getTeleopPoints());
+                                            match.setRedEndScore(qualMatch.getRedSpecifics().getEndGamePoints());
+                                            match.setBlueEndScore(qualMatch.getBlueSpecifics().getEndGamePoints());
+                                            match.setRedScore(qualMatch.getRedScore());
+                                            match.setBlueScore(qualMatch.getBlueScore());
 
                                             calculateWL(match, scheduleStations);
 
@@ -808,7 +864,6 @@ public class MatchesController {
     }
 
     private void fixTheElimMatches(){
-        System.out.println("I Ran " + sf1Matches.size() + " " + sf2Matches.size() + " " + fMatches.size());
         sf1Matches.sort(Comparator.comparing(MatchGeneral::getMatchName));
         sf2Matches.sort(Comparator.comparing(MatchGeneral::getMatchName));
         fMatches.sort(Comparator.comparing(MatchGeneral::getMatchName));
@@ -830,7 +885,6 @@ public class MatchesController {
                         i++;
                     }
                 }
-                System.out.println("I is here");
 
                 sf1Matches.get(0).setMatchKey(matchKey);
                 sf1Matches.get(0).setTournamentLevel(MatchGeneral.buildTOATournamentLevel(2, sf1Num));
@@ -842,7 +896,6 @@ public class MatchesController {
                 sf1Sche.get(i)[4].setMatchKey(matchKey);
                 sf1Sche.get(i)[5].setMatchKey(matchKey);
 
-                System.out.println("Got HEre!");
                 matchList.add(sf1Matches.get(0));
                 matchStations.put(sf1Matches.get(0), sf1Sche.get(i));
 
@@ -917,7 +970,6 @@ public class MatchesController {
             if(sf1Matches.isEmpty() && sf2Matches.isEmpty() && fMatches.isEmpty()) loop = false;
         }
     }
-
 
     public void postCompletedMatches() {
         if (uploadQueue.size() > 0) {

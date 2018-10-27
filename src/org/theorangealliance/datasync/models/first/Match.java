@@ -2,9 +2,9 @@ package org.theorangealliance.datasync.models.first;
 
 import com.google.gson.annotations.SerializedName;
 
-public class QualMatch {
+public class Match {
 
-    public QualMatch() {
+    public Match() {
         this.isFinished = false;
         this.redScore = 0;
         this.blueScore = 0;
