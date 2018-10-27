@@ -48,7 +48,10 @@ public class MatchesController {
     private HashMap<MatchGeneral, MatchDetail1718JSON> matchDetails;
     private MatchGeneral selectedMatch;
 
-    /*For Fixing The Match IDs */
+    /*For Fixing The Match IDs and/or Sorting */
+    private ArrayList<MatchGeneral> qualMatches = new ArrayList<>();//Qual Matches for Sorting
+    private ArrayList<ScheduleStation[]> qualSche = new ArrayList<>();
+
     private ArrayList<MatchGeneral> fMatches = new ArrayList<>(); //Finals Matches
     private ArrayList<ScheduleStation[]> fSche = new ArrayList<>(); //Finals Matches
     private ArrayList<MatchGeneral> sf2Matches = new ArrayList<>();//SF2 Matches
@@ -277,8 +280,20 @@ public class MatchesController {
         }
     }
 
-    //TODO: Definately Broken with New API, need to archive and add support for new API
+    //TODO: Definately Broken with New API
     public void syncMatches() {
+        if(controller.rbNewScore.isSelected()) {
+            syncMatches1819();
+        } else {
+            syncMatches1718();
+        }
+    }
+
+    private void syncMatches1819(){
+
+    }
+
+    private void syncMatches1718(){
         if (matchList.size() <= 0) {
             getMatchesByFile1718();
         } else {
@@ -533,11 +548,18 @@ public class MatchesController {
         }
     }
 
+    /* Look, but don't touch. It works, so why mess with it?
+    It's dumb, so what! If you want to attempt to fix it, good
+    luck. I am all outta options. */
+
     public void getMatchesFromFIRSTApi1819() {
         /* Qualifacation Matches*/
         FIRSTEndpoint firstMatches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/matches/");
         firstMatches.execute(((response, success) -> {
             if (success) {
+                qualSche.clear();
+                qualMatches.clear();
+
                 controller.btnMatchUpload.setDisable(true);
                 matchList.clear();
                 matchStations.clear();
@@ -551,7 +573,7 @@ public class MatchesController {
                     FIRSTEndpoint firstMatch = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/matches/" + m.getMatchNumber());
                     firstMatch.execute(((r, s) -> {
                         if (s) {
-                            Match qualMatch = firstMatch.getGson().fromJson(response, Match.class);
+                            Match qualMatch = firstMatch.getGson().fromJson(r, Match.class);
 
                             MatchGeneral match = new MatchGeneral(
                                     MatchGeneral.buildMatchName(1, m.getMatchNumber()),
@@ -582,6 +604,7 @@ public class MatchesController {
                             match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
                             match.setIsDone(qualMatch.isFinished());
 
+
                             match.setRedPenalty(qualMatch.getRedSpecifics().getPenaltyPoints());
                             match.setBluePenalty(qualMatch.getBlueSpecifics().getPenaltyPoints());
                             match.setRedAutoScore(qualMatch.getRedSpecifics().getAutoPoints());
@@ -596,8 +619,11 @@ public class MatchesController {
 
                             calculateWL(match, scheduleStations);
 
-                            matchList.add(match);
-                            matchStations.put(match, scheduleStations);
+                            //matchList.add(match);
+                            qualMatches.add(match);
+                            //matchStations.put(match, scheduleStations);
+                            qualSche.add(scheduleStations);
+                            sortQualMatches();
 
 
                         } else {
@@ -611,6 +637,7 @@ public class MatchesController {
             } else {
                 controller.sendError("Connection to FIRST Scoring system unsuccessful.  Did not get Qualifier Matches " + response);
             }
+
         }));
         //Oh god not again
         /*Elim Matches*/
@@ -688,7 +715,6 @@ public class MatchesController {
                         } else {
                             controller.sendError("Unable to get score for " + m.getMatchNumber());
                         }
-
                     }));
                 }
 
@@ -968,6 +994,27 @@ public class MatchesController {
                 fSche.remove(i);
             }
             if(sf1Matches.isEmpty() && sf2Matches.isEmpty() && fMatches.isEmpty()) loop = false;
+        }
+    }
+
+    private void sortQualMatches(){
+
+        qualMatches.sort(Comparator.comparing(MatchGeneral::getMatchName));
+        matchList.clear();
+        matchStations.clear();
+
+        ScheduleStation[] ss = null;
+
+        for(MatchGeneral g : qualMatches) {
+            for(ScheduleStation[] s : qualSche) {
+                if(s[0].getMatchKey().equalsIgnoreCase(g.getMatchKey())) {
+                    ss = s;
+                    break;
+                }
+            }
+            matchList.add(g);
+            matchStations.put(g, ss);
+
         }
     }
 
