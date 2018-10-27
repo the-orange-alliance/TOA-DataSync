@@ -13,8 +13,11 @@ import org.jsoup.select.Elements;
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.TeamRankingJSON;
 import org.theorangealliance.datasync.logging.TOALogger;
+import org.theorangealliance.datasync.models.first.TeamRankingFIRST;
+import org.theorangealliance.datasync.models.first.TeamRankingFIRSTArray;
 import org.theorangealliance.datasync.models.toa.TeamRanking;
 import org.theorangealliance.datasync.util.Config;
+import org.theorangealliance.datasync.util.FIRSTEndpoint;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 import org.theorangealliance.datasync.util.TOARequestBody;
 
@@ -131,6 +134,36 @@ public class RankingsController {
         } catch (IOException ex) {
             TOALogger.log(Level.SEVERE, "Error reading rankings file: " + ex.getLocalizedMessage());
         }
+    }
+
+    public void getRankingsFIRSTApi(){
+        //TODO: Add Division Support
+        FIRSTEndpoint firstRankings = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/rankings/");
+        firstRankings.execute(((response, success) -> {
+            if (success) {
+                TeamRankingFIRSTArray ranks = firstRankings.getGson().fromJson(response, TeamRankingFIRSTArray.class);
+                teamRankings.clear();
+
+                for(TeamRankingFIRST tr : ranks.getTeamRankings()) {
+                    TeamRanking ranking = new TeamRanking(tr.getTeamRanking(), tr.getTeamNumber());
+                    int[] results = controller.getTeamWL().get(tr.getTeamNumber());
+                    //TODO: Update when more data is added to API
+                    //ranking.setQualPoints(qualPoints);
+                    ranking.setRankPoints(tr.getTeamRP());
+                    //ranking.setHighestScore(highScore);
+                    ranking.setPlayed(tr.getTeamMatchesPlayed());
+                    if (results != null) {
+                        ranking.setWins(results[0]);
+                        ranking.setLosses(results[1]);
+                        ranking.setTies(results[2]);
+                    }
+                    teamRankings.add(ranking);
+                }
+                this.controller.btnRankUpload.setDisable(false);
+            } else {
+                controller.sendError("Connection to FIRST Scoring system unsuccessful.  " + response);
+            }
+        }));
     }
 
     public void postRankings() {

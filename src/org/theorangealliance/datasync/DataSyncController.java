@@ -486,7 +486,12 @@ public class DataSyncController implements Initializable {
 
     @FXML
     public void getRankingsByFile() {
-        this.rankingsController.getRankingsByFile();
+        if(rbNewScore.isSelected()) {
+            this.rankingsController.getRankingsFIRSTApi();
+        } else {
+            this.rankingsController.getRankingsByFile();
+        }
+
     }
 
     @FXML
@@ -503,7 +508,11 @@ public class DataSyncController implements Initializable {
 
     @FXML
     public void importAlliancesScoring(){
-        this.alliancesController.importAlliancesScoring(this.matchesController.getMatchDetails());
+        if(rbNewScore.isSelected()){
+            this.alliancesController.importAlliancesFIRSTApi(this.matchesController.getMatchDetails());
+        } else {
+            this.alliancesController.importAlliancesScoring(this.matchesController.getMatchDetails());
+        }
     }
 
     @FXML

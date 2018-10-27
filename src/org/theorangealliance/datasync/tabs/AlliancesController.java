@@ -3,9 +3,15 @@ package org.theorangealliance.datasync.tabs;
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.MatchDetail1718JSON;
 import org.theorangealliance.datasync.logging.TOALogger;
+import org.theorangealliance.datasync.models.first.AllianceArray;
+import org.theorangealliance.datasync.models.first.AllianceFIRST;
+import org.theorangealliance.datasync.models.first.TeamFIRST;
+import org.theorangealliance.datasync.models.first.Teams;
 import org.theorangealliance.datasync.models.toa.Alliance;
 import org.theorangealliance.datasync.models.toa.MatchGeneral;
+import org.theorangealliance.datasync.models.toa.Team;
 import org.theorangealliance.datasync.util.Config;
+import org.theorangealliance.datasync.util.FIRSTEndpoint;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -51,6 +57,32 @@ public class AlliancesController {
         } else {
             controller.sendError("Could not locate alliances.txt from the Scoring System. Did you generate an elimination bracket?");
         }
+    }
+
+    public void importAlliancesFIRSTApi(HashMap<MatchGeneral, MatchDetail1718JSON> scores){
+        FIRSTEndpoint firstAlliances = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/alliances/");
+        firstAlliances.execute(((response, success) -> {
+            if (success && !response.contains("NOT_READY")) {
+
+                alliances = new Alliance[4];
+
+                AllianceArray alls = firstAlliances.getGson().fromJson(response, AllianceArray.class);
+
+                for(AllianceFIRST a : alls.getAlliances()) {
+                    int allianceNumber = a.getAllianceNumber();
+                    int[] allianceNumbers = {a.getAllianceCaptain(), a.getAlliancePick1(), (a.getAlliancePick2() == -1) ? a.getAlliancePick2() : 0};
+                    //TODO: Fix Division info
+                    alliances[allianceNumber-1] = new Alliance(0, allianceNumber, allianceNumbers);
+                }
+
+                /* TODO - Make Upload Alliances so we can uncomment this
+                controller.btnUploadAlliances.setDisable(false);*/
+                updateAllianceLabels(scores);
+                TOALogger.log(Level.INFO, "Alliance import successful.");
+            } else {
+                controller.sendError("Connection to FIRST Scoring system unsuccessful, or Alliances were not ready.  " + response);
+            }
+        }));
     }
 
     public void importAlliancesTOA(HashMap<MatchGeneral, MatchDetail1718JSON> scores){
