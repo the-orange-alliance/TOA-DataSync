@@ -32,6 +32,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 import java.util.logging.Level;
 
 /**
@@ -47,6 +52,14 @@ public class MatchesController {
     private HashMap<MatchGeneral, ScheduleStation[]> matchStations;
     private HashMap<MatchGeneral, MatchDetail1718JSON> matchDetails;
     private MatchGeneral selectedMatch;
+
+    /*For Fixing The Match IDs */
+    private ArrayList<MatchGeneral> fMatches = new ArrayList<>(); //Finals Matches
+    private ArrayList<ScheduleStation[]> fSche = new ArrayList<>(); //Finals Matches
+    private ArrayList<MatchGeneral> sf2Matches = new ArrayList<>();//SF2 Matches
+    private ArrayList<ScheduleStation[]> sf2Sche = new ArrayList<>();//SF2 Matches
+    private ArrayList<MatchGeneral> sf1Matches = new ArrayList<>();//SF1 Matches
+    private ArrayList<ScheduleStation[]> sf1Sche = new ArrayList<>();//SF1 Matches
 
     private HashMap<Integer, int[]> teamWinLoss;
 
@@ -593,6 +606,9 @@ public class MatchesController {
         //TODO: Find a way to not put a lambda inside of a lambda inside of a lambda
         /* SF1/SF2/Finals Matches*/
         int[] elimMatches = {0}; //Because Stupid Lambdas
+
+        sf1Sche.clear();
+        sf1Matches.clear();
         FIRSTEndpoint firstSF1Matches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/1");
         firstSF1Matches.execute(((responseSF1, successSF1) -> {
             if (successSF1 && !responseSF1.contains("NOT_READY")) {
@@ -638,8 +654,10 @@ public class MatchesController {
 
                             calculateWL(match, scheduleStations);
 
-                            matchList.add(match);
-                            matchStations.put(match, scheduleStations);
+                            //matchList.add(match);
+                            sf1Matches.add(match);
+                            //matchStations.put(match, scheduleStations);
+                            sf1Sche.add(scheduleStations);
 
                         } else {
                             controller.sendError("Unable to get score for " + m.getMatchNumber());
@@ -650,6 +668,8 @@ public class MatchesController {
 
                 /*UGGGHHHHHHHH*/
                 /* SF2/Finals Matches*/
+                sf2Sche.clear();
+                sf2Matches.clear();
                 FIRSTEndpoint firstSF2Matches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/sf/2");
                 firstSF2Matches.execute(((responceSF2, successSF2) -> {
                     if (successSF2 && !responceSF2.contains("NOT_READY")) {
@@ -695,8 +715,10 @@ public class MatchesController {
 
                                     calculateWL(match, scheduleStations);
 
-                                    matchList.add(match);
-                                    matchStations.put(match, scheduleStations);
+                                    //matchList.add(match);
+                                    sf2Matches.add(match);
+                                    //matchStations.put(match, scheduleStations);
+                                    sf2Sche.add(scheduleStations);
 
                                 } else {
                                     controller.sendError("Unable to get score for " + m.getMatchNumber());
@@ -707,6 +729,8 @@ public class MatchesController {
                         }
                         /*Last....Time....*/
                         /* Finals Matches */
+                        fSche.clear();
+                        fMatches.clear();
                         FIRSTEndpoint firstFMatches = new FIRSTEndpoint("events/" + Config.EVENT_API_KEY + "/elim/finals/");
                         firstFMatches.execute(((responceF, successF) -> {
                             if (successF && !responceF.contains("NOT_READY")) {
@@ -752,13 +776,15 @@ public class MatchesController {
 
                                             calculateWL(match, scheduleStations);
 
-                                            matchList.add(match);
-                                            matchStations.put(match, scheduleStations);
+                                            //matchList.add(match);
+                                            fMatches.add(match);
+                                            //matchStations.put(match, scheduleStations);
+                                            fSche.add(scheduleStations);
 
                                         } else {
                                             controller.sendError("Unable to get score for " + m.getMatchNumber());
                                         }
-
+                                        fixTheElimMatches();
                                     }));
                                 }
 
@@ -778,6 +804,118 @@ public class MatchesController {
             }
         }));
 
+
+    }
+
+    private void fixTheElimMatches(){
+        System.out.println("I Ran " + sf1Matches.size() + " " + sf2Matches.size() + " " + fMatches.size());
+        sf1Matches.sort(Comparator.comparing(MatchGeneral::getMatchName));
+        sf2Matches.sort(Comparator.comparing(MatchGeneral::getMatchName));
+        fMatches.sort(Comparator.comparing(MatchGeneral::getMatchName));
+        int elimMatch = 1;
+        int sf1Num = 11;
+        int sf2Num = 21;
+        int fNum = 1;
+        boolean loop = true;
+        while(loop) {
+            if(!sf1Matches.isEmpty()){
+                String matchKey =  Config.EVENT_ID + "-E" + String.format("%03d", elimMatch) + "-1";
+
+                int i = 0;
+                //Find the schedual station that goes with our match
+                for(ScheduleStation[] s : sf1Sche){
+                    if(s[0].getMatchKey().equalsIgnoreCase(sf1Matches.get(0).getMatchKey())){
+                       break;
+                    } else {
+                        i++;
+                    }
+                }
+                System.out.println("I is here");
+
+                sf1Matches.get(0).setMatchKey(matchKey);
+                sf1Matches.get(0).setTournamentLevel(MatchGeneral.buildTOATournamentLevel(2, sf1Num));
+
+                sf1Sche.get(i)[0].setMatchKey(matchKey);
+                sf1Sche.get(i)[1].setMatchKey(matchKey);
+                sf1Sche.get(i)[2].setMatchKey(matchKey);
+                sf1Sche.get(i)[3].setMatchKey(matchKey);
+                sf1Sche.get(i)[4].setMatchKey(matchKey);
+                sf1Sche.get(i)[5].setMatchKey(matchKey);
+
+                System.out.println("Got HEre!");
+                matchList.add(sf1Matches.get(0));
+                matchStations.put(sf1Matches.get(0), sf1Sche.get(i));
+
+                sf1Num++;
+                elimMatch++;
+                sf1Matches.remove(0);
+                sf1Sche.remove(i);
+            }
+
+            if(!sf2Matches.isEmpty()){
+                String matchKey =  Config.EVENT_ID + "-E" + String.format("%03d", elimMatch) + "-1";
+
+                int i = 0;
+                //Find the schedual station that goes with our match
+                for(ScheduleStation[] s : sf2Sche){
+                    if(s[0].getMatchKey().equalsIgnoreCase(sf2Matches.get(0).getMatchKey())){
+                        break;
+                    } else {
+                        i++;
+                    }
+                }
+
+                sf2Matches.get(0).setMatchKey(matchKey);
+                sf2Matches.get(0).setTournamentLevel(MatchGeneral.buildTOATournamentLevel(2, sf2Num));
+
+                sf2Sche.get(i)[0].setMatchKey(matchKey);
+                sf2Sche.get(i)[1].setMatchKey(matchKey);
+                sf2Sche.get(i)[2].setMatchKey(matchKey);
+                sf2Sche.get(i)[3].setMatchKey(matchKey);
+                sf2Sche.get(i)[4].setMatchKey(matchKey);
+                sf2Sche.get(i)[5].setMatchKey(matchKey);
+
+                matchList.add(sf2Matches.get(0));
+                matchStations.put(sf2Matches.get(0), sf2Sche.get(i));
+
+                sf2Num++;
+                elimMatch++;
+                sf2Matches.remove(0);
+                sf2Sche.remove(i);
+            }
+            if(sf1Matches.isEmpty() && sf2Matches.isEmpty() && !fMatches.isEmpty()) {
+                String matchKey =  Config.EVENT_ID + "-E" + String.format("%03d", elimMatch) + "-1";
+
+                int i = 0;
+                //Find the schedual station that goes with our match
+                for(ScheduleStation[] s : fSche){
+                    if(s[0].getMatchKey().equalsIgnoreCase(fMatches.get(0).getMatchKey())){
+                        break;
+                    } else {
+                        i++;
+                    }
+                }
+
+                fMatches.get(0).setMatchKey(matchKey);
+                fMatches.get(0).setTournamentLevel(MatchGeneral.buildTOATournamentLevel(3, fNum));
+
+                fSche.get(i)[0].setMatchKey(matchKey);
+                fSche.get(i)[1].setMatchKey(matchKey);
+                fSche.get(i)[2].setMatchKey(matchKey);
+                fSche.get(i)[3].setMatchKey(matchKey);
+                fSche.get(i)[4].setMatchKey(matchKey);
+                fSche.get(i)[5].setMatchKey(matchKey);
+
+                matchList.add(fMatches.get(0));
+                matchStations.put(fMatches.get(0), fSche.get(i));
+
+                fNum++;
+                elimMatch++;
+                fMatches.remove(0);
+                fSche.remove(i);
+            }
+            if(sf1Matches.isEmpty() && sf2Matches.isEmpty() && fMatches.isEmpty()) loop = false;
+        }
     }
 
 
