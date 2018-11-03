@@ -22,5 +22,51 @@ public class MatchParticipantJSON {
     @SerializedName("ref_status")
     private int redStatus;
 
+    public String getMatchParticipantKey() {
+        return matchParticipantKey;
+    }
 
+    public void setMatchParticipantKey(String matchParticipantKey) {
+        this.matchParticipantKey = matchParticipantKey;
+    }
+
+    public String getMatchKey() {
+        return matchKey;
+    }
+
+    public void setMatchKey(String matchKey) {
+        this.matchKey = matchKey;
+    }
+
+    public String getTeamKey() {
+        return teamKey;
+    }
+
+    public void setTeamKey(String teamKey) {
+        this.teamKey = teamKey;
+    }
+
+    public int getStation() {
+        return station;
+    }
+
+    public void setStation(int station) {
+        this.station = station;
+    }
+
+    public int getStationStatus() {
+        return stationStatus;
+    }
+
+    public void setStationStatus(int stationStatus) {
+        this.stationStatus = stationStatus;
+    }
+
+    public int getRedStatus() {
+        return redStatus;
+    }
+
+    public void setRedStatus(int redStatus) {
+        this.redStatus = redStatus;
+    }
 }

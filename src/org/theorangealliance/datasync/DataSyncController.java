@@ -199,8 +199,9 @@ public class DataSyncController implements Initializable {
                     Config.EVENT_ID = txtSetupID.getText();
 
                     EventJSON[] events = testConnection.getGson().fromJson(response, EventJSON[].class);
-                    if (events.length > 0 && events[0] != null) {
-                        if (events[0].getDivisionName() != null || events[0].getDivisionKey() > 0) {
+                    //TODO: Fix Events Returning False Dual Division Info (DATA ISSUE)
+                    if (false && events.length > 0 && events[0] != null) {
+                        if (false && events[0].getDivisionName() != null || events[0].getDivisionKey() > 0) {
                             Config.DUAL_DIVISION_EVENT = true;
                             sendInfo("Connection to TOA was successful. DETECTED DUAL DIVISION EVENT. Proceed to Scoring System setup.");
                         } else {

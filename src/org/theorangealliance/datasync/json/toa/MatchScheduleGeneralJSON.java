@@ -4,6 +4,8 @@ import com.google.gson.annotations.SerializedName;
 
 /**
  * Created by Kyle Flynn on 11/29/2017.
+ * @deprecated 11/1/18 Use MatchGeneralJSON
+ * Set all Score options to NULL or -1
  */
 public class MatchScheduleGeneralJSON {
 

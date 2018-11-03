@@ -7,7 +7,6 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.theorangealliance.datasync.DataSyncController;
-import org.theorangealliance.datasync.json.toa.EventParticipantJSON;
 import org.theorangealliance.datasync.json.toa.EventParticipantTeamJSON;
 import org.theorangealliance.datasync.json.first.TeamFIRST;
 import org.theorangealliance.datasync.json.first.Teams;
@@ -183,15 +182,15 @@ public class TeamsController {
             //TODO: Fix For international teams at some point
             teamsList.sort((team1, team2) -> (Integer.parseInt(team1.getTeamKey()) > Integer.parseInt(team2.getTeamKey()) ? 1 : -1));
             controller.sendInfo("Uploading data from event " + Config.EVENT_ID + "...");
-            TOAEndpoint deleteEndpoint = new TOAEndpoint("POST", "upload/event/teams");
+            TOAEndpoint deleteEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/teams");
             deleteEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
             TOARequestBody requestBody = new TOARequestBody();
-            requestBody.setEventKey(Config.EVENT_ID);
+            //requestBody.setEventKey(Config.EVENT_ID);
             int div1 = 0;
             int div2 = 0;
             for (int i = 0; i < teamsList.size(); i++) {
                 Team team = teamsList.get(i);
-                EventParticipantJSON eventTeam = new EventParticipantJSON();
+                EventParticipantTeamJSON eventTeam = new EventParticipantTeamJSON();
 
                 if (Config.DUAL_DIVISION_EVENT) {
                     String newEventID = Config.EVENT_ID.substring(0, Config.EVENT_ID.length()-1);
@@ -209,10 +208,9 @@ public class TeamsController {
                     eventTeam.setEventKey(Config.EVENT_ID);
                 }
                 eventTeam.setTeamKey(team.getTeamKey());
-                eventTeam.setIsActive(1);
-                eventTeam.setAddedFromUI(1);
-                eventTeam.setCreatedBy("TOA-DataSync");
-                eventTeam.setCreatedOn(getCurrentTime());
+                eventTeam.setTeamIsActive(true);
+                //eventTeam.setCreatedBy("TOA-DataSync");
+                //eventTeam.setCreatedOn(getCurrentTime());
                 requestBody.addValue(eventTeam);
             }
             deleteEndpoint.setBody(requestBody);
@@ -241,10 +239,10 @@ public class TeamsController {
         if (result.get() == okayButton) {
             // Begin the purging of the data table...
             controller.sendInfo("Purging data from event " + Config.EVENT_ID + "...");
-            TOAEndpoint deleteEndpoint = new TOAEndpoint("DELETE", "upload/event/teams");
+            TOAEndpoint deleteEndpoint = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/teams");
             deleteEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
             TOARequestBody requestBody = new TOARequestBody();
-            requestBody.setEventKey(Config.EVENT_ID);
+            //requestBody.setEventKey(Config.EVENT_ID);
             deleteEndpoint.setBody(requestBody);
             deleteEndpoint.execute((response, success) -> {
                 if (success) {

@@ -21,7 +21,7 @@ public class MatchGeneralJSON {
     private int tournamentLevel;
 
     @SerializedName("scheduled_time")
-    private Date scheduledTime;
+    private String scheduledTime;
 
     @SerializedName("match_name")
     private String matchName;
@@ -31,6 +31,15 @@ public class MatchGeneralJSON {
 
     @SerializedName("field_number")
     private int fieldNumber;
+
+    @SerializedName("prestart_time")
+    private String prestartTime;
+
+    @SerializedName("prestart_count")
+    private String prestartCount;
+
+    @SerializedName("cycle_time")
+    private String cycleTime;
 
     @SerializedName("red_score")
     private int redScore;
@@ -62,23 +71,25 @@ public class MatchGeneralJSON {
     @SerializedName("blue_end_score")
     private int blueEndScore;
 
+    /* Dont know if these will ever get added back
     @SerializedName("video_url")
     private String videoURL;
 
     @SerializedName("participants")
-    private MatchParticipantJSON[] participant;
+    private MatchParticipantJSON[] participant;*/
 
-    @SerializedName("created_by")
-    private String createdBy;
-
-    @SerializedName("created_on")
-    private String createdOn;
-
-    @SerializedName("modified_by")
-    private String modifiedBy;
-
-    @SerializedName("modified_on")
-    private String modifiedOn;
+    public void setScoreNull() {
+        this.setRedScore(-1);
+        this.setBlueScore(-1);
+        this.setRedAutoScore(-1);
+        this.setBlueAutoScore(-1);
+        this.setRedTeleScore(-1);
+        this.setBlueTeleScore(-1);
+        this.setRedEndScore(-1);
+        this.setBlueEndScore(-1);
+        this.setRedPenalty(-1);
+        this.setBluePenalty(-1);
+    }
 
     public String getMatchKey() {
         return matchKey;
@@ -104,11 +115,11 @@ public class MatchGeneralJSON {
         this.tournamentLevel = tournamentLevel;
     }
 
-    public Date getScheduledTime() {
+    public String getScheduledTime() {
         return scheduledTime;
     }
 
-    public void setScheduledTime(Date scheduledTime) {
+    public void setScheduledTime(String scheduledTime) {
         this.scheduledTime = scheduledTime;
     }
 
@@ -134,6 +145,30 @@ public class MatchGeneralJSON {
 
     public void setFieldNumber(int fieldNumber) {
         this.fieldNumber = fieldNumber;
+    }
+
+    public String getPrestartTime() {
+        return prestartTime;
+    }
+
+    public void setPrestartTime(String prestartTime) {
+        this.prestartTime = prestartTime;
+    }
+
+    public String getPrestartCount() {
+        return prestartCount;
+    }
+
+    public void setPrestartCount(String prestartCount) {
+        this.prestartCount = prestartCount;
+    }
+
+    public String getCycleTime() {
+        return cycleTime;
+    }
+
+    public void setCycleTime(String cycleTime) {
+        this.cycleTime = cycleTime;
     }
 
     public int getRedScore() {
@@ -216,6 +251,7 @@ public class MatchGeneralJSON {
         this.blueEndScore = blueEndScore;
     }
 
+    /* Dont Know if these will ever get added back
     public String getVideoURL() {
         return videoURL;
     }
@@ -230,37 +266,6 @@ public class MatchGeneralJSON {
 
     public void setParticipant(MatchParticipantJSON[] participant) {
         this.participant = participant;
-    }
+    }*/
 
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public String getCreatedOn() {
-        return createdOn;
-    }
-
-    public void setCreatedOn(String createdOn) {
-        this.createdOn = createdOn;
-    }
-
-    public String getModifiedBy() {
-        return modifiedBy;
-    }
-
-    public void setModifiedBy(String modifiedBy) {
-        this.modifiedBy = modifiedBy;
-    }
-
-    public String getModifiedOn() {
-        return modifiedOn;
-    }
-
-    public void setModifiedOn(String modifiedOn) {
-        this.modifiedOn = modifiedOn;
-    }
 }

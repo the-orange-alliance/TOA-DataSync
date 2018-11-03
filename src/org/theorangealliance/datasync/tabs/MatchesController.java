@@ -10,14 +10,11 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.paint.Color;
 import org.theorangealliance.datasync.DataSyncController;
-import org.theorangealliance.datasync.json.toa.MatchDetail1718JSON;
-import org.theorangealliance.datasync.json.toa.MatchGeneralJSON;
-import org.theorangealliance.datasync.json.toa.MatchScheduleGeneralJSON;
-import org.theorangealliance.datasync.json.toa.MatchScheduleStationJSON;
+import org.theorangealliance.datasync.json.toa.*;
 import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.json.first.*;
 import org.theorangealliance.datasync.models.MatchGeneral;
-import org.theorangealliance.datasync.models.ScheduleStation;
+import org.theorangealliance.datasync.models.MatchParticipant;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.FIRSTEndpoint;
 import org.theorangealliance.datasync.util.TOAEndpoint;
@@ -44,20 +41,20 @@ public class MatchesController {
     private HashSet<MatchGeneralJSON> uploadedMatches;
     private HashSet<MatchDetail1718JSON> uploadedDetails;
 
-    private HashMap<MatchGeneral, ScheduleStation[]> matchStations;
+    private HashMap<MatchGeneral, MatchParticipant[]> matchStations;
     private HashMap<MatchGeneral, MatchDetail1718JSON> matchDetails;
     private MatchGeneral selectedMatch;
 
     /*For Fixing The Match IDs and/or Sorting */
     private ArrayList<MatchGeneral> qualMatches = new ArrayList<>();//Qual Matches for Sorting
-    private ArrayList<ScheduleStation[]> qualSche = new ArrayList<>();
+    private ArrayList<MatchParticipant[]> qualSche = new ArrayList<>();
 
     private ArrayList<MatchGeneral> fMatches = new ArrayList<>(); //Finals Matches
-    private ArrayList<ScheduleStation[]> fSche = new ArrayList<>(); //Finals Matches
+    private ArrayList<MatchParticipant[]> fSche = new ArrayList<>(); //Finals Matches
     private ArrayList<MatchGeneral> sf2Matches = new ArrayList<>();//SF2 Matches
-    private ArrayList<ScheduleStation[]> sf2Sche = new ArrayList<>();//SF2 Matches
+    private ArrayList<MatchParticipant[]> sf2Sche = new ArrayList<>();//SF2 Matches
     private ArrayList<MatchGeneral> sf1Matches = new ArrayList<>();//SF1 Matches
-    private ArrayList<ScheduleStation[]> sf1Sche = new ArrayList<>();//SF1 Matches
+    private ArrayList<MatchParticipant[]> sf1Sche = new ArrayList<>();//SF1 Matches
 
     private HashMap<Integer, int[]> teamWinLoss;
 
@@ -126,7 +123,7 @@ public class MatchesController {
 
     private void openMatchView(MatchGeneral match) {
         controller.btnMatchOpen.setDisable(true);
-        if (match.isDone() && uploadedMatches.size() > 0) {
+        if (match.isDone()) { //&& uploadedMatches.size() > 0) {
             controller.btnMatchUpload.setDisable(false);
         } else {
             controller.btnMatchUpload.setDisable(true);
@@ -137,7 +134,7 @@ public class MatchesController {
             controller.btnMatchBrowserView.setDisable(true);
         }
 
-        ScheduleStation[] teams = matchStations.get(match);
+        MatchParticipant[] teams = matchStations.get(match);
         if (teams != null) {
             String redTeams = teams[0].getTeamKey() + teams[0].getStatusString() + " " + teams[1].getTeamKey() + teams[1].getStatusString();
             String redFinalTeam = (teams[2].getTeamKey() == 0 ? "" : teams[2].getTeamKey() + teams[2].getStatusString() + "");
@@ -230,13 +227,13 @@ public class MatchesController {
         }));
     }
 
-    private void calculateWL(MatchGeneral match, ScheduleStation[] stations) {
+    private void calculateWL(MatchGeneral match, MatchParticipant[] stations) {
         if (match.isDone() && match.getTournamentLevel() == 1) {
             boolean redWin = match.getRedScore() > match.getBlueScore();
             boolean tie = match.getRedScore() == match.getBlueScore();
             String resultStr = tie ? "TIE" : redWin ? "RED" : "BLUE";
 //            System.out.println(match.getMatchKey() + ": "  + resultStr);
-            for (ScheduleStation station : stations) {
+            for (MatchParticipant station : stations) {
                 if (station.getTeamKey() != 0 && station.getStationStatus() >= 1) {
                     int WINS = 0;
                     int LOSS = 1;
@@ -290,7 +287,14 @@ public class MatchesController {
     }
 
     private void syncMatches1819(){
+        if (matchList.size() <= 0) {
+            getMatchesFromFIRSTApi1819();
+        } else {
+            uploadQueue.clear();
+            teamWinLoss.clear();
+            //Do Match Details
 
+        }
     }
 
     private void syncMatches1718(){
@@ -443,21 +447,21 @@ public class MatchesController {
 
                     /** TEAM info */
                     String[] teamInfo = line.split("\\|\\|")[1].split("\\|");
-                    ScheduleStation[] scheduleStations = new ScheduleStation[6];
-                    scheduleStations[0] = new ScheduleStation(match.getMatchKey(), 11, Integer.parseInt(teamInfo[0]));
-                    scheduleStations[1] = new ScheduleStation(match.getMatchKey(), 12, Integer.parseInt(teamInfo[1]));
-                    scheduleStations[2] = new ScheduleStation(match.getMatchKey(), 13, Integer.parseInt(teamInfo[2]));
-                    scheduleStations[3] = new ScheduleStation(match.getMatchKey(), 21, Integer.parseInt(teamInfo[3]));
-                    scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, Integer.parseInt(teamInfo[4]));
-                    scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, Integer.parseInt(teamInfo[5]));
+                    MatchParticipant[] MatchParticipants = new MatchParticipant[6];
+                    MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, Integer.parseInt(teamInfo[0]));
+                    MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, Integer.parseInt(teamInfo[1]));
+                    MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, Integer.parseInt(teamInfo[2]));
+                    MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, Integer.parseInt(teamInfo[3]));
+                    MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, Integer.parseInt(teamInfo[4]));
+                    MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, Integer.parseInt(teamInfo[5]));
 
                     /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
-                    scheduleStations[0].setStationStatus(Integer.parseInt(teamInfo[6]) == 2 ? -2 : Integer.parseInt(teamInfo[6]) == 1 ? -1 : Integer.parseInt(teamInfo[18]) == 1 ? 0 : teamInfo[9].equals("true") ? 2 : 1);
-                    scheduleStations[1].setStationStatus(Integer.parseInt(teamInfo[7]) == 2 ? -2 : Integer.parseInt(teamInfo[7]) == 1 ? -1 : Integer.parseInt(teamInfo[19]) == 1 ? 0 : teamInfo[10].equals("true") ? 2 : 1);
-                    scheduleStations[2].setStationStatus(Integer.parseInt(teamInfo[8]) == 2 ? -2 : Integer.parseInt(teamInfo[8]) == 1 ? -1 : Integer.parseInt(teamInfo[20]) == 1 ? 0 : teamInfo[11].equals("true") ? 2 : 1);
-                    scheduleStations[3].setStationStatus(Integer.parseInt(teamInfo[12]) == 2 ? -2 : Integer.parseInt(teamInfo[12]) == 1 ? -1 : Integer.parseInt(teamInfo[21]) == 1 ? 0 : teamInfo[15].equals("true") ? 2 : 1);
-                    scheduleStations[4].setStationStatus(Integer.parseInt(teamInfo[13]) == 2 ? -2 : Integer.parseInt(teamInfo[13]) == 1 ? -1 : Integer.parseInt(teamInfo[22]) == 1 ? 0 : teamInfo[16].equals("true") ? 2 : 1);
-                    scheduleStations[5].setStationStatus(Integer.parseInt(teamInfo[14]) == 2 ? -2 : Integer.parseInt(teamInfo[14]) == 1 ? -1 : Integer.parseInt(teamInfo[23]) == 1 ? 0 : teamInfo[17].equals("true") ? 2 : 1);
+                    MatchParticipants[0].setStationStatus(Integer.parseInt(teamInfo[6]) == 2 ? -2 : Integer.parseInt(teamInfo[6]) == 1 ? -1 : Integer.parseInt(teamInfo[18]) == 1 ? 0 : teamInfo[9].equals("true") ? 2 : 1);
+                    MatchParticipants[1].setStationStatus(Integer.parseInt(teamInfo[7]) == 2 ? -2 : Integer.parseInt(teamInfo[7]) == 1 ? -1 : Integer.parseInt(teamInfo[19]) == 1 ? 0 : teamInfo[10].equals("true") ? 2 : 1);
+                    MatchParticipants[2].setStationStatus(Integer.parseInt(teamInfo[8]) == 2 ? -2 : Integer.parseInt(teamInfo[8]) == 1 ? -1 : Integer.parseInt(teamInfo[20]) == 1 ? 0 : teamInfo[11].equals("true") ? 2 : 1);
+                    MatchParticipants[3].setStationStatus(Integer.parseInt(teamInfo[12]) == 2 ? -2 : Integer.parseInt(teamInfo[12]) == 1 ? -1 : Integer.parseInt(teamInfo[21]) == 1 ? 0 : teamInfo[15].equals("true") ? 2 : 1);
+                    MatchParticipants[4].setStationStatus(Integer.parseInt(teamInfo[13]) == 2 ? -2 : Integer.parseInt(teamInfo[13]) == 1 ? -1 : Integer.parseInt(teamInfo[22]) == 1 ? 0 : teamInfo[16].equals("true") ? 2 : 1);
+                    MatchParticipants[5].setStationStatus(Integer.parseInt(teamInfo[14]) == 2 ? -2 : Integer.parseInt(teamInfo[14]) == 1 ? -1 : Integer.parseInt(teamInfo[23]) == 1 ? 0 : teamInfo[17].equals("true") ? 2 : 1);
 
                     // Field 24 will be whether or not score is SAVED.
                     // This is ALSO where the match details section begins.
@@ -519,10 +523,10 @@ public class MatchesController {
                     match.setRedScore(match.getRedAutoScore()+match.getRedTeleScore()+match.getRedEndScore()+match.getRedPenalty());
                     match.setBlueScore(match.getBlueAutoScore()+match.getBlueTeleScore()+match.getBlueEndScore()+match.getBluePenalty());
 
-                    calculateWL(match, scheduleStations);
+                    calculateWL(match, MatchParticipants);
 
                     matchList.add(match);
-                    matchStations.put(match, scheduleStations);
+                    matchStations.put(match, MatchParticipants);
                     matchDetails.put(match, detailJSON);
                 }
                 reader.close();
@@ -584,22 +588,22 @@ public class MatchesController {
                             match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", match.getCanonicalMatchNumber()) + "-1");
 
                             /** TEAM info **/
-                            ScheduleStation[] scheduleStations = new ScheduleStation[6];
-                            scheduleStations[0] = new ScheduleStation(match.getMatchKey(), 11, m.getRedAlliance().getTeam1());
-                            scheduleStations[1] = new ScheduleStation(match.getMatchKey(), 12, m.getRedAlliance().getTeam2());
-                            scheduleStations[2] = new ScheduleStation(match.getMatchKey(), 13, 0);
-                            scheduleStations[3] = new ScheduleStation(match.getMatchKey(), 21, m.getBlueAlliance().getTeam1());
-                            scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, m.getBlueAlliance().getTeam2());
-                            scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, 0);
+                            MatchParticipant[] MatchParticipants = new MatchParticipant[6];
+                            MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, m.getRedAlliance().getTeam1());
+                            MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, m.getRedAlliance().getTeam2());
+                            MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, 0);
+                            MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, m.getBlueAlliance().getTeam1());
+                            MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, m.getBlueAlliance().getTeam2());
+                            MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, 0);
 
                             /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
                             //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
-                            scheduleStations[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getRedAlliance().getIsTeam1Surrogate() ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getRedAlliance().getIsTeam2Surrogate() ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getBlueAlliance().getIsTeam1Surrogate() ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getBlueAlliance().getIsTeam2Surrogate() ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                            MatchParticipants[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getRedAlliance().getIsTeam1Surrogate() ? 0 : /*YCard*/false ? 2 : 1);
+                            MatchParticipants[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getRedAlliance().getIsTeam2Surrogate() ? 0 : /*YCard*/false ? 2 : 1);
+                            MatchParticipants[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                            MatchParticipants[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getBlueAlliance().getIsTeam1Surrogate() ? 0 : /*YCard*/false ? 2 : 1);
+                            MatchParticipants[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getBlueAlliance().getIsTeam2Surrogate() ? 0 : /*YCard*/false ? 2 : 1);
+                            MatchParticipants[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
 
                             match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
                             match.setIsDone(qualMatch.isFinished());
@@ -617,12 +621,10 @@ public class MatchesController {
                             match.setBlueScore(qualMatch.getBlueScore());
 
 
-                            calculateWL(match, scheduleStations);
+                            calculateWL(match, MatchParticipants);
 
-                            //matchList.add(match);
                             qualMatches.add(match);
-                            //matchStations.put(match, scheduleStations);
-                            qualSche.add(scheduleStations);
+                            qualSche.add(MatchParticipants);
                             sortQualMatches();
 
 
@@ -632,7 +634,12 @@ public class MatchesController {
                     }));
                 }
 
-                controller.sendInfo("Successfully imported " + matchDetails.size() + " matches from the Scoring System.");
+                controller.sendInfo("Successfully imported " + matchList.size() + " matches from the Scoring System.");
+                controller.btnMatchScheduleUpload.setDisable(false);
+                controller.btnMatchImport.setText("Re-Sync Match Schedule");
+                this.controller.btnMatchUpload.setVisible(true);
+                this.controller.btnMatchBrowserView.setVisible(true);
+                this.controller.btnMatchOpen.setVisible(true);
 
             } else {
                 controller.sendError("Connection to FIRST Scoring system unsuccessful.  Did not get Qualifier Matches " + response);
@@ -673,23 +680,23 @@ public class MatchesController {
                             match.setMatchKey(Config.EVENT_ID + "-E" + String.format("%03d", elimMatches[0]) + "-1");
 
                             /** TEAM info **/
-                            ScheduleStation[] scheduleStations = new ScheduleStation[6];
-                            scheduleStations[0] = new ScheduleStation(match.getMatchKey(), 11, m.getRedAlliance().getAllianceCaptain());
-                            scheduleStations[1] = new ScheduleStation(match.getMatchKey(), 12, m.getRedAlliance().getAlliancePick1());
-                            scheduleStations[2] = new ScheduleStation(match.getMatchKey(), 13, (m.getRedAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
-                            scheduleStations[3] = new ScheduleStation(match.getMatchKey(), 21, m.getBlueAlliance().getAllianceCaptain());
-                            scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, m.getBlueAlliance().getAlliancePick1());
-                            scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, (m.getBlueAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
+                            MatchParticipant[] MatchParticipants = new MatchParticipant[6];
+                            MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, m.getRedAlliance().getAllianceCaptain());
+                            MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, m.getRedAlliance().getAlliancePick1());
+                            MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, (m.getRedAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
+                            MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, m.getBlueAlliance().getAllianceCaptain());
+                            MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, m.getBlueAlliance().getAlliancePick1());
+                            MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, (m.getBlueAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
 
                             /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
                             //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
                             //TODO: Update when Elim parsing is clarified
-                            scheduleStations[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                            scheduleStations[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                            MatchParticipants[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                            MatchParticipants[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                            MatchParticipants[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                            MatchParticipants[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                            MatchParticipants[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                            MatchParticipants[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
 
                             match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
                             match.setIsDone(qualMatch.isFinished());
@@ -705,12 +712,11 @@ public class MatchesController {
                             match.setRedScore(qualMatch.getRedScore());
                             match.setBlueScore(qualMatch.getBlueScore());
 
-                            calculateWL(match, scheduleStations);
+                            calculateWL(match, MatchParticipants);
 
-                            //matchList.add(match);
+
                             sf1Matches.add(match);
-                            //matchStations.put(match, scheduleStations);
-                            sf1Sche.add(scheduleStations);
+                            sf1Sche.add(MatchParticipants);
 
                         } else {
                             controller.sendError("Unable to get score for " + m.getMatchNumber());
@@ -748,23 +754,23 @@ public class MatchesController {
                                     match.setMatchKey(Config.EVENT_ID + "-E" + String.format("%03d", elimMatches[0]) + "-1");
 
                                     /** TEAM info **/
-                                    ScheduleStation[] scheduleStations = new ScheduleStation[6];
-                                    scheduleStations[0] = new ScheduleStation(match.getMatchKey(), 11, m.getRedAlliance().getAllianceCaptain());
-                                    scheduleStations[1] = new ScheduleStation(match.getMatchKey(), 12, m.getRedAlliance().getAlliancePick1());
-                                    scheduleStations[2] = new ScheduleStation(match.getMatchKey(), 13, (m.getRedAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
-                                    scheduleStations[3] = new ScheduleStation(match.getMatchKey(), 21, m.getBlueAlliance().getAllianceCaptain());
-                                    scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, m.getBlueAlliance().getAlliancePick1());
-                                    scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, (m.getBlueAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
+                                    MatchParticipant[] MatchParticipants = new MatchParticipant[6];
+                                    MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, m.getRedAlliance().getAllianceCaptain());
+                                    MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, m.getRedAlliance().getAlliancePick1());
+                                    MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, (m.getRedAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
+                                    MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, m.getBlueAlliance().getAllianceCaptain());
+                                    MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, m.getBlueAlliance().getAlliancePick1());
+                                    MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, (m.getBlueAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
 
                                     /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
                                     //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
                                     //TODO: Update when Elim parsing is clarified
-                                    scheduleStations[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                                    scheduleStations[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                                    scheduleStations[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                                    scheduleStations[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                                    scheduleStations[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                                    scheduleStations[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                    MatchParticipants[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                    MatchParticipants[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                    MatchParticipants[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                    MatchParticipants[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                    MatchParticipants[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                    MatchParticipants[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
 
                                     match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
                                     match.setIsDone(qualMatch.isFinished());
@@ -780,12 +786,11 @@ public class MatchesController {
                                     match.setRedScore(qualMatch.getRedScore());
                                     match.setBlueScore(qualMatch.getBlueScore());
 
-                                    calculateWL(match, scheduleStations);
+                                    calculateWL(match, MatchParticipants);
 
-                                    //matchList.add(match);
+
                                     sf2Matches.add(match);
-                                    //matchStations.put(match, scheduleStations);
-                                    sf2Sche.add(scheduleStations);
+                                    sf2Sche.add(MatchParticipants);
 
                                 } else {
                                     controller.sendError("Unable to get score for " + m.getMatchNumber());
@@ -824,23 +829,23 @@ public class MatchesController {
                                             match.setMatchKey(Config.EVENT_ID + "-E" + String.format("%03d", elimMatches[0]) + "-1");
 
                                             /** TEAM info **/
-                                            ScheduleStation[] scheduleStations = new ScheduleStation[6];
-                                            scheduleStations[0] = new ScheduleStation(match.getMatchKey(), 11, m.getRedAlliance().getAllianceCaptain());
-                                            scheduleStations[1] = new ScheduleStation(match.getMatchKey(), 12, m.getRedAlliance().getAlliancePick1());
-                                            scheduleStations[2] = new ScheduleStation(match.getMatchKey(), 13, (m.getRedAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
-                                            scheduleStations[3] = new ScheduleStation(match.getMatchKey(), 21, m.getBlueAlliance().getAllianceCaptain());
-                                            scheduleStations[4] = new ScheduleStation(match.getMatchKey(), 22, m.getBlueAlliance().getAlliancePick1());
-                                            scheduleStations[5] = new ScheduleStation(match.getMatchKey(), 23, (m.getBlueAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
+                                            MatchParticipant[] MatchParticipants = new MatchParticipant[6];
+                                            MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, m.getRedAlliance().getAllianceCaptain());
+                                            MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, m.getRedAlliance().getAlliancePick1());
+                                            MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, (m.getRedAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
+                                            MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, m.getBlueAlliance().getAllianceCaptain());
+                                            MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, m.getBlueAlliance().getAlliancePick1());
+                                            MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, (m.getBlueAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
 
                                             /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
                                             //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
                                             //TODO: Update when Elim parsing is clarified
-                                            scheduleStations[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                                            scheduleStations[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                                            scheduleStations[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                                            scheduleStations[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                                            scheduleStations[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                                            scheduleStations[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                            MatchParticipants[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                            MatchParticipants[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                            MatchParticipants[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                            MatchParticipants[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                            MatchParticipants[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+                                            MatchParticipants[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
 
                                             match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
                                             match.setIsDone(qualMatch.isFinished());
@@ -856,12 +861,10 @@ public class MatchesController {
                                             match.setRedScore(qualMatch.getRedScore());
                                             match.setBlueScore(qualMatch.getBlueScore());
 
-                                            calculateWL(match, scheduleStations);
+                                            calculateWL(match, MatchParticipants);
 
-                                            //matchList.add(match);
                                             fMatches.add(match);
-                                            //matchStations.put(match, scheduleStations);
-                                            fSche.add(scheduleStations);
+                                            fSche.add(MatchParticipants);
 
                                         } else {
                                             controller.sendError("Unable to get score for " + m.getMatchNumber());
@@ -904,7 +907,7 @@ public class MatchesController {
 
                 int i = 0;
                 //Find the schedual station that goes with our match
-                for(ScheduleStation[] s : sf1Sche){
+                for(MatchParticipant[] s : sf1Sche){
                     if(s[0].getMatchKey().equalsIgnoreCase(sf1Matches.get(0).getMatchKey())){
                        break;
                     } else {
@@ -936,7 +939,7 @@ public class MatchesController {
 
                 int i = 0;
                 //Find the schedual station that goes with our match
-                for(ScheduleStation[] s : sf2Sche){
+                for(MatchParticipant[] s : sf2Sche){
                     if(s[0].getMatchKey().equalsIgnoreCase(sf2Matches.get(0).getMatchKey())){
                         break;
                     } else {
@@ -967,7 +970,7 @@ public class MatchesController {
 
                 int i = 0;
                 //Find the schedual station that goes with our match
-                for(ScheduleStation[] s : fSche){
+                for(MatchParticipant[] s : fSche){
                     if(s[0].getMatchKey().equalsIgnoreCase(fMatches.get(0).getMatchKey())){
                         break;
                     } else {
@@ -997,16 +1000,17 @@ public class MatchesController {
         }
     }
 
+    // TODO: Still Sorts Wrong
     private void sortQualMatches(){
 
         qualMatches.sort(Comparator.comparing(MatchGeneral::getMatchName));
         matchList.clear();
         matchStations.clear();
 
-        ScheduleStation[] ss = null;
+        MatchParticipant[] ss = null;
 
         for(MatchGeneral g : qualMatches) {
-            for(ScheduleStation[] s : qualSche) {
+            for(MatchParticipant[] s : qualSche) {
                 if(s[0].getMatchKey().equalsIgnoreCase(g.getMatchKey())) {
                     ss = s;
                     break;
@@ -1027,15 +1031,11 @@ public class MatchesController {
                         methodType = "PUT";
                     }
                 }
-                TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "upload/event/match");
+                TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches");
                 matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody requestBody = new TOARequestBody();
-                requestBody.setEventKey(Config.EVENT_ID);
-                requestBody.setMatchKey(completeMatch.getMatchKey());
                 MatchGeneralJSON matchJSON = new MatchGeneralJSON();
                 matchJSON.setMatchKey(completeMatch.getMatchKey());
-                matchJSON.setCreatedBy("TOA-DataSync");
-                matchJSON.setCreatedOn(getCurrentTime());
                 matchJSON.setEventKey(Config.EVENT_ID);
                 matchJSON.setFieldNumber(completeMatch.getFieldNumber());
                 matchJSON.setMatchName(completeMatch.getMatchName());
@@ -1079,11 +1079,9 @@ public class MatchesController {
                     }
                 }
 
-                TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "upload/event/match/detail");
+                TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches/details");
                 detailEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody detailBody = new TOARequestBody();
-                detailBody.setEventKey(Config.EVENT_ID);
-                detailBody.setMatchKey(completeMatch.getMatchKey());
                 detailBody.addValue(detailJSON);
                 detailEndpoint.setBody(detailBody);
                 detailEndpoint.execute(((response, success) -> {
@@ -1119,15 +1117,11 @@ public class MatchesController {
                         methodType = "PUT";
                     }
                 }
-                TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "upload/event/match");
+                TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches");
                 matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody requestBody = new TOARequestBody();
-                requestBody.setEventKey(Config.EVENT_ID);
-                requestBody.setMatchKey(selectedMatch.getMatchKey());
                 MatchGeneralJSON matchJSON = new MatchGeneralJSON();
                 matchJSON.setMatchKey(selectedMatch.getMatchKey());
-                matchJSON.setCreatedBy("TOA-DataSync");
-                matchJSON.setCreatedOn(getCurrentTime());
                 matchJSON.setEventKey(Config.EVENT_ID);
                 matchJSON.setFieldNumber(selectedMatch.getFieldNumber());
                 matchJSON.setMatchName(selectedMatch.getMatchName());
@@ -1173,11 +1167,9 @@ public class MatchesController {
                     }
                 }
 
-                TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "upload/event/match/detail");
+                TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches/details");
                 detailEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody detailBody = new TOARequestBody();
-                detailBody.setEventKey(Config.EVENT_ID);
-                detailBody.setMatchKey(selectedMatch.getMatchKey());
                 detailBody.addValue(detailJSON);
                 detailEndpoint.setBody(detailBody);
                 detailEndpoint.execute(((response, success) -> {
@@ -1220,14 +1212,14 @@ public class MatchesController {
 
             this.controller.btnMatchUpload.setVisible(true);
             this.controller.btnMatchBrowserView.setVisible(true);
-//            TOAEndpoint matchDel = new TOAEndpoint("DELETE", "upload/event/schedule/matches");
+//            TOAEndpoint matchDel = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/schedule/matches");
 //            TOARequestBody matchDelBody = new TOARequestBody();
 //            matchDel.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
 //            matchDelBody.setEventKey(Config.EVENT_ID);
 //            matchDel.setBody(matchDelBody);
 //            matchDel.execute(((response, success) -> {
 //                if (success) {
-//                    TOAEndpoint teamDel = new TOAEndpoint("DELETE", "upload/event/schedule/teams");
+//                    TOAEndpoint teamDel = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/schedule/teams");
 //                    teamDel.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
 //                    teamDel.setBody(matchDelBody);
 //                    teamDel.execute(((response1, success1) -> {
@@ -1246,33 +1238,35 @@ public class MatchesController {
 
     private void postMatchScheduleTeams() {
         controller.sendInfo("Uploading station schedule data from event " + Config.EVENT_ID + "...");
-        TOAEndpoint scheduleEndpoint = new TOAEndpoint("POST", "upload/event/schedule/teams");
+        TOAEndpoint scheduleEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/matches/participants");
         scheduleEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         TOARequestBody requestBody = new TOARequestBody();
-        requestBody.setEventKey(Config.EVENT_ID);
-        for (ScheduleStation[] stations : matchStations.values()) {
+        for (MatchParticipant[] matchPars : matchStations.values()) {
 
             // TODO - Needs testing!
 
             boolean uploaded = false;
-            for (MatchGeneralJSON match : uploadedMatches) {
-                if (match.getMatchKey().equals(stations[0].getMatchKey())) {
-                    // This match has been uploaded, so do NOT proceed.
-                    uploaded = true;
-                    break;
+            if(uploadedMatches != null){
+                for (MatchGeneralJSON match : uploadedMatches) {
+                    if (match.getMatchKey().equals(matchPars[0].getMatchKey())) {
+                        // This match has been uploaded, so do NOT proceed.
+                        uploaded = true;
+                        break;
+                    }
                 }
             }
 
+
             if (!uploaded) {
-                for (ScheduleStation station : stations) {
-                    if (station.getTeamKey() != 0) {
-                        MatchScheduleStationJSON stationJSON = new MatchScheduleStationJSON();
-                        stationJSON.setMatchKey(station.getMatchKey());
-                        stationJSON.setStation(station.getStation());
-                        stationJSON.setStationKey(station.getStationKey());
-                        stationJSON.setTeamKey(station.getTeamKey());
-                        stationJSON.setStationStatus(station.getStationStatus());
-                        requestBody.addValue(stationJSON);
+                for (MatchParticipant matchPar : matchPars) {
+                    if (matchPar.getTeamKey() != 0) {
+                        MatchParticipantJSON matchParJSON = new MatchParticipantJSON();
+                        matchParJSON.setMatchParticipantKey(matchPar.getStationKey());
+                        matchParJSON.setMatchKey(matchPar.getMatchKey());
+                        matchParJSON.setStation(matchPar.getStation());
+                        matchParJSON.setTeamKey(matchPar.getTeamKey() + "");
+                        matchParJSON.setStationStatus(matchPar.getStationStatus());
+                        requestBody.addValue(matchParJSON);
                     }
                 }
             }
@@ -1292,33 +1286,34 @@ public class MatchesController {
 
     private void postMatchScheduleMatches() {
         controller.sendInfo("Uploading match schedule data from event " + Config.EVENT_ID + "...");
-        TOAEndpoint scheduleEndpoint = new TOAEndpoint("POST", "upload/event/schedule/matches");
+        TOAEndpoint scheduleEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/matches");
         scheduleEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         TOARequestBody requestBody = new TOARequestBody();
-        requestBody.setEventKey(Config.EVENT_ID);
         for (int i = 0; i < matchList.size(); i++) {
             MatchGeneral match = matchList.get(i);
 
             // TODO - Needs testing!
 
             boolean uploaded = false;
-            for (MatchGeneralJSON uploadedMatch : uploadedMatches) {
-                if (match.getMatchKey().equals(uploadedMatch.getMatchKey())) {
-                    uploaded = true;
-                    break;
+            if(uploadedMatches != null){
+                for (MatchGeneralJSON uploadedMatch : uploadedMatches) {
+                    if (match.getMatchKey().equals(uploadedMatch.getMatchKey())) {
+                        uploaded = true;
+                        break;
+                    }
                 }
             }
 
+
             if (!uploaded) {
-                MatchScheduleGeneralJSON matchJSON = new MatchScheduleGeneralJSON();
+                MatchGeneralJSON matchJSON = new MatchGeneralJSON();
                 matchJSON.setEventKey(Config.EVENT_ID);
                 matchJSON.setMatchKey(match.getMatchKey());
                 matchJSON.setTournamentLevel(match.getTournamentLevel());
                 matchJSON.setMatchName(match.getMatchName());
                 matchJSON.setPlayNumber(0);
                 matchJSON.setFieldNumber(match.getFieldNumber());
-                matchJSON.setCreatedBy("TOA-DataSync");
-                matchJSON.setCreatedOn(getCurrentTime());
+                matchJSON.setScoreNull();
                 requestBody.addValue(matchJSON);
             }
         }
@@ -1364,10 +1359,9 @@ public class MatchesController {
 
     private void deleteMatchScheduleMatches(){
 
-        TOAEndpoint rankingEndpoint = new TOAEndpoint("DELETE", "upload/event/schedule/matches");
+        TOAEndpoint rankingEndpoint = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/schedule/matches");
         rankingEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         TOARequestBody requestBody = new TOARequestBody();
-        requestBody.setEventKey(Config.EVENT_ID);
         rankingEndpoint.setBody(requestBody);
         rankingEndpoint.execute(((response, success) -> {
             if (success) {
@@ -1381,10 +1375,9 @@ public class MatchesController {
 
     private void deleteMatchScheduleTeams(){
 
-        TOAEndpoint rankingEndpoint = new TOAEndpoint("DELETE", "upload/event/schedule/teams");
+        TOAEndpoint rankingEndpoint = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/schedule/teams");
         rankingEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         TOARequestBody requestBody = new TOARequestBody();
-        requestBody.setEventKey(Config.EVENT_ID);
         rankingEndpoint.setBody(requestBody);
         rankingEndpoint.execute(((response, success) -> {
             if (success) {
@@ -1415,11 +1408,9 @@ public class MatchesController {
                     for (MatchGeneralJSON match : matches) {
 
                         //Purge Match Data
-                        TOAEndpoint matchEndpoint = new TOAEndpoint("DELETE", "upload/event/match");
+                        TOAEndpoint matchEndpoint = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/matches");
                         matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                         TOARequestBody requestBody = new TOARequestBody();
-                        requestBody.setEventKey(Config.EVENT_ID);
-                        requestBody.setMatchKey(match.getMatchKey());
                         matchEndpoint.setBody(requestBody);
                         matchEndpoint.execute(((response1, success1) -> {
                             if (!success1) {
@@ -1428,11 +1419,9 @@ public class MatchesController {
                         }));
 
                         //Purge Match Details
-                        matchEndpoint = new TOAEndpoint("DELETE", "upload/event/match/detail");
+                        matchEndpoint = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/matches/details");
                         matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                         requestBody = new TOARequestBody();
-                        requestBody.setEventKey(Config.EVENT_ID);
-                        requestBody.setMatchKey(match.getMatchKey());
                         matchEndpoint.setBody(requestBody);
                         matchEndpoint.execute(((response1, success1) -> {
                             if (!success1) {

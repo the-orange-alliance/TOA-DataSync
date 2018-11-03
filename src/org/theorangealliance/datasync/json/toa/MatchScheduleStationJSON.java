@@ -4,6 +4,8 @@ import com.google.gson.annotations.SerializedName;
 
 /**
  * Created by Kyle Flynn on 11/30/2017.
+ * @deprecated 11/11/18 Use MatchParticipantJSON.
+ * This Was For APIv2
  */
 public class MatchScheduleStationJSON {
 

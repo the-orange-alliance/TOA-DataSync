@@ -19,8 +19,8 @@ import java.util.logging.Level;
  */
 public class TOAEndpoint implements Runnable {
 
-    private final String BASE_URL = "https://theorangealliance.org/api/";
-//    private final String BASE_URL = "http://localhost:8080/apiv2/";
+//    private final String BASE_URL = "https://theorangealliance.org/api/";
+    private final String BASE_URL = "http://localhost:8008/api/";
     private String endpoint;
     private String requestType;
     private String apiKey;
@@ -69,10 +69,10 @@ public class TOAEndpoint implements Runnable {
                 con.setRequestProperty("Content-Type","application/json");
 
                 if (bodyJSON.length() > 1) {
-                    TOALogger.log(Level.INFO, "Making " + requestType + " with body " + bodyJSON);
+                    TOALogger.log(Level.INFO, "Making " + requestType + " to URL " + url.toString() + " with body " + bodyJSON.substring(4, bodyJSON.length()-1));
                     con.setDoOutput(true);
                     DataOutputStream stream = new DataOutputStream(con.getOutputStream());
-                    stream.writeBytes(bodyJSON);
+                    stream.writeBytes(bodyJSON.substring(4, bodyJSON.length()-1));
                     stream.flush();
                     stream.close();
                 } else {
