@@ -23,14 +23,14 @@ public class FIRSTEndpoint implements Runnable {
     private String endpoint;
 
     private Thread connection;
-    private TOACompleteListener completeListener;
+    private FIRSTCompleteListener completeListener;
 
     public FIRSTEndpoint(String endpoint) {
         this.endpoint = BASE_URL + endpoint;
         this.connection = new Thread(this, endpoint);
     }
 
-    public void execute(TOACompleteListener completeListener) {
+    public void execute(FIRSTCompleteListener completeListener) {
         this.connection.start();
         this.completeListener = completeListener;
     }
@@ -87,7 +87,7 @@ public class FIRSTEndpoint implements Runnable {
         return new GsonBuilder().serializeNulls().create();
     }
 
-    public interface TOACompleteListener {
+    public interface FIRSTCompleteListener {
         void onComplete(String response, boolean success);
     }
 

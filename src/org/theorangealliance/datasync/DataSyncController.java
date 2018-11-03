@@ -9,6 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import org.theorangealliance.datasync.json.toa.EventJSON;
 import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.json.first.Event;
@@ -27,6 +28,9 @@ import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -235,13 +239,17 @@ public class DataSyncController implements Initializable {
     @FXML
     public void openScoringDialog() {
         if (!rbNewScore.isSelected()) {
-            //Old Scoring System
-            DirectoryChooser directoryChooser = new DirectoryChooser();
-            directoryChooser.setTitle("Select Scoring System Directory");
-            File file = directoryChooser.showDialog(DataSync.getMainStage());
+            //Archive (.db) file
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select Archive (.db) File");
+            FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("DB file (*.db)", "*.db");
+            fileChooser.getExtensionFilters().add(extFilter);
+            File file = fileChooser.showOpenDialog(DataSync.getMainStage());
 
-            if (file != null && file.isDirectory()) {
+            if (file != null && file.isFile()) {
                 txtSetupDir.setText(file.getAbsolutePath());
+                Config.SCORING_DIR = file.getAbsolutePath();
+                this.saveSettings();
             } else {
                 sendError("Error in selecting scoring system directory.");
             }
@@ -253,6 +261,7 @@ public class DataSyncController implements Initializable {
                 FIRSTEndpoint firstEvents = new FIRSTEndpoint("events/");
                 firstEvents.execute(((response, success) -> {
                     if (success) {
+                        cbFirstEvents.getItems().clear();
                         sendInfo("Successfully pulled events from FIRST scoring system.");
                         //TOALogger.log(Level.INFO, response);
                         Events events = firstEvents.getGson().fromJson(response, Events.class);
@@ -282,6 +291,7 @@ public class DataSyncController implements Initializable {
                             cbFirstEvents.setDisable(false);
                             cbFirstEvents.getSelectionModel().selectFirst();
                             btnSetupTestDir.setDisable(false);
+                            this.saveSettings();
                         }
 
                     } else {
@@ -305,8 +315,35 @@ public class DataSyncController implements Initializable {
             //2018 Scoring System
             loadEventFromFIRST();
         } else {
-            //Old Scoring System
-            testDirOldScoreing();
+            //Archive Scoring File
+            //testDirOldScoreing();
+            //Start Database
+            Connection conn = null;
+            String url = "jdbc:sqlite:" + Config.SCORING_DIR;
+            try {
+                Class.forName("com.mysql.jdbc.Driver").newInstance();
+                conn = DriverManager.getConnection(url);
+                System.out.println(conn.getSchema());
+                sendInfo("Connected to Archive File DB at " + url);
+                teamsController.getTeamsFromDB(conn.createStatement().executeQuery("SELECT * FROM `teams`"));
+                // TODO: Database Stuff
+
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } finally {
+                if (conn != null) try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -343,6 +380,10 @@ public class DataSyncController implements Initializable {
             labelSetupDir.setTextFill(Color.RED);
             labelSetupDir.setText("Please select an event");
         }
+    }
+
+    private void uploadDBFile() {
+
     }
 
     private void testDirOldScoreing() {

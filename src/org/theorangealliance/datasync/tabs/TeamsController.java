@@ -19,6 +19,8 @@ import org.theorangealliance.datasync.util.TOARequestBody;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
@@ -164,6 +166,18 @@ public class TeamsController {
                 controller.sendError("Connection to FIRST Scoring system unsuccessful. " + response);
             }
         }));
+    }
+
+    public void getTeamsFromDB(ResultSet rs){
+        int i = 0;
+        try {
+            while (rs.next()) {
+                int teamNum = rs.getInt(1);
+                System.out.println(teamNum);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public void postEventTeams() {
