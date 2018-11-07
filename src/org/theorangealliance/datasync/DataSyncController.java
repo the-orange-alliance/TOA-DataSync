@@ -239,20 +239,7 @@ public class DataSyncController implements Initializable {
     @FXML
     public void openScoringDialog() {
         if (!rbNewScore.isSelected()) {
-            //Archive (.db) file
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Select Archive (.db) File");
-            FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("DB file (*.db)", "*.db");
-            fileChooser.getExtensionFilters().add(extFilter);
-            File file = fileChooser.showOpenDialog(DataSync.getMainStage());
 
-            if (file != null && file.isFile()) {
-                txtSetupDir.setText(file.getAbsolutePath());
-                Config.SCORING_DIR = file.getAbsolutePath();
-                this.saveSettings();
-            } else {
-                sendError("Error in selecting scoring system directory.");
-            }
         } else {
             //New Scoring (ooooo fancy)
             //We want to contact the IP address and GET the events if the IP is correct. If it isn't... The Ip is wrong.
@@ -316,34 +303,7 @@ public class DataSyncController implements Initializable {
             loadEventFromFIRST();
         } else {
             //Archive Scoring File
-            //testDirOldScoreing();
-            //Start Database
-            Connection conn = null;
-            String url = "jdbc:sqlite:" + Config.SCORING_DIR;
-            try {
-                Class.forName("com.mysql.jdbc.Driver").newInstance();
-                conn = DriverManager.getConnection(url);
-                System.out.println(conn.getSchema());
-                sendInfo("Connected to Archive File DB at " + url);
-                teamsController.getTeamsFromDB(conn.createStatement().executeQuery("SELECT * FROM `teams`"));
-                // TODO: Database Stuff
-
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } finally {
-                if (conn != null) try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
+            testDirOldScoreing();
         }
     }
 

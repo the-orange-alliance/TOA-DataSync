@@ -155,7 +155,7 @@
                                     <Insets left="10.0" right="10.0" />
                                  </padding></Label>
                                   <Button fx:id="btnSetupTestDir" disable="true" mnemonicParsing="false" onAction="#testDirectory" text="Go!" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="5" />
-                              <RadioButton fx:id="rbNewScore" mnemonicParsing="false" prefHeight="17.0" prefWidth="160.0" selected="true" text="Live" GridPane.columnSpan="2" GridPane.rowIndex="3" GridPane.valignment="BOTTOM">
+                              <RadioButton fx:id="rbNewScore" mnemonicParsing="false" prefHeight="17.0" prefWidth="160.0" selected="true" text="New (2018 or newer)" GridPane.columnSpan="2" GridPane.rowIndex="3" GridPane.valignment="BOTTOM">
                                  <GridPane.margin>
                                     <Insets left="10.0" right="10.0" />
                                  </GridPane.margin>
@@ -163,7 +163,7 @@
                                     <ToggleGroup fx:id="rbOldNew" />
                                  </toggleGroup>
                               </RadioButton>
-                              <RadioButton layoutX="20.0" layoutY="172.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="160.0" text="Archive" toggleGroup="$rbOldNew" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="3" GridPane.valignment="BOTTOM">
+                              <RadioButton disable="true" layoutX="20.0" layoutY="172.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="160.0" text="Old (2017 or before)" toggleGroup="$rbOldNew" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="3" GridPane.valignment="BOTTOM">
                                  <padding>
                                     <Insets left="10.0" right="10.0" />
                                  </padding>
