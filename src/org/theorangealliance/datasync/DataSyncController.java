@@ -224,6 +224,7 @@ public class DataSyncController implements Initializable {
 
                     matchesController.checkMatchSchedule();
                     matchesController.checkMatchDetails();
+                    matchesController.checkMatchParticipants();
                 } else {
                     sendError("Connection to TOA unsuccessful. " + response);
 
@@ -477,6 +478,7 @@ public class DataSyncController implements Initializable {
                 this.matchesController.syncMatches();
                 this.matchesController.checkMatchSchedule();
                 this.matchesController.checkMatchDetails();
+                this.matchesController.checkMatchParticipants();
 //                this.rankingsController.syncRankings();
                 // We're going to try THIS instead....
                 this.rankingsController.getRankingsByFile();

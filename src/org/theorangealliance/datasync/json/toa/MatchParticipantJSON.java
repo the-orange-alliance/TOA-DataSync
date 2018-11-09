@@ -20,7 +20,7 @@ public class MatchParticipantJSON {
     private int stationStatus;
 
     @SerializedName("ref_status")
-    private int redStatus;
+    private int refStatus;
 
     public String getMatchParticipantKey() {
         return matchParticipantKey;
@@ -62,11 +62,11 @@ public class MatchParticipantJSON {
         this.stationStatus = stationStatus;
     }
 
-    public int getRedStatus() {
-        return redStatus;
+    public int getRefStatus() {
+        return refStatus;
     }
 
-    public void setRedStatus(int redStatus) {
-        this.redStatus = redStatus;
+    public void setRefStatus(int refStatus) {
+        this.refStatus = refStatus;
     }
 }

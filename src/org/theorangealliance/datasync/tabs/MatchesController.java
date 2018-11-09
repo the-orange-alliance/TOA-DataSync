@@ -39,6 +39,7 @@ public class MatchesController {
     private ObservableList<MatchGeneral> matchList;
     private HashSet<MatchGeneralJSON> uploadedMatches;
     private HashSet<MatchDetail1819JSON> uploadedDetails;
+    private HashSet<MatchParticipantJSON> uploadedMatchParticipants;
 
     private HashMap<MatchGeneral, MatchParticipant[]> matchStations;
     private HashMap<MatchGeneral, MatchDetail1819JSON> matchDetails;
@@ -50,12 +51,17 @@ public class MatchesController {
     private ArrayList<MatchGeneral> fMatches = new ArrayList<>(); //Finals Matches
     private ArrayList<MatchParticipant[]> fSche = new ArrayList<>(); //Finals Matches
     private ArrayList<MatchDetail1819JSON> fMatchDtl = new ArrayList<>(); //Finals Matches
+    private ArrayList<MatchDetail1819JSON> fMatchPar = new ArrayList<>(); //Finals Matches
+
     private ArrayList<MatchGeneral> sf2Matches = new ArrayList<>();//SF2 Matches
     private ArrayList<MatchParticipant[]> sf2Sche = new ArrayList<>();//SF2 Matches
     private ArrayList<MatchDetail1819JSON> sf2MatchDtl = new ArrayList<>();//SF2 Matches
+    private ArrayList<MatchDetail1819JSON> sf2MatchPar = new ArrayList<>();//SF2 Matches
+
     private ArrayList<MatchGeneral> sf1Matches = new ArrayList<>();//SF1 Matches
     private ArrayList<MatchParticipant[]> sf1Sche = new ArrayList<>();//SF1 Matches
     private ArrayList<MatchDetail1819JSON> sf1MatchDtl = new ArrayList<>();//SF1 Matches
+    private ArrayList<MatchDetail1819JSON> sf1MatchPar = new ArrayList<>();//SF1 Matches
 
     private HashMap<Integer, int[]> teamWinLoss;
 
@@ -222,6 +228,19 @@ public class MatchesController {
             if (success) {
                 uploadedDetails = new HashSet<>(Arrays.asList(matchesEndpoint.getGson().fromJson(response, MatchDetail1819JSON[].class)));
                 TOALogger.log(Level.INFO, "Grabbed match details for " + uploadedDetails.size() + " matches.");
+            } else {
+                this.controller.sendError("Error: " + response);
+            }
+        }));
+    }
+
+    public void checkMatchParticipants() {
+        TOAEndpoint matchesEndpoint = new TOAEndpoint("GET", "event/" + Config.EVENT_ID + "/matches/participants");
+        matchesEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+        matchesEndpoint.execute(((response, success) -> {
+            if (success) {
+                uploadedMatchParticipants = new HashSet<>(Arrays.asList(matchesEndpoint.getGson().fromJson(response, MatchParticipantJSON[].class)));
+                TOALogger.log(Level.INFO, "Grabbed " + uploadedMatchParticipants.size() + " match participants.");
             } else {
                 this.controller.sendError("Error: " + response);
             }
@@ -1103,6 +1122,8 @@ public class MatchesController {
                         checkMatchDetails();
                     }
                 }));
+                //TODO: Upload match Participants
+                //checkMatchParticipants();
             }
         }
     }
@@ -1160,6 +1181,53 @@ public class MatchesController {
                     }
                 }));
 
+                String participantMethodType = "POST";
+
+                if(selectedMatch.isUploaded()){
+                    participantMethodType = "PUT";
+                } else {
+                    for (MatchParticipantJSON matchPar : uploadedMatchParticipants) {
+                        if (matchPar.getMatchKey().equals(selectedMatch.getMatchKey())) {
+                            participantMethodType = "PUT";
+                        }
+                    }
+                }
+
+                MatchParticipant[] mPs = null;
+
+                for (MatchParticipant[] mp : this.matchStations.values()) {
+                    if (mp[0].getMatchKey().equals(selectedMatch.getMatchKey())) {
+                        mPs = mp;
+                        break;
+                    }
+                }
+
+                TOAEndpoint matchParEndpoint = new TOAEndpoint(participantMethodType, "event/" + Config.EVENT_ID + "/matches/participants");
+                matchParEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+                TOARequestBody matchParticipantBody = new TOARequestBody();
+                for(MatchParticipant m : mPs){
+                    MatchParticipantJSON mPJson = new MatchParticipantJSON();
+                    mPJson.setMatchParticipantKey(m.getStationKey());
+                    mPJson.setMatchKey(m.getMatchKey());
+                    mPJson.setStation(m.getStation());
+                    mPJson.setStationStatus(m.getStationStatus());
+                    mPJson.setTeamKey(m.getTeamKey() + "");
+                    mPJson.setRefStatus(0);//TODO: Fix?
+                    if(Integer.parseInt(mPJson.getTeamKey()) > 0) {
+                        matchParticipantBody.addValue(mPJson);
+                    }
+
+                }
+                matchParEndpoint.setBody(matchParticipantBody);
+                matchParEndpoint.execute(((response, success) -> {
+                    if (success) {
+                        controller.sendInfo("Successfully uploaded match partipants results to TOA. " + response);
+                        checkMatchParticipants();
+                    } else {
+                        controller.sendError("Connection to TOA unsuccessful. " + response);
+                    }
+                }));
+
                 methodType = "POST";
                 if (selectedMatch.isUploaded()) {
                     methodType = "PUT";
@@ -1197,6 +1265,7 @@ public class MatchesController {
                         controller.tableMatches.refresh();
                         controller.sendInfo("Successfully uploaded detail results to TOA. " + response);
                         checkMatchDetails();
+                        checkMatchParticipants();
                         controller.btnMatchBrowserView.setDisable(false);
                     } else {
                         controller.sendError("Connection to TOA unsuccessful. " + response);
