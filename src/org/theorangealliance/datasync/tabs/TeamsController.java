@@ -10,6 +10,7 @@ import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.toa.EventParticipantTeamJSON;
 import org.theorangealliance.datasync.json.first.TeamFIRST;
 import org.theorangealliance.datasync.json.first.Teams;
+import org.theorangealliance.datasync.json.toa.EventParticipantTeamJSONPost;
 import org.theorangealliance.datasync.models.Team;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.FIRSTEndpoint;
@@ -204,7 +205,7 @@ public class TeamsController {
             int div2 = 0;
             for (int i = 0; i < teamsList.size(); i++) {
                 Team team = teamsList.get(i);
-                EventParticipantTeamJSON eventTeam = new EventParticipantTeamJSON();
+                EventParticipantTeamJSONPost eventTeam = new EventParticipantTeamJSONPost();
 
                 if (Config.DUAL_DIVISION_EVENT) {
                     String newEventID = Config.EVENT_ID.substring(0, Config.EVENT_ID.length()-1);
@@ -222,9 +223,8 @@ public class TeamsController {
                     eventTeam.setEventKey(Config.EVENT_ID);
                 }
                 eventTeam.setTeamKey(team.getTeamKey());
+                eventTeam.setTeamNumber(Integer.parseInt(team.getTeamKey()));
                 eventTeam.setTeamIsActive(true);
-                //eventTeam.setCreatedBy("TOA-DataSync");
-                //eventTeam.setCreatedOn(getCurrentTime());
                 requestBody.addValue(eventTeam);
             }
             deleteEndpoint.setBody(requestBody);

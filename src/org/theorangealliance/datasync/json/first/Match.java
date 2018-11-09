@@ -13,19 +13,25 @@ public class Match {
     }
 
     @SerializedName("finished")
-    public boolean isFinished;
+    private boolean isFinished;
+
+    @SerializedName("field")
+    private int fieldNumber;
+
+    @SerializedName("time")
+    private String startTime;
 
     @SerializedName("redScore")
-    public int redScore;
+    private int redScore;
 
     @SerializedName("blueScore")
-    public int blueScore;
+    private int blueScore;
 
     @SerializedName("red")
-    public MatchScore redSpecifics;
+    private MatchScore redSpecifics;
 
     @SerializedName("blue")
-    public MatchScore blueSpecifics;
+    private MatchScore blueSpecifics;
 
 
     public boolean isFinished() {
@@ -34,6 +40,22 @@ public class Match {
 
     public void setFinished(boolean finished) {
         isFinished = finished;
+    }
+
+    public int getFieldNumber() {
+        return fieldNumber;
+    }
+
+    public void setFieldNumber(int fieldNumber) {
+        this.fieldNumber = fieldNumber;
+    }
+
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = startTime;
     }
 
     public int getRedScore() {

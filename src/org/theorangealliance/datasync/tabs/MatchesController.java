@@ -1,5 +1,6 @@
 package org.theorangealliance.datasync.tabs;
 
+import com.google.gson.stream.MalformedJsonException;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -14,6 +15,7 @@ import org.theorangealliance.datasync.json.toa.*;
 import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.json.first.*;
 import org.theorangealliance.datasync.models.MatchGeneral;
+import org.theorangealliance.datasync.models.MatchGeneralAndMatchParticipant;
 import org.theorangealliance.datasync.models.MatchParticipant;
 import org.theorangealliance.datasync.util.*;
 
@@ -39,19 +41,21 @@ public class MatchesController {
     private HashSet<MatchDetail1718JSON> uploadedDetails;
 
     private HashMap<MatchGeneral, MatchParticipant[]> matchStations;
-    private HashMap<MatchGeneral, MatchDetail1718JSON> matchDetails;
+    private HashMap<MatchGeneral, MatchDetail1819JSON> matchDetails;
+    private HashMap<MatchGeneral, MatchDetail1718JSON> matchDetails1718;
     private MatchGeneral selectedMatch;
 
-    /*For Fixing The Match IDs and/or Sorting */
-    private ArrayList<MatchGeneral> qualMatches = new ArrayList<>();//Qual Matches for Sorting
-    private ArrayList<MatchParticipant[]> qualSche = new ArrayList<>();
+    /*For Fixing The Match IDs and Sorting */
 
     private ArrayList<MatchGeneral> fMatches = new ArrayList<>(); //Finals Matches
     private ArrayList<MatchParticipant[]> fSche = new ArrayList<>(); //Finals Matches
+    private ArrayList<MatchDetail1819JSON> fMatchDtl = new ArrayList<>(); //Finals Matches
     private ArrayList<MatchGeneral> sf2Matches = new ArrayList<>();//SF2 Matches
     private ArrayList<MatchParticipant[]> sf2Sche = new ArrayList<>();//SF2 Matches
+    private ArrayList<MatchDetail1819JSON> sf2MatchDtl = new ArrayList<>();//SF2 Matches
     private ArrayList<MatchGeneral> sf1Matches = new ArrayList<>();//SF1 Matches
     private ArrayList<MatchParticipant[]> sf1Sche = new ArrayList<>();//SF1 Matches
+    private ArrayList<MatchDetail1819JSON> sf1MatchDtl = new ArrayList<>();//SF1 Matches
 
     private HashMap<Integer, int[]> teamWinLoss;
 
@@ -337,7 +341,7 @@ public class MatchesController {
                             }
                         }
 
-                        MatchDetail1718JSON detailJSON = matchDetails.get(match);
+                        MatchDetail1718JSON detailJSON = matchDetails1718.get(match);
                         detailJSON.setRedAutoJewel(Integer.parseInt(teamInfo[25]));
                         detailJSON.setRedAutoGlyphs(Integer.parseInt(teamInfo[26]));
                         detailJSON.setRedAutoKeys(Integer.parseInt(teamInfo[27]));
@@ -524,7 +528,7 @@ public class MatchesController {
 
                     matchList.add(match);
                     matchStations.put(match, MatchParticipants);
-                    matchDetails.put(match, detailJSON);
+                    matchDetails1718.put(match, detailJSON);
                 }
                 reader.close();
                 controller.btnMatchScheduleUpload.setDisable(false);
@@ -548,10 +552,6 @@ public class MatchesController {
             controller.sendError("Could not locate matches.txt from the Scoring System. Did you generate a match schedule?");
         }
     }
-
-    /* Look, but don't touch. It works, so why mess with it?
-    It's dumb, so what! If you want to attempt to fix it, good
-    luck. I am all outta options. */
 
     public void getMatchesFromFIRSTApi1819() {
         /* Qualifacation Matches*/
@@ -577,50 +577,14 @@ public class MatchesController {
                 }
                 if (qualMatch != null) {
 
-                    MatchGeneral match = new MatchGeneral(
-                            MatchGeneral.buildMatchName(1, m.getMatchNumber()),
-                            MatchGeneral.buildTOATournamentLevel(1, m.getMatchNumber()),
-                            null,
-                            0);
-                    char qualChar = match.getMatchName().contains("Qual") ? 'Q' : 'E';
-                    match.setMatchKey(Config.EVENT_ID + "-" + qualChar + String.format("%03d", match.getCanonicalMatchNumber()) + "-1");
+                    MatchGeneralAndMatchParticipant mValues = getMatchGeneralFromFirstAPI(1, m.getMatchNumber(), 0, null, m, qualMatch);
 
-                    /** TEAM info **/
-                    MatchParticipant[] MatchParticipants = new MatchParticipant[6];
-                    MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, m.getRedAlliance().getTeam1());
-                    MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, m.getRedAlliance().getTeam2());
-                    MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, 0);
-                    MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, m.getBlueAlliance().getTeam1());
-                    MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, m.getBlueAlliance().getTeam2());
-                    MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, 0);
-
-                    /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
-                    //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
-                    MatchParticipants[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getRedAlliance().getIsTeam1Surrogate() ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getRedAlliance().getIsTeam2Surrogate() ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getBlueAlliance().getIsTeam1Surrogate() ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/m.getBlueAlliance().getIsTeam2Surrogate() ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-
-                    match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
-                    match.setIsDone(qualMatch.isFinished());
-
-
-                    match.setRedPenalty(qualMatch.getRedSpecifics().getPenaltyPoints());
-                    match.setBluePenalty(qualMatch.getBlueSpecifics().getPenaltyPoints());
-                    match.setRedAutoScore(qualMatch.getRedSpecifics().getAutoPoints());
-                    match.setBlueAutoScore(qualMatch.getBlueSpecifics().getAutoPoints());
-                    match.setRedTeleScore(qualMatch.getRedSpecifics().getTeleopPoints());
-                    match.setBlueTeleScore(qualMatch.getBlueSpecifics().getTeleopPoints());
-                    match.setRedEndScore(qualMatch.getRedSpecifics().getEndGamePoints());
-                    match.setBlueEndScore(qualMatch.getBlueSpecifics().getEndGamePoints());
-                    match.setRedScore(qualMatch.getRedScore());
-                    match.setBlueScore(qualMatch.getBlueScore());
-
+                    MatchGeneral match = mValues.getMatchGeneral();
+                    MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
                     calculateWL(match, MatchParticipants);
 
+                    matchDetails.put(match, getMatchDetails1819FirstAPI(("matches/" + m.getMatchNumber()), m.getMatchNumber(), 1));
                     matchList.add(match);
                     matchStations.put(match, MatchParticipants);
 
@@ -642,14 +606,15 @@ public class MatchesController {
             controller.sendError("Connection to FIRST Scoring system unsuccessful.  Did not get Qualifier Matches" );
         }
 
-        //Oh god not again
         /*Elim Matches*/
+
         /* SF1 */
         int elimMatches = 0;
 
         //Clear SF1 Lists
         sf1Sche.clear();
         sf1Matches.clear();
+        sf1MatchDtl.clear();
 
         ElimMatchesArray matchesSF1 = null;
         //Try to connect to scoring system
@@ -670,59 +635,18 @@ public class MatchesController {
                     controller.sendError("Connection to FIRST Scoring system unsuccessful. " + e);
                 }
                 if (qualMatch != null) {
-
                     elimMatches++;
-
-                    /* TODO: Fix Field Number
-                    int elimFieldNum = match.getTournamentLevel() % 2;
-                    match.setFieldNumber(match.getTournamentLevel() == 4 ? 1 : (elimFieldNum == 0 ? 2 : 1));
-                    */
 
                     //We Get A string that looks like "SF1-1" We Remove the SF, then Replace the "-" with an empty string.
                     int sfMatchNum = Integer.parseInt(m.matchNumber.substring(2).replace("-", ""));
-                    MatchGeneral match = new MatchGeneral(
-                            MatchGeneral.buildMatchName(2, sfMatchNum),
-                            MatchGeneral.buildTOATournamentLevel(2, sfMatchNum),
-                            null,
-                            0);
-                    match.setMatchKey(Config.EVENT_ID + "-E" + String.format("%03d", elimMatches) + "-1");
+                    MatchGeneralAndMatchParticipant mValues = getMatchGeneralFromFirstAPI(2, sfMatchNum, elimMatches, m, null, qualMatch);
 
-                    /** TEAM info **/
-                    MatchParticipant[] MatchParticipants = new MatchParticipant[6];
-                    MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, m.getRedAlliance().getAllianceCaptain());
-                    MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, m.getRedAlliance().getAlliancePick1());
-                    MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, (m.getRedAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
-                    MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, m.getBlueAlliance().getAllianceCaptain());
-                    MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, m.getBlueAlliance().getAlliancePick1());
-                    MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, (m.getBlueAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
-
-                    /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
-                    //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
-                    //TODO: Update when Elim parsing is clarified
-                    MatchParticipants[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-
-                    match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
-                    match.setIsDone(qualMatch.isFinished());
-
-                    match.setRedPenalty(qualMatch.getRedSpecifics().getPenaltyPoints());
-                    match.setBluePenalty(qualMatch.getBlueSpecifics().getPenaltyPoints());
-                    match.setRedAutoScore(qualMatch.getRedSpecifics().getAutoPoints());
-                    match.setBlueAutoScore(qualMatch.getBlueSpecifics().getAutoPoints());
-                    match.setRedTeleScore(qualMatch.getRedSpecifics().getTeleopPoints());
-                    match.setBlueTeleScore(qualMatch.getBlueSpecifics().getTeleopPoints());
-                    match.setRedEndScore(qualMatch.getRedSpecifics().getEndGamePoints());
-                    match.setBlueEndScore(qualMatch.getBlueSpecifics().getEndGamePoints());
-                    match.setRedScore(qualMatch.getRedScore());
-                    match.setBlueScore(qualMatch.getBlueScore());
+                    MatchGeneral match = mValues.getMatchGeneral();
+                    MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
                     calculateWL(match, MatchParticipants);
 
-
+                    sf1MatchDtl.add(getMatchDetails1819FirstAPI(("elim/sf/1/" + (sfMatchNum-10)), match.getMatchKey(), 2));
                     sf1Matches.add(match);
                     sf1Sche.add(MatchParticipants);
 
@@ -734,12 +658,12 @@ public class MatchesController {
             controller.sendError("Unable to get SF 1 matches");
         }
 
-        /*UGGGHHHHHHHH*/
         /* SF2 */
 
         //Clear Our Match Lists
         sf2Sche.clear();
         sf2Matches.clear();
+        sf2MatchDtl.clear();
 
         ElimMatchesArray matchesSF2 = null;
         try {
@@ -762,54 +686,16 @@ public class MatchesController {
                 if(qualMatch != null) {
                     elimMatches++;
 
-                    /* TODO: Fix Field Number
-                    int elimFieldNum = match.getTournamentLevel() % 2;
-                    match.setFieldNumber(match.getTournamentLevel() == 4 ? 1 : (elimFieldNum == 0 ? 2 : 1));
-                    */
-                    //We Get A string that looks like "SF1-1" We Remove the SF, then Replace the "-" with an empty string.
+                    //We Get A string that looks like "SF1-2" We Remove the SF, then Replace the "-" with an empty string.
                     int sfMatchNum = Integer.parseInt(m.matchNumber.substring(2).replace("-", ""));
-                    MatchGeneral match = new MatchGeneral(
-                            MatchGeneral.buildMatchName(2, sfMatchNum),
-                            MatchGeneral.buildTOATournamentLevel(2, sfMatchNum),
-                            null,
-                            0);
-                    match.setMatchKey(Config.EVENT_ID + "-E" + String.format("%03d", elimMatches) + "-1");
+                   MatchGeneralAndMatchParticipant mValues = getMatchGeneralFromFirstAPI(2, sfMatchNum, elimMatches, m, null, qualMatch);
 
-                    /** TEAM info **/
-                    MatchParticipant[] MatchParticipants = new MatchParticipant[6];
-                    MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, m.getRedAlliance().getAllianceCaptain());
-                    MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, m.getRedAlliance().getAlliancePick1());
-                    MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, (m.getRedAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
-                    MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, m.getBlueAlliance().getAllianceCaptain());
-                    MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, m.getBlueAlliance().getAlliancePick1());
-                    MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, (m.getBlueAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
-
-                    /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
-                    //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
-                    //TODO: Update when Elim parsing is clarified
-                    MatchParticipants[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-
-                    match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
-                    match.setIsDone(qualMatch.isFinished());
-
-                    match.setRedPenalty(qualMatch.getRedSpecifics().getPenaltyPoints());
-                    match.setBluePenalty(qualMatch.getBlueSpecifics().getPenaltyPoints());
-                    match.setRedAutoScore(qualMatch.getRedSpecifics().getAutoPoints());
-                    match.setBlueAutoScore(qualMatch.getBlueSpecifics().getAutoPoints());
-                    match.setRedTeleScore(qualMatch.getRedSpecifics().getTeleopPoints());
-                    match.setBlueTeleScore(qualMatch.getBlueSpecifics().getTeleopPoints());
-                    match.setRedEndScore(qualMatch.getRedSpecifics().getEndGamePoints());
-                    match.setBlueEndScore(qualMatch.getBlueSpecifics().getEndGamePoints());
-                    match.setRedScore(qualMatch.getRedScore());
-                    match.setBlueScore(qualMatch.getBlueScore());
+                    MatchGeneral match = mValues.getMatchGeneral();
+                    MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
                     calculateWL(match, MatchParticipants);
 
+                    sf2MatchDtl.add(getMatchDetails1819FirstAPI(("elim/sf/2/" + (sfMatchNum-20)), match.getMatchKey(), 2));
                     sf2Matches.add(match);
                     sf2Sche.add(MatchParticipants);
 
@@ -821,11 +707,11 @@ public class MatchesController {
             controller.sendError("Unable to get SF 2 matches");
         }
 
-        /*Last....Time....*/
         /* Finals Matches */
         //Clear Our match lists
         fSche.clear();
         fMatches.clear();
+        fMatchDtl.clear();
 
         ElimMatchesArray matchesF = null;
         try {
@@ -844,54 +730,17 @@ public class MatchesController {
                 }
                 if(qualMatch != null) {
                     elimMatches++;
-                                    /* TODO: Fix Field Number
-                                    int elimFieldNum = match.getTournamentLevel() % 2;
-                                    match.setFieldNumber(match.getTournamentLevel() == 4 ? 1 : (elimFieldNum == 0 ? 2 : 1));
-                                    */
+
                     //We Get A string that looks like "F-1" We Remove the "F-"
                     int fMatchNum = Integer.parseInt(m.matchNumber.substring(2));
-                    MatchGeneral match = new MatchGeneral(
-                            MatchGeneral.buildMatchName(3, fMatchNum),
-                            MatchGeneral.buildTOATournamentLevel(3, fMatchNum),
-                            null,
-                            0);
-                    match.setMatchKey(Config.EVENT_ID + "-E" + String.format("%03d", elimMatches) + "-1");
+                    MatchGeneralAndMatchParticipant mValues = getMatchGeneralFromFirstAPI(3, fMatchNum, elimMatches, m, null, qualMatch);
 
-                    /** TEAM info **/
-                    MatchParticipant[] MatchParticipants = new MatchParticipant[6];
-                    MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, m.getRedAlliance().getAllianceCaptain());
-                    MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, m.getRedAlliance().getAlliancePick1());
-                    MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, (m.getRedAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
-                    MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, m.getBlueAlliance().getAllianceCaptain());
-                    MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, m.getBlueAlliance().getAlliancePick1());
-                    MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, (m.getBlueAlliance().getAlliancePick2() == -1) ? 0 : m.getRedAlliance().getAlliancePick2());
-
-                    /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
-                    //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
-                    //TODO: Update when Elim parsing is clarified
-                    MatchParticipants[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-                    MatchParticipants[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-
-                    match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
-                    match.setIsDone(qualMatch.isFinished());
-
-                    match.setRedPenalty(qualMatch.getRedSpecifics().getPenaltyPoints());
-                    match.setBluePenalty(qualMatch.getBlueSpecifics().getPenaltyPoints());
-                    match.setRedAutoScore(qualMatch.getRedSpecifics().getAutoPoints());
-                    match.setBlueAutoScore(qualMatch.getBlueSpecifics().getAutoPoints());
-                    match.setRedTeleScore(qualMatch.getRedSpecifics().getTeleopPoints());
-                    match.setBlueTeleScore(qualMatch.getBlueSpecifics().getTeleopPoints());
-                    match.setRedEndScore(qualMatch.getRedSpecifics().getEndGamePoints());
-                    match.setBlueEndScore(qualMatch.getBlueSpecifics().getEndGamePoints());
-                    match.setRedScore(qualMatch.getRedScore());
-                    match.setBlueScore(qualMatch.getBlueScore());
+                    MatchGeneral match = mValues.getMatchGeneral();
+                    MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
                     calculateWL(match, MatchParticipants);
 
+                    fMatchDtl.add(getMatchDetails1819FirstAPI(("elim/finals/" + fMatchNum), match.getMatchKey(), 3));
                     fMatches.add(match);
                     fSche.add(MatchParticipants);
 
@@ -905,6 +754,110 @@ public class MatchesController {
         }
         //Now that we parsed ALL of the elim matches, we can fix the matches
         fixTheElimMatches();
+    }
+
+    private MatchDetail1819JSON getMatchDetails1819FirstAPI(String endpoint, String matchKey, int tournLevel) {
+        MatchDetail1819JSON matchSpecific = null;
+        MatchDetails1819 firstMatchSpec = null;
+        try {
+            firstMatchSpec =  FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("2019/events/" + Config.FIRST_API_EVENT_ID  + "/" +  endpoint), MatchDetails1819.class);
+        } catch (Exception e) {
+            controller.sendError("Connection to FIRST Scoring system unsuccessful. Path 2019/events/" + Config.FIRST_API_EVENT_ID  + "/" + endpoint + " Error " +  e);
+        }
+
+        if(firstMatchSpec != null) {
+            matchSpecific.setMatchKey(matchKey);
+            matchSpecific.setMatchDtlKey(matchKey + "-DTL");
+            matchSpecific.setRedMinPen(firstMatchSpec.getRedScore().getMinorPenalties());
+            matchSpecific.setRedMajPen(firstMatchSpec.getRedScore().getMajorPenalties());
+            matchSpecific.setBlueMinPen(firstMatchSpec.getBlueScore().getMinorPenalties());
+            matchSpecific.setBlueMajPen(firstMatchSpec.getBlueScore().getMajorPenalties());
+            matchSpecific.setRedAutoLand(firstMatchSpec.getRedScore().getAutoLanded());
+            matchSpecific.setBlueAutoLand(firstMatchSpec.getBlueScore().getAutoLanded());
+            matchSpecific.setRedAutoSamp(firstMatchSpec.getRedScore().getAutoSample());
+            matchSpecific.setBlueAutoSamp(firstMatchSpec.getBlueScore().getAutoSample());
+            matchSpecific.setRedAutoClaim(firstMatchSpec.getRedScore().getAutoDepot());
+            matchSpecific.setBlueAutoClaim(firstMatchSpec.getBlueScore().getAutoDepot());
+            matchSpecific.setRedAutoPark(firstMatchSpec.getRedScore().getAutoParking());
+            matchSpecific.setBlueAutoPark(firstMatchSpec.getBlueScore().getAutoParking());
+            matchSpecific.setRedDriverGold(firstMatchSpec.getRedScore().getTeleGold());
+            matchSpecific.setBlueDriverGold(firstMatchSpec.getBlueScore().getTeleGold());
+            matchSpecific.setRedDriverSilver(firstMatchSpec.getRedScore().getTeleSilver());
+            matchSpecific.setBlueDriverSilver(firstMatchSpec.getBlueScore().getTeleSilver());
+            matchSpecific.setRedDriverDepot(firstMatchSpec.getRedScore().getTeleDepot());
+            matchSpecific.setBlueDriverDepot(firstMatchSpec.getBlueScore().getTeleDepot());
+            matchSpecific.setRedEndLatch(firstMatchSpec.getRedScore().getEndLatched());
+            matchSpecific.setBlueEndLatch(firstMatchSpec.getBlueScore().getEndLatched());
+            matchSpecific.setRedEndIn(firstMatchSpec.getRedScore().getEndParking());
+            matchSpecific.setBlueEndIn(firstMatchSpec.getBlueScore().getEndParking());
+            matchSpecific.setRedEndComp(0); //TODO: Fix when more details are avaliable
+            matchSpecific.setBlueEndComp(0); //TODO: Fix when more info is avalible
+        }
+
+        return matchSpecific;
+    }
+
+    private MatchGeneralAndMatchParticipant getMatchGeneralFromFirstAPI (int tournLevel, int matchNum, int elimNumber, ElimMatches eM, QualMatches qM, Match qualMatch) {
+        MatchGeneral match = new MatchGeneral(
+                MatchGeneral.buildMatchName(tournLevel, matchNum),
+                MatchGeneral.buildTOATournamentLevel(tournLevel, matchNum),
+                null,
+                qualMatch.getFieldNumber());
+
+        if(elimNumber > 1) {
+            match.setMatchKey(Config.EVENT_ID + "-E" + String.format("%03d", elimNumber) + "-1");
+        } else {
+            match.setMatchKey(Config.EVENT_ID + "-Q" + String.format("%03d", match.getCanonicalMatchNumber()) + "-1");
+        }
+
+        MatchParticipant[] MatchParticipants = new MatchParticipant[6];
+
+        /** TEAM info **/
+        if(eM != null) {
+            MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, eM.getRedAlliance().getAllianceCaptain());
+            MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, eM.getRedAlliance().getAlliancePick1());
+            MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, (eM.getRedAlliance().getAlliancePick2() == -1) ? 0 : eM.getRedAlliance().getAlliancePick2());
+            MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, eM.getBlueAlliance().getAllianceCaptain());
+            MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, eM.getBlueAlliance().getAlliancePick1());
+            MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, (eM.getBlueAlliance().getAlliancePick2() == -1) ? 0 : eM.getRedAlliance().getAlliancePick2());
+
+        } else if(qM != null) {
+            MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, qM.getRedAlliance().getTeam1());
+            MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, qM.getRedAlliance().getTeam2());
+            MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, 0);
+            MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, qM.getBlueAlliance().getTeam1());
+            MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, qM.getBlueAlliance().getTeam2());
+            MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, 0);
+        }
+
+        /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
+        //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
+        MatchParticipants[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+        MatchParticipants[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+        MatchParticipants[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+        MatchParticipants[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+        MatchParticipants[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+        MatchParticipants[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+
+        match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
+        match.setIsDone(qualMatch.isFinished());
+
+        match.setRedPenalty(qualMatch.getRedSpecifics().getPenaltyPoints());
+        match.setBluePenalty(qualMatch.getBlueSpecifics().getPenaltyPoints());
+        match.setRedAutoScore(qualMatch.getRedSpecifics().getAutoPoints());
+        match.setBlueAutoScore(qualMatch.getBlueSpecifics().getAutoPoints());
+        match.setRedTeleScore(qualMatch.getRedSpecifics().getTeleopPoints());
+        match.setBlueTeleScore(qualMatch.getBlueSpecifics().getTeleopPoints());
+        match.setRedEndScore(qualMatch.getRedSpecifics().getEndGamePoints());
+        match.setBlueEndScore(qualMatch.getBlueSpecifics().getEndGamePoints());
+        match.setRedScore(qualMatch.getRedScore());
+        match.setBlueScore(qualMatch.getBlueScore());
+
+        MatchGeneralAndMatchParticipant returnValue = new MatchGeneralAndMatchParticipant();
+        returnValue.setMatchGeneral(match);
+        returnValue.setMatchParticipants(MatchParticipants);
+
+        return returnValue;
     }
 
     private void fixTheElimMatches(){
@@ -930,6 +883,17 @@ public class MatchesController {
                     }
                 }
 
+                int ii = 0;
+
+                //Find The MatchDetails that goes with out match
+                for(MatchDetail1819JSON m : sf1MatchDtl){
+                    if(m.getMatchKey().equalsIgnoreCase(sf1Matches.get(0).getMatchKey())){
+                        break;
+                    } else {
+                        ii++;
+                    }
+                }
+
                 sf1Matches.get(0).setMatchKey(matchKey);
                 sf1Matches.get(0).setTournamentLevel(MatchGeneral.buildTOATournamentLevel(2, sf1Num));
 
@@ -940,13 +904,18 @@ public class MatchesController {
                 sf1Sche.get(i)[4].setMatchKey(matchKey);
                 sf1Sche.get(i)[5].setMatchKey(matchKey);
 
+                sf1MatchDtl.get(ii).setMatchKey(matchKey);
+                sf1MatchDtl.get(ii).setMatchDtlKey(matchKey + "-DTL");
+
                 matchList.add(sf1Matches.get(0));
                 matchStations.put(sf1Matches.get(0), sf1Sche.get(i));
+                matchDetails.put(sf1Matches.get(0), sf1MatchDtl.get(ii));
 
                 sf1Num++;
                 elimMatch++;
                 sf1Matches.remove(0);
                 sf1Sche.remove(i);
+                sf1MatchDtl.remove(ii);
             }
 
             if(!sf2Matches.isEmpty()){
@@ -962,6 +931,16 @@ public class MatchesController {
                     }
                 }
 
+                int ii = 0;
+                //Find The MatchDetails that goes with out match
+                for(MatchDetail1819JSON m : sf2MatchDtl){
+                    if(m.getMatchKey().equalsIgnoreCase(sf2Matches.get(0).getMatchKey())){
+                        break;
+                    } else {
+                        ii++;
+                    }
+                }
+
                 sf2Matches.get(0).setMatchKey(matchKey);
                 sf2Matches.get(0).setTournamentLevel(MatchGeneral.buildTOATournamentLevel(2, sf2Num));
 
@@ -972,13 +951,19 @@ public class MatchesController {
                 sf2Sche.get(i)[4].setMatchKey(matchKey);
                 sf2Sche.get(i)[5].setMatchKey(matchKey);
 
+                sf2MatchDtl.get(ii).setMatchKey(matchKey);
+                sf2MatchDtl.get(ii).setMatchDtlKey(matchKey + "-DTL");
+
                 matchList.add(sf2Matches.get(0));
                 matchStations.put(sf2Matches.get(0), sf2Sche.get(i));
+                matchDetails.put(sf2Matches.get(0), sf2MatchDtl.get(ii));
+
 
                 sf2Num++;
                 elimMatch++;
                 sf2Matches.remove(0);
                 sf2Sche.remove(i);
+                sf2MatchDtl.remove(ii);
             }
             if(sf1Matches.isEmpty() && sf2Matches.isEmpty() && !fMatches.isEmpty()) {
                 String matchKey =  Config.EVENT_ID + "-E" + String.format("%03d", elimMatch) + "-1";
@@ -993,6 +978,16 @@ public class MatchesController {
                     }
                 }
 
+                int ii = 0;
+                //Find The MatchDetails that goes with out match
+                for(MatchDetail1819JSON m : fMatchDtl){
+                    if(m.getMatchKey().equalsIgnoreCase(fMatchDtl.get(0).getMatchKey())){
+                        break;
+                    } else {
+                        ii++;
+                    }
+                }
+
                 fMatches.get(0).setMatchKey(matchKey);
                 fMatches.get(0).setTournamentLevel(MatchGeneral.buildTOATournamentLevel(3, fNum));
 
@@ -1003,13 +998,18 @@ public class MatchesController {
                 fSche.get(i)[4].setMatchKey(matchKey);
                 fSche.get(i)[5].setMatchKey(matchKey);
 
+                fMatchDtl.get(ii).setMatchKey(matchKey);
+                fMatchDtl.get(ii).setMatchDtlKey(matchKey + "-DTL");
+
                 matchList.add(fMatches.get(0));
                 matchStations.put(fMatches.get(0), fSche.get(i));
+                matchDetails.put(fMatches.get(0), fMatchDtl.get(ii));
 
                 fNum++;
                 elimMatch++;
                 fMatches.remove(0);
                 fSche.remove(i);
+                fMatchDtl.remove(ii);
             }
             if(sf1Matches.isEmpty() && sf2Matches.isEmpty() && fMatches.isEmpty()) loop = false;
         }
@@ -1063,9 +1063,9 @@ public class MatchesController {
                     }
                 }
 
-                MatchDetail1718JSON detailJSON = null;
+                MatchDetail1819JSON detailJSON = null;
 
-                for (MatchDetail1718JSON matchDetails : this.matchDetails.values()) {
+                for (MatchDetail1819JSON matchDetails : this.matchDetails.values()) {
                     if (matchDetails.getMatchKey().equals(completeMatch.getMatchKey())) {
                         detailJSON = matchDetails;
                         break;
@@ -1151,9 +1151,9 @@ public class MatchesController {
                     }
                 }
 
-                MatchDetail1718JSON detailJSON = null;
+                MatchDetail1819JSON detailJSON = null;
 
-                for (MatchDetail1718JSON matchDetails : this.matchDetails.values()) {
+                for (MatchDetail1819JSON matchDetails : this.matchDetails.values()) {
                     if (matchDetails.getMatchKey().equals(selectedMatch.getMatchKey())) {
                         detailJSON = matchDetails;
                         break;
@@ -1443,9 +1443,15 @@ public class MatchesController {
         return sdf.format(dt);
     }
 
-    public HashMap<MatchGeneral, MatchDetail1718JSON> getMatchDetails(){
+    public HashMap<MatchGeneral, MatchDetail1819JSON> getMatchDetails(){
 
         return matchDetails;
+
+    }
+
+    public HashMap<MatchGeneral, MatchDetail1718JSON> getMatchDetails1718(){
+
+        return matchDetails1718;
 
     }
 

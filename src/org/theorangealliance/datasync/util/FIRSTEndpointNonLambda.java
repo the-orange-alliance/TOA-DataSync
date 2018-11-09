@@ -23,7 +23,6 @@ import java.util.logging.Level;
 public class FIRSTEndpointNonLambda {
 
     private static final String BASE_URL = "http://" + Config.FIRST_API_IP + "/apiv1/";
-    //    private final String BASE_URL = "http://localhost:8080/apiv2/";
 
 
     public static String getResp(String endpoint) {
@@ -54,8 +53,7 @@ public class FIRSTEndpointNonLambda {
                 }
                 in.close();
 
-                ErrorJSON error = getGson().fromJson(response.toString(), ErrorJSON.class);
-                TOALogger.log(Level.WARNING, "URL " + error.getUrl() + " returned " + error.getStatus() + ": " + error.getCode());
+                TOALogger.log(Level.WARNING, "URL " + BASE_URL + endpoint + " returned " + con.getResponseCode() + ": " + con.getResponseMessage());
 
                 return response.toString() + " NOT_READY";
             }

@@ -522,7 +522,7 @@ public class DataSyncController implements Initializable {
         if(rbNewScore.isSelected()){
             this.alliancesController.importAlliancesFIRSTApi(this.matchesController.getMatchDetails());
         } else {
-            this.alliancesController.importAlliancesScoring(this.matchesController.getMatchDetails());
+            //this.alliancesController.importAlliancesScoring(this.matchesController.getMatchDetails());
         }
     }
 

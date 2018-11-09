@@ -2,6 +2,7 @@ package org.theorangealliance.datasync.tabs;
 
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.toa.MatchDetail1718JSON;
+import org.theorangealliance.datasync.json.toa.MatchDetail1819JSON;
 import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.json.first.AllianceArray;
 import org.theorangealliance.datasync.json.first.AllianceFIRST;
@@ -45,7 +46,7 @@ public class AlliancesController {
                 reader.close();
                 /* TODO - Make Upload Alliances so we can uncomment this
                 controller.btnUploadAlliances.setDisable(false);*/
-                updateAllianceLabels(scores);
+                //updateAllianceLabels(scores);
                 TOALogger.log(Level.INFO, "Alliance import successful.");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -56,7 +57,7 @@ public class AlliancesController {
         }
     }
 
-    public void importAlliancesFIRSTApi(HashMap<MatchGeneral, MatchDetail1718JSON> scores){
+    public void importAlliancesFIRSTApi(HashMap<MatchGeneral, MatchDetail1819JSON> scores){
         FIRSTEndpoint firstAlliances = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/elim/alliances/");
         firstAlliances.execute(((response, success) -> {
             if (success && !response.contains("NOT_READY")) {
@@ -82,7 +83,7 @@ public class AlliancesController {
         }));
     }
 
-    public void importAlliancesTOA(HashMap<MatchGeneral, MatchDetail1718JSON> scores){
+    public void importAlliancesTOA(HashMap<MatchGeneral, MatchDetail1819JSON> scores){
 
         //TODO - This (May need the API updates from below to test)
         updateAllianceLabels(scores);
@@ -97,7 +98,7 @@ public class AlliancesController {
         // TODO - Waiting on API updates
     }
 
-    private void updateAllianceLabels(HashMap<MatchGeneral, MatchDetail1718JSON> scores){
+    private void updateAllianceLabels(HashMap<MatchGeneral, MatchDetail1819JSON> scores){
 
         int redS1 = 0, blueS1 = 0, redS2 = 0, blueS2 = 0;
 
