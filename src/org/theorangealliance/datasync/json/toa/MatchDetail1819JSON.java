@@ -10,82 +10,82 @@ import com.google.gson.annotations.SerializedName;
 public class MatchDetail1819JSON {
 
     @SerializedName("match_key")
-    public String matchKey;
+    private String matchKey;
 
     @SerializedName("match_detail_key")
-    public String matchDetailKey;
+    private String matchDetailKey;
 
     @SerializedName("red_min_pen")
-    public int redMinPen;
+    private int redMinPen;
 
     @SerializedName("blue_min_pen")
-    public int blueMinPen;
+    private int blueMinPen;
 
     @SerializedName("red_maj_pen")
-    public int redMajPen;
+    private int redMajPen;
 
     @SerializedName("blue_maj_pen")
-    public int blueMajPen;
+    private int blueMajPen;
 
     @SerializedName("red_auto_land")
-    public int redAutoLand;
+    private int redAutoLand;
 
     @SerializedName("red_auto_samp")
-    public int redAutoSamp;
+    private int redAutoSamp;
 
     @SerializedName("red_auto_claim")
-    public int redAutoClaim;
+    private int redAutoClaim;
 
     @SerializedName("red_auto_park")
-    public int redAutoPark;
+    private int redAutoPark;
 
     @SerializedName("red_tele_gold")
-    public int redDriverGold;
+    private int redDriverGold;
 
     @SerializedName("red_tele_silver")
-    public int redDriverSilver;
+    private int redDriverSilver;
 
     @SerializedName("red_tele_depot")
-    public int redDriverDepot;
+    private int redDriverDepot;
 
     @SerializedName("red_end_latch")
-    public int redEndLatch;
+    private int redEndLatch;
 
     @SerializedName("red_end_in")
-    public int redEndIn;
+    private int redEndIn;
 
     @SerializedName("red_end_comp")
-    public int redEndComp;
+    private int redEndComp;
 
     @SerializedName("blue_auto_land")
-    public int blueAutoLand;
+    private int blueAutoLand;
 
     @SerializedName("blue_auto_samp")
-    public int blueAutoSamp;
+    private int blueAutoSamp;
 
     @SerializedName("blue_auto_claim")
-    public int blueAutoClaim;
+    private int blueAutoClaim;
 
     @SerializedName("blue_auto_park")
-    public int blueAutoPark;
+    private int blueAutoPark;
 
     @SerializedName("blue_tele_gold")
-    public int blueDriverGold;
+    private int blueDriverGold;
 
     @SerializedName("blue_tele_silver")
-    public int blueDriverSilver;
+    private int blueDriverSilver;
 
     @SerializedName("blue_tele_depot")
-    public int blueDriverDepot;
+    private int blueDriverDepot;
 
     @SerializedName("blue_end_latch")
-    public int blueEndLatch;
+    private int blueEndLatch;
 
     @SerializedName("blue_end_in")
-    public int blueEndIn;
+    private int blueEndIn;
 
     @SerializedName("blue_end_comp")
-    public int blueEndComp;
+    private int blueEndComp;
 
 
     public String getMatchDetailKey() {

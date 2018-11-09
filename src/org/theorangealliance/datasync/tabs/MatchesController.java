@@ -38,7 +38,7 @@ public class MatchesController {
     private DataSyncController controller;
     private ObservableList<MatchGeneral> matchList;
     private HashSet<MatchGeneralJSON> uploadedMatches;
-    private HashSet<MatchDetail1718JSON> uploadedDetails;
+    private HashSet<MatchDetail1819JSON> uploadedDetails;
 
     private HashMap<MatchGeneral, MatchParticipant[]> matchStations;
     private HashMap<MatchGeneral, MatchDetail1819JSON> matchDetails;
@@ -220,7 +220,7 @@ public class MatchesController {
         matchesEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         matchesEndpoint.execute(((response, success) -> {
             if (success) {
-                uploadedDetails = new HashSet<>(Arrays.asList(matchesEndpoint.getGson().fromJson(response, MatchDetail1718JSON[].class)));
+                uploadedDetails = new HashSet<>(Arrays.asList(matchesEndpoint.getGson().fromJson(response, MatchDetail1819JSON[].class)));
                 TOALogger.log(Level.INFO, "Grabbed match details for " + uploadedDetails.size() + " matches.");
             } else {
                 this.controller.sendError("Error: " + response);
@@ -322,14 +322,14 @@ public class MatchesController {
                         }
 
                         boolean fullyUploaded = false;
-
+/*
                         // Not very efficient, but it is what is is... I hate O(N^2) algorithms.
                         for (MatchDetail1718JSON detail : uploadedDetails) {
                             if (detail.getMatchKey().equals(match.getMatchKey())) {
 //                                match.setIsUploaded(true);
                                 fullyUploaded = true;
                             }
-                        }
+                        }*/
 
                         for (MatchGeneralJSON general : uploadedMatches) {
                             if (general.getMatchKey().equals(match.getMatchKey())) {
@@ -473,7 +473,7 @@ public class MatchesController {
                     }
 
                     // Not very efficient, but it is what is is... I hate O(N^2) algorithms.
-                    for (MatchDetail1718JSON detail : uploadedDetails) {
+                    for (MatchDetail1819JSON detail : uploadedDetails) {
                         if (detail.getMatchKey().equals(match.getMatchKey())) {
                             match.setIsUploaded(true);
                         }
@@ -584,7 +584,7 @@ public class MatchesController {
 
                     calculateWL(match, MatchParticipants);
 
-                    matchDetails.put(match, getMatchDetails1819FirstAPI(("matches/" + m.getMatchNumber()), m.getMatchNumber(), 1));
+                    matchDetails.put(match, getMatchDetails1819FirstAPI(("matches/" + m.getMatchNumber()), match.getMatchKey(), 1));
                     matchList.add(match);
                     matchStations.put(match, MatchParticipants);
 
@@ -647,6 +647,7 @@ public class MatchesController {
                     calculateWL(match, MatchParticipants);
 
                     sf1MatchDtl.add(getMatchDetails1819FirstAPI(("elim/sf/1/" + (sfMatchNum-10)), match.getMatchKey(), 2));
+                    System.out.println(sf1MatchDtl.size());
                     sf1Matches.add(match);
                     sf1Sche.add(MatchParticipants);
 
@@ -757,44 +758,61 @@ public class MatchesController {
     }
 
     private MatchDetail1819JSON getMatchDetails1819FirstAPI(String endpoint, String matchKey, int tournLevel) {
-        MatchDetail1819JSON matchSpecific = null;
+        MatchDetail1819JSON matchSpecific = new MatchDetail1819JSON();
         MatchDetails1819 firstMatchSpec = null;
         try {
             firstMatchSpec =  FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("2019/events/" + Config.FIRST_API_EVENT_ID  + "/" +  endpoint), MatchDetails1819.class);
+
         } catch (Exception e) {
             controller.sendError("Connection to FIRST Scoring system unsuccessful. Path 2019/events/" + Config.FIRST_API_EVENT_ID  + "/" + endpoint + " Error " +  e);
         }
 
         if(firstMatchSpec != null) {
-            matchSpecific.setMatchKey(matchKey);
+
             matchSpecific.setMatchDtlKey(matchKey + "-DTL");
-            matchSpecific.setRedMinPen(firstMatchSpec.getRedScore().getMinorPenalties());
-            matchSpecific.setRedMajPen(firstMatchSpec.getRedScore().getMajorPenalties());
-            matchSpecific.setBlueMinPen(firstMatchSpec.getBlueScore().getMinorPenalties());
-            matchSpecific.setBlueMajPen(firstMatchSpec.getBlueScore().getMajorPenalties());
-            matchSpecific.setRedAutoLand(firstMatchSpec.getRedScore().getAutoLanded());
-            matchSpecific.setBlueAutoLand(firstMatchSpec.getBlueScore().getAutoLanded());
-            matchSpecific.setRedAutoSamp(firstMatchSpec.getRedScore().getAutoSample());
-            matchSpecific.setBlueAutoSamp(firstMatchSpec.getBlueScore().getAutoSample());
-            matchSpecific.setRedAutoClaim(firstMatchSpec.getRedScore().getAutoDepot());
-            matchSpecific.setBlueAutoClaim(firstMatchSpec.getBlueScore().getAutoDepot());
-            matchSpecific.setRedAutoPark(firstMatchSpec.getRedScore().getAutoParking());
-            matchSpecific.setBlueAutoPark(firstMatchSpec.getBlueScore().getAutoParking());
-            matchSpecific.setRedDriverGold(firstMatchSpec.getRedScore().getTeleGold());
-            matchSpecific.setBlueDriverGold(firstMatchSpec.getBlueScore().getTeleGold());
-            matchSpecific.setRedDriverSilver(firstMatchSpec.getRedScore().getTeleSilver());
-            matchSpecific.setBlueDriverSilver(firstMatchSpec.getBlueScore().getTeleSilver());
-            matchSpecific.setRedDriverDepot(firstMatchSpec.getRedScore().getTeleDepot());
-            matchSpecific.setBlueDriverDepot(firstMatchSpec.getBlueScore().getTeleDepot());
-            matchSpecific.setRedEndLatch(firstMatchSpec.getRedScore().getEndLatched());
-            matchSpecific.setBlueEndLatch(firstMatchSpec.getBlueScore().getEndLatched());
-            matchSpecific.setRedEndIn(firstMatchSpec.getRedScore().getEndParking());
-            matchSpecific.setBlueEndIn(firstMatchSpec.getBlueScore().getEndParking());
-            matchSpecific.setRedEndComp(0); //TODO: Fix when more details are avaliable
-            matchSpecific.setBlueEndComp(0); //TODO: Fix when more info is avalible
+            matchSpecific.setMatchKey(matchKey);
+            matchSpecific.setRedMinPen(firstMatchSpec.getRedSpecifics().getMinorPenalties());
+            matchSpecific.setRedMajPen(firstMatchSpec.getRedSpecifics().getMajorPenalties());
+            matchSpecific.setBlueMinPen(firstMatchSpec.getBlueSpecifics().getMinorPenalties());
+            matchSpecific.setBlueMajPen(firstMatchSpec.getBlueSpecifics().getMajorPenalties());
+            matchSpecific.setRedAutoLand(firstMatchSpec.getRedSpecifics().getAutoLanded() / 30);
+            matchSpecific.setBlueAutoLand(firstMatchSpec.getBlueSpecifics().getAutoLanded() / 30);
+            matchSpecific.setRedAutoSamp(firstMatchSpec.getRedSpecifics().getAutoSample() / 25);
+            matchSpecific.setBlueAutoSamp(firstMatchSpec.getBlueSpecifics().getAutoSample() / 25);
+            matchSpecific.setRedAutoClaim(firstMatchSpec.getRedSpecifics().getAutoDepot() / 15);
+            matchSpecific.setBlueAutoClaim(firstMatchSpec.getBlueSpecifics().getAutoDepot() / 15);
+            matchSpecific.setRedAutoPark(firstMatchSpec.getRedSpecifics().getAutoParking() / 10);
+            matchSpecific.setBlueAutoPark(firstMatchSpec.getBlueSpecifics().getAutoParking() / 10);
+            matchSpecific.setRedDriverGold(firstMatchSpec.getRedSpecifics().getTeleGold() / 5);
+            matchSpecific.setBlueDriverGold(firstMatchSpec.getBlueSpecifics().getTeleGold() / 5);
+            matchSpecific.setRedDriverSilver(firstMatchSpec.getRedSpecifics().getTeleSilver() / 5);
+            matchSpecific.setBlueDriverSilver(firstMatchSpec.getBlueSpecifics().getTeleSilver() / 5);
+            matchSpecific.setRedDriverDepot(firstMatchSpec.getRedSpecifics().getTeleDepot() / 2);
+            matchSpecific.setBlueDriverDepot(firstMatchSpec.getBlueSpecifics().getTeleDepot() / 2);
+            matchSpecific.setRedEndLatch(firstMatchSpec.getRedSpecifics().getEndLatched() / 50);
+            matchSpecific.setBlueEndLatch(firstMatchSpec.getBlueSpecifics().getEndLatched() / 50);
+            matchSpecific.setRedEndIn(calcCratePoints(firstMatchSpec.getRedSpecifics().getEndParking())[0]);
+            matchSpecific.setBlueEndIn(calcCratePoints(firstMatchSpec.getBlueSpecifics().getEndParking())[0]);
+            matchSpecific.setRedEndComp(calcCratePoints(firstMatchSpec.getRedSpecifics().getEndParking())[1]);
+            matchSpecific.setBlueEndComp(calcCratePoints(firstMatchSpec.getBlueSpecifics().getEndParking())[1]);
         }
 
         return matchSpecific;
+    }
+
+    private int[] calcCratePoints (int parking){
+        int partCrater = 0;
+        int fullCrater = 0;
+        switch(parking){
+            case 15: partCrater = 1; break;
+            case 25: fullCrater = 1; break;
+            case 30: partCrater = 2; break;
+            case 40: partCrater = 1; fullCrater = 1; break;
+            case 50: fullCrater = 2; break;
+            default: partCrater = parking; break;
+        }
+        int[] returnValue = {partCrater, fullCrater};
+        return returnValue;
     }
 
     private MatchGeneralAndMatchParticipant getMatchGeneralFromFirstAPI (int tournLevel, int matchNum, int elimNumber, ElimMatches eM, QualMatches qM, Match qualMatch) {
@@ -804,6 +822,7 @@ public class MatchesController {
                 null,
                 qualMatch.getFieldNumber());
 
+        //TODO: Update the -1 with the actual play #
         if(elimNumber > 1) {
             match.setMatchKey(Config.EVENT_ID + "-E" + String.format("%03d", elimNumber) + "-1");
         } else {
@@ -814,12 +833,12 @@ public class MatchesController {
 
         /** TEAM info **/
         if(eM != null) {
-            MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, eM.getRedAlliance().getAllianceCaptain());
-            MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, eM.getRedAlliance().getAlliancePick1());
+            MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, (eM.getRedAlliance().getAllianceCaptain() == -1) ? 0 : eM.getRedAlliance().getAllianceCaptain());
+            MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, (eM.getRedAlliance().getAlliancePick1() == -1) ? 0 : eM.getRedAlliance().getAlliancePick1());
             MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, (eM.getRedAlliance().getAlliancePick2() == -1) ? 0 : eM.getRedAlliance().getAlliancePick2());
-            MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, eM.getBlueAlliance().getAllianceCaptain());
-            MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, eM.getBlueAlliance().getAlliancePick1());
-            MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, (eM.getBlueAlliance().getAlliancePick2() == -1) ? 0 : eM.getRedAlliance().getAlliancePick2());
+            MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, (eM.getBlueAlliance().getAllianceCaptain() == -1) ? 0 : eM.getBlueAlliance().getAllianceCaptain());
+            MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, (eM.getBlueAlliance().getAlliancePick1() == -1) ? 0 : eM.getBlueAlliance().getAlliancePick1());
+            MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, (eM.getBlueAlliance().getAlliancePick2() == -1) ? 0 : eM.getBlueAlliance().getAlliancePick2());
 
         } else if(qM != null) {
             MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, qM.getRedAlliance().getTeam1());
@@ -884,13 +903,11 @@ public class MatchesController {
                 }
 
                 int ii = 0;
-
-                //Find The MatchDetails that goes with out match
                 for(MatchDetail1819JSON m : sf1MatchDtl){
                     if(m.getMatchKey().equalsIgnoreCase(sf1Matches.get(0).getMatchKey())){
                         break;
                     } else {
-                        ii++;
+                        i++;
                     }
                 }
 
@@ -909,7 +926,7 @@ public class MatchesController {
 
                 matchList.add(sf1Matches.get(0));
                 matchStations.put(sf1Matches.get(0), sf1Sche.get(i));
-                matchDetails.put(sf1Matches.get(0), sf1MatchDtl.get(ii));
+                matchDetails.put(sf1Matches.get(0), sf1MatchDtl.get(i));
 
                 sf1Num++;
                 elimMatch++;
@@ -956,7 +973,7 @@ public class MatchesController {
 
                 matchList.add(sf2Matches.get(0));
                 matchStations.put(sf2Matches.get(0), sf2Sche.get(i));
-                matchDetails.put(sf2Matches.get(0), sf2MatchDtl.get(ii));
+                matchDetails.put(sf2Matches.get(0), sf2MatchDtl.get(i));
 
 
                 sf2Num++;
@@ -981,7 +998,7 @@ public class MatchesController {
                 int ii = 0;
                 //Find The MatchDetails that goes with out match
                 for(MatchDetail1819JSON m : fMatchDtl){
-                    if(m.getMatchKey().equalsIgnoreCase(fMatchDtl.get(0).getMatchKey())){
+                    if(m.getMatchKey().equalsIgnoreCase(fMatches.get(0).getMatchKey())){
                         break;
                     } else {
                         ii++;
@@ -1003,7 +1020,7 @@ public class MatchesController {
 
                 matchList.add(fMatches.get(0));
                 matchStations.put(fMatches.get(0), fSche.get(i));
-                matchDetails.put(fMatches.get(0), fMatchDtl.get(ii));
+                matchDetails.put(fMatches.get(0), fMatchDtl.get(i));
 
                 fNum++;
                 elimMatch++;
@@ -1056,7 +1073,7 @@ public class MatchesController {
                 if (completeMatch.isUploaded()) {
                     methodType = "PUT";
                 } else {
-                    for (MatchDetail1718JSON detail : uploadedDetails) {
+                    for (MatchDetail1819JSON detail : uploadedDetails) {
                         if (detail.getMatchKey().equals(completeMatch.getMatchKey())) {
                             methodType = "PUT";
                         }
@@ -1105,11 +1122,14 @@ public class MatchesController {
             Optional<ButtonType> result = alert.showAndWait();
             if (result.get() == okayButton) {
                 String methodType = "POST";
-                for (MatchGeneralJSON match : uploadedMatches) {
-                    if (match.getMatchKey().equals(selectedMatch.getMatchKey())) {
-                        methodType = "PUT";
+                if(uploadedMatches != null){
+                    for (MatchGeneralJSON match : uploadedMatches) {
+                        if (match.getMatchKey().equals(selectedMatch.getMatchKey())) {
+                            methodType = "PUT";
+                        }
                     }
                 }
+
                 TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches");
                 matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody requestBody = new TOARequestBody();
@@ -1144,7 +1164,7 @@ public class MatchesController {
                 if (selectedMatch.isUploaded()) {
                     methodType = "PUT";
                 } else {
-                    for (MatchDetail1718JSON detail : uploadedDetails) {
+                    for (MatchDetail1819JSON detail : uploadedDetails) {
                         if (detail.getMatchKey().equals(selectedMatch.getMatchKey())) {
                             methodType = "PUT";
                         }
