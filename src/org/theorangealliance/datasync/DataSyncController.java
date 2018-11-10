@@ -327,8 +327,8 @@ public class DataSyncController implements Initializable {
                     sendInfo("Found division id " + Config.DIVISION_NAME);
                     tabTeams.setDisable(false);
                     tabMatches.setDisable(false);
-                    //tabRankings.setDisable(false);
-                    //tabSync.setDisable(false);
+                    tabRankings.setDisable(false);
+                    tabSync.setDisable(false);
                     tabAllianceSelection.setDisable(false);
 
                 } else {

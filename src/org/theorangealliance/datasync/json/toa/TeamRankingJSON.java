@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class TeamRankingJSON {
 
-    @SerializedName("team_rank_key")
+    @SerializedName("rank_key")
     private String teamRankKey;
 
     @SerializedName("event_key")
@@ -15,6 +15,7 @@ public class TeamRankingJSON {
 
     @SerializedName("team_key")
     private int teamKey;
+
 
     private int rank;
 
@@ -34,7 +35,6 @@ public class TeamRankingJSON {
     @SerializedName("qualifying_points")
     private int qualPoints;
 
-    @SerializedName("matches_played")
     private int played;
 
     private int disqualified;

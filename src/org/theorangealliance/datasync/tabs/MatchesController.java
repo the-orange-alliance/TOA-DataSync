@@ -308,15 +308,16 @@ public class MatchesController {
     }
 
     private void syncMatches1819(){
-        if (matchList.size() <= 0) {
+        //Dont Think we need this anymore....
+        //if (matchList.size() <= 0) {
             getMatchesFromFIRSTApi1819();
-        } else {
+        //} else {
             //uploadQueue.clear();
             //teamWinLoss.clear();
 
             //Do Match Details
 
-        }
+        //}
     }
 
     private void syncMatches1718(){
@@ -1155,12 +1156,14 @@ public class MatchesController {
         if (uploadQueue.size() > 0) {
             for (MatchGeneral completeMatch : uploadQueue) {
                 String methodType = "POST";
+                String putRouteExtra = "";
                 for (MatchGeneralJSON match : uploadedMatches) {
                     if (match.getMatchKey().equals(completeMatch.getMatchKey())) {
                         methodType = "PUT";
+                        putRouteExtra = "/" + match.getMatchKey();
                     }
                 }
-                TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches");
+                TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches" + putRouteExtra);
                 matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody requestBody = new TOARequestBody();
                 MatchGeneralJSON matchJSON = new MatchGeneralJSON();
@@ -1189,6 +1192,7 @@ public class MatchesController {
                 }));
 
                 methodType = "POST";
+                putRouteExtra = "";
                 if (completeMatch.isUploaded()) {
                     methodType = "PUT";
                 } else {
@@ -1204,11 +1208,14 @@ public class MatchesController {
                 for (MatchDetail1819JSON matchDetails : this.matchDetails.values()) {
                     if (matchDetails.getMatchKey().equals(completeMatch.getMatchKey())) {
                         detailJSON = matchDetails;
+                        if(methodType.equals("PUT")){
+                            putRouteExtra = matchDetails.getMatchKey() +  "/";
+                        }
                         break;
                     }
                 }
 
-                TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches/details");
+                TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches/" + putRouteExtra + "details");
                 detailEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody detailBody = new TOARequestBody();
                 detailBody.addValue(detailJSON);
@@ -1222,8 +1229,58 @@ public class MatchesController {
                         checkMatchDetails();
                     }
                 }));
-                //TODO: Upload match Participants
-                //checkMatchParticipants();
+                checkMatchParticipants();
+
+                methodType = "POST";
+                putRouteExtra = "";
+
+                if(completeMatch.isUploaded()){
+                    methodType = "PUT";
+                } else {
+                    for (MatchParticipantJSON matchPar : uploadedMatchParticipants) {
+                        if (matchPar.getMatchKey().equals(selectedMatch.getMatchKey())) {
+                            methodType = "PUT";
+                        }
+                    }
+                }
+
+                MatchParticipant[] mPs = null;
+
+                for (MatchParticipant[] mp : this.matchStations.values()) {
+                    if (mp[0].getMatchKey().equals(selectedMatch.getMatchKey())) {
+                        mPs = mp;
+                        if(methodType.equals("PUT")){
+                            putRouteExtra = mp[0].getMatchKey() +  "/";
+                        }
+                        break;
+                    }
+                }
+
+                TOAEndpoint matchParEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches/" + putRouteExtra + "participants");
+                matchParEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+                TOARequestBody matchParticipantBody = new TOARequestBody();
+                for(MatchParticipant m : mPs){
+                    MatchParticipantJSON mPJson = new MatchParticipantJSON();
+                    mPJson.setMatchParticipantKey(m.getStationKey());
+                    mPJson.setMatchKey(m.getMatchKey());
+                    mPJson.setStation(m.getStation());
+                    mPJson.setStationStatus(m.getStationStatus());
+                    mPJson.setTeamKey(m.getTeamKey() + "");
+                    mPJson.setRefStatus(0);//TODO: Fix?
+                    if(Integer.parseInt(mPJson.getTeamKey()) > 0) {
+                        matchParticipantBody.addValue(mPJson);
+                    }
+
+                }
+                matchParEndpoint.setBody(matchParticipantBody);
+                matchParEndpoint.execute(((response, success) -> {
+                    if (success) {
+                        controller.sendInfo("Successfully uploaded match partipants results to TOA. " + response);
+                        checkMatchParticipants();
+                    } else {
+                        controller.sendError("Connection to TOA unsuccessful. " + response);
+                    }
+                }));
             }
         }
     }
@@ -1243,15 +1300,17 @@ public class MatchesController {
             Optional<ButtonType> result = alert.showAndWait();
             if (result.get() == okayButton) {
                 String methodType = "POST";
+                String putRouteExtra = "";
                 if(uploadedMatches != null){
                     for (MatchGeneralJSON match : uploadedMatches) {
                         if (match.getMatchKey().equals(selectedMatch.getMatchKey())) {
                             methodType = "PUT";
+                            putRouteExtra = "/" + match.getMatchKey();
                         }
                     }
                 }
 
-                TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches");
+                TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches" + putRouteExtra);
                 matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody requestBody = new TOARequestBody();
                 MatchGeneralJSON matchJSON = new MatchGeneralJSON();
@@ -1281,14 +1340,14 @@ public class MatchesController {
                     }
                 }));
 
-                String participantMethodType = "POST";
-
+                methodType = "POST";
+                putRouteExtra = "";
                 if(selectedMatch.isUploaded()){
-                    participantMethodType = "PUT";
+                    methodType = "PUT";
                 } else {
                     for (MatchParticipantJSON matchPar : uploadedMatchParticipants) {
                         if (matchPar.getMatchKey().equals(selectedMatch.getMatchKey())) {
-                            participantMethodType = "PUT";
+                            methodType = "PUT";
                         }
                     }
                 }
@@ -1297,18 +1356,15 @@ public class MatchesController {
 
                 for (MatchParticipant[] mp : this.matchStations.values()) {
                     if (mp[0].getMatchKey().equals(selectedMatch.getMatchKey())) {
-                        System.out.println(mp[0].getMatchKey());
-                        System.out.println(mp[1].getMatchKey());
-                        System.out.println(mp[2].getMatchKey());
-                        System.out.println(mp[3].getMatchKey());
-                        System.out.println(mp[4].getMatchKey());
-                        System.out.println(mp[5].getMatchKey());
                         mPs = mp;
+                        if(putRouteExtra.equals("PUT")){
+                            putRouteExtra = mp[0].getMatchKey() + "/";
+                        }
                         break;
                     }
                 }
 
-                TOAEndpoint matchParEndpoint = new TOAEndpoint(participantMethodType, "event/" + Config.EVENT_ID + "/matches/participants");
+                TOAEndpoint matchParEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches/" + putRouteExtra + "participants");
                 matchParEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody matchParticipantBody = new TOARequestBody();
                 for(MatchParticipant m : mPs){
@@ -1335,6 +1391,7 @@ public class MatchesController {
                 }));
 
                 methodType = "POST";
+                putRouteExtra = "";
                 if (selectedMatch.isUploaded()) {
                     methodType = "PUT";
                 } else {
@@ -1350,11 +1407,14 @@ public class MatchesController {
                 for (MatchDetail1819JSON matchDetails : this.matchDetails.values()) {
                     if (matchDetails.getMatchKey().equals(selectedMatch.getMatchKey())) {
                         detailJSON = matchDetails;
+                        if(methodType.equals("PUT")){
+                            putRouteExtra = matchDetails.getMatchKey() + "/";
+                        }
                         break;
                     }
                 }
 
-                TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches/details");
+                TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches/" + putRouteExtra + "details");
                 detailEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody detailBody = new TOARequestBody();
                 detailBody.addValue(detailJSON);

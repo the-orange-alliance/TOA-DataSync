@@ -168,9 +168,9 @@ public class RankingsController {
 
     public void postRankings() {
         if (teamRankings.size() > 0) {
-            // We HAVE to make a DELETE request first
-            // This is because MySQL UPDATE query does not
-            // allow multiple row updates...
+            /* We HAVE to make a DELETE request first
+               This is because MySQL UPDATE query does not
+               allow multiple row updates...*/
             TOAEndpoint deleteEndpoint = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/rankings");
             deleteEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
             TOARequestBody deleteBody = new TOARequestBody();
@@ -181,7 +181,6 @@ public class RankingsController {
                     TOAEndpoint postEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/rankings");
                     postEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                     TOARequestBody postBody = new TOARequestBody();
-                    //postBody.setEventKey(Config.EVENT_ID);
                     for (TeamRanking ranking : teamRankings) {
                         TeamRankingJSON rankJSON = new TeamRankingJSON();
                         rankJSON.setTeamRankKey(Config.EVENT_ID + "-R" + ranking.getTeamKey());
