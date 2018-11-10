@@ -14,6 +14,7 @@ import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.toa.*;
 import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.json.first.*;
+import org.theorangealliance.datasync.models.Alliance;
 import org.theorangealliance.datasync.models.MatchGeneral;
 import org.theorangealliance.datasync.models.MatchGeneralAndMatchParticipant;
 import org.theorangealliance.datasync.models.MatchParticipant;
@@ -310,8 +311,9 @@ public class MatchesController {
         if (matchList.size() <= 0) {
             getMatchesFromFIRSTApi1819();
         } else {
-            uploadQueue.clear();
-            teamWinLoss.clear();
+            //uploadQueue.clear();
+            //teamWinLoss.clear();
+
             //Do Match Details
 
         }
@@ -601,6 +603,8 @@ public class MatchesController {
                     MatchGeneral match = mValues.getMatchGeneral();
                     MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
+                    match.setIsUploaded(getUploadedFromMatchKey(match.getMatchKey()));
+
                     calculateWL(match, MatchParticipants);
 
                     matchDetails.put(match, getMatchDetails1819FirstAPI(("matches/" + m.getMatchNumber()), match.getMatchKey(), 1));
@@ -613,13 +617,6 @@ public class MatchesController {
                     controller.sendError("Connection to FIRST Scoring system unsuccessful.");
                 }
             }
-
-            controller.sendInfo("Successfully imported " + matchList.size() + " matches from the Scoring System.");
-            controller.btnMatchScheduleUpload.setDisable(false);
-            controller.btnMatchImport.setText("Re-Sync Match Schedule");
-            this.controller.btnMatchUpload.setVisible(true);
-            this.controller.btnMatchBrowserView.setVisible(true);
-            this.controller.btnMatchOpen.setVisible(true);
 
         } else {
             controller.sendError("Connection to FIRST Scoring system unsuccessful.  Did not get Qualifier Matches" );
@@ -663,10 +660,11 @@ public class MatchesController {
                     MatchGeneral match = mValues.getMatchGeneral();
                     MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
+                    match.setIsUploaded(getUploadedFromMatchKey(match.getMatchKey()));
+
                     calculateWL(match, MatchParticipants);
 
                     sf1MatchDtl.add(getMatchDetails1819FirstAPI(("elim/sf/1/" + (sfMatchNum-10)), match.getMatchKey(), 2));
-                    System.out.println(sf1MatchDtl.size());
                     sf1Matches.add(match);
                     sf1Sche.add(MatchParticipants);
 
@@ -713,6 +711,8 @@ public class MatchesController {
                     MatchGeneral match = mValues.getMatchGeneral();
                     MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
+                    match.setIsUploaded(getUploadedFromMatchKey(match.getMatchKey()));
+
                     calculateWL(match, MatchParticipants);
 
                     sf2MatchDtl.add(getMatchDetails1819FirstAPI(("elim/sf/2/" + (sfMatchNum-20)), match.getMatchKey(), 2));
@@ -758,6 +758,8 @@ public class MatchesController {
                     MatchGeneral match = mValues.getMatchGeneral();
                     MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
+                    match.setIsUploaded(getUploadedFromMatchKey(match.getMatchKey()));
+
                     calculateWL(match, MatchParticipants);
 
                     fMatchDtl.add(getMatchDetails1819FirstAPI(("elim/finals/" + fMatchNum), match.getMatchKey(), 3));
@@ -774,6 +776,42 @@ public class MatchesController {
         }
         //Now that we parsed ALL of the elim matches, we can fix the matches
         fixTheElimMatches();
+        if (uploadedMatches != null) {
+            if (uploadedMatches.size() == matchList.size()) {
+                controller.sendInfo("Successfully imported " + matchList.size() + " matches from the Scoring System. Online and local schedules are the same.");
+            } else {
+                controller.sendError("Successfully imported " + matchList.size() + " matches from the Scoring System. However, uploaded schedule and local schedule differ.");
+            }
+            this.controller.btnMatchUpload.setVisible(true);
+            this.controller.btnMatchBrowserView.setVisible(true);
+            this.controller.btnMatchOpen.setVisible(true);
+
+        }
+    }
+
+    private boolean getUploadedFromMatchKey (String matchKey) {
+        boolean fullyUploaded = false;
+
+        boolean returnValue = false;
+
+        // Not very efficient, but it is what is is... I hate O(N^2) algorithms.
+        for (MatchDetail1819JSON detail : uploadedDetails) {
+            if (detail.getMatchKey().equals(matchKey)) {
+                returnValue = true;
+                fullyUploaded = true;
+            }
+        }
+
+        for (MatchGeneralJSON general : uploadedMatches) {
+            if (general.getMatchKey().equals(matchKey)) {
+                if (general.getPlayNumber() == 0) {
+                    returnValue = false;
+                } else if (fullyUploaded) {
+                    returnValue = true;
+                }
+            }
+        }
+        return returnValue;
     }
 
     private MatchDetail1819JSON getMatchDetails1819FirstAPI(String endpoint, String matchKey, int tournLevel) {
@@ -851,13 +889,39 @@ public class MatchesController {
         MatchParticipant[] MatchParticipants = new MatchParticipant[6];
 
         /** TEAM info **/
+
+        //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
+        boolean[] noShow =      {false, false, false, false, false, false};
+        boolean[] surrogate =   {false, false, false, false, false, false};
+        boolean[] yellow =      {false, false, false, false, false, false};
+        boolean[] dq =          {false, false, false, false, false, false};
         if(eM != null) {
-            MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, (eM.getRedAlliance().getAllianceCaptain() == -1) ? 0 : eM.getRedAlliance().getAllianceCaptain());
-            MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, (eM.getRedAlliance().getAlliancePick1() == -1) ? 0 : eM.getRedAlliance().getAlliancePick1());
-            MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, (eM.getRedAlliance().getAlliancePick2() == -1) ? 0 : eM.getRedAlliance().getAlliancePick2());
-            MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, (eM.getBlueAlliance().getAllianceCaptain() == -1) ? 0 : eM.getBlueAlliance().getAllianceCaptain());
-            MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, (eM.getBlueAlliance().getAlliancePick1() == -1) ? 0 : eM.getBlueAlliance().getAlliancePick1());
-            MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, (eM.getBlueAlliance().getAlliancePick2() == -1) ? 0 : eM.getBlueAlliance().getAlliancePick2());
+            AllianceFIRST redAlliance = getAllianceFirstFromTeams(eM.getRedAlliance().getAllianceCaptain(), eM.getRedAlliance().getAlliancePick1(), eM.getRedAlliance().getAlliancePick2());
+            AllianceFIRST blueAlliance = getAllianceFirstFromTeams(eM.getBlueAlliance().getAllianceCaptain(), eM.getBlueAlliance().getAlliancePick1(), eM.getBlueAlliance().getAlliancePick2());
+            int[] matchTeams = {eM.getRedAlliance().getAllianceCaptain(), eM.getRedAlliance().getAlliancePick1(), eM.getRedAlliance().getAlliancePick2(), eM.getBlueAlliance().getAllianceCaptain(), eM.getBlueAlliance().getAlliancePick1(), eM.getBlueAlliance().getAlliancePick2()};
+            if(redAlliance != null && blueAlliance != null) {
+                MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, (redAlliance.getAllianceCaptain()));
+                MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, (redAlliance.getAlliancePick1()));
+                MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, (redAlliance.getAlliancePick2()));
+                MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, (blueAlliance.getAllianceCaptain()));
+                MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, (blueAlliance.getAlliancePick1()));
+                MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, (blueAlliance.getAlliancePick2()));
+                //Because these are elims we can calc no shows base on which are -1
+                int i = 0;
+                for(int t : matchTeams) {
+                    if(t < 1){
+                        noShow[i] = true;
+                    }
+                    i++;
+                }
+            } else {
+                MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, (eM.getRedAlliance().getAllianceCaptain() == -1) ? 0 : eM.getRedAlliance().getAllianceCaptain());
+                MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, (eM.getRedAlliance().getAlliancePick1() == -1) ? 0 : eM.getRedAlliance().getAlliancePick1());
+                MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, (eM.getRedAlliance().getAlliancePick2() == -1) ? 0 : eM.getRedAlliance().getAlliancePick2());
+                MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, (eM.getBlueAlliance().getAllianceCaptain() == -1) ? 0 : eM.getBlueAlliance().getAllianceCaptain());
+                MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, (eM.getBlueAlliance().getAlliancePick1() == -1) ? 0 : eM.getBlueAlliance().getAlliancePick1());
+                MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, (eM.getBlueAlliance().getAlliancePick2() == -1) ? 0 : eM.getBlueAlliance().getAlliancePick2());
+            }
 
         } else if(qM != null) {
             MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, qM.getRedAlliance().getTeam1());
@@ -868,20 +932,19 @@ public class MatchesController {
             MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, 0);
         }
 
-        /// Check for dq, no show, surrogates, and yellow cards, with that order of precedence
-        //TODO: Update with Yellow card, Red Card, No Show, and DQ data when API route is added
-        MatchParticipants[0].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-        MatchParticipants[1].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-        MatchParticipants[2].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-        MatchParticipants[3].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-        MatchParticipants[4].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
-        MatchParticipants[5].setStationStatus(/*DQ*/0 == 2 ? -2 : /*NoShow*/0 == 1 ? -1 : /*Surrogate*/false ? 0 : /*YCard*/false ? 2 : 1);
+        ///dq, no show, surrogates, and yellow cards, with that order of precedence
+        MatchParticipants[0].setStationStatus(/*DQ*/dq[0] ? -2 : /*NoShow*/noShow[0] ? -1 : /*Surrogate*/surrogate[0] ? 0 : /*YCard*/yellow[0] ? 2 : 1);
+        MatchParticipants[1].setStationStatus(/*DQ*/dq[1] ? -2 : /*NoShow*/noShow[1] ? -1 : /*Surrogate*/surrogate[1] ? 0 : /*YCard*/yellow[1] ? 2 : 1);
+        MatchParticipants[2].setStationStatus(/*DQ*/dq[2] ? -2 : /*NoShow*/noShow[2] ? -1 : /*Surrogate*/surrogate[2] ? 0 : /*YCard*/yellow[2] ? 2 : 1);
+        MatchParticipants[3].setStationStatus(/*DQ*/dq[3] ? -2 : /*NoShow*/noShow[3] ? -1 : /*Surrogate*/surrogate[3] ? 0 : /*YCard*/yellow[3] ? 2 : 1);
+        MatchParticipants[4].setStationStatus(/*DQ*/dq[4] ? -2 : /*NoShow*/noShow[4] ? -1 : /*Surrogate*/surrogate[4] ? 0 : /*YCard*/yellow[4] ? 2 : 1);
+        MatchParticipants[5].setStationStatus(/*DQ*/dq[5] ? -2 : /*NoShow*/noShow[5] ? -1 : /*Surrogate*/surrogate[5] ? 0 : /*YCard*/yellow[5] ? 2 : 1);
 
         match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
         match.setIsDone(qualMatch.isFinished());
 
-        match.setRedPenalty(qualMatch.getRedSpecifics().getPenaltyPoints());
-        match.setBluePenalty(qualMatch.getBlueSpecifics().getPenaltyPoints());
+        match.setRedPenalty(qualMatch.getBlueSpecifics().getPenaltyPoints());//These are backwards, so we have to do it this way
+        match.setBluePenalty(qualMatch.getRedSpecifics().getPenaltyPoints());
         match.setRedAutoScore(qualMatch.getRedSpecifics().getAutoPoints());
         match.setBlueAutoScore(qualMatch.getBlueSpecifics().getAutoPoints());
         match.setRedTeleScore(qualMatch.getRedSpecifics().getTeleopPoints());
@@ -896,6 +959,24 @@ public class MatchesController {
         returnValue.setMatchParticipants(MatchParticipants);
 
         return returnValue;
+    }
+
+    private AllianceFIRST getAllianceFirstFromTeams(int t1, int t2, int t3) {
+        AllianceArray alls = null;
+        try {
+            alls =  FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + Config.FIRST_API_EVENT_ID + "/elim/alliances/"), AllianceArray.class);
+        } catch (Exception e) {
+            controller.sendError("Couldn't Get Alliance for Elim Matches");
+        }
+
+        if(alls != null) {
+            for(AllianceFIRST a : alls.getAlliances()){
+                if(a.getAllianceCaptain() == t1 || a.getAlliancePick1() == t2 || a.getAlliancePick2() == t3) {
+                    return a;
+                }
+            }
+        }
+        return null;
     }
 
     private void fixTheElimMatches(){
@@ -926,7 +1007,7 @@ public class MatchesController {
                     if(m.getMatchKey().equalsIgnoreCase(sf1Matches.get(0).getMatchKey())){
                         break;
                     } else {
-                        i++;
+                        ii++;
                     }
                 }
 
@@ -939,6 +1020,13 @@ public class MatchesController {
                 sf1Sche.get(i)[3].setMatchKey(matchKey);
                 sf1Sche.get(i)[4].setMatchKey(matchKey);
                 sf1Sche.get(i)[5].setMatchKey(matchKey);
+                sf1Sche.get(i)[0].setStationKey(matchKey + "-R1");
+                sf1Sche.get(i)[1].setStationKey(matchKey + "-R2");
+                sf1Sche.get(i)[2].setStationKey(matchKey + "-R3");
+                sf1Sche.get(i)[3].setStationKey(matchKey + "-B1");
+                sf1Sche.get(i)[4].setStationKey(matchKey + "-B2");
+                sf1Sche.get(i)[5].setStationKey(matchKey + "-B3");
+
 
                 sf1MatchDtl.get(ii).setMatchKey(matchKey);
                 sf1MatchDtl.get(ii).setMatchDtlKey(matchKey + "-DTL");
@@ -986,13 +1074,19 @@ public class MatchesController {
                 sf2Sche.get(i)[3].setMatchKey(matchKey);
                 sf2Sche.get(i)[4].setMatchKey(matchKey);
                 sf2Sche.get(i)[5].setMatchKey(matchKey);
+                sf2Sche.get(i)[0].setStationKey(matchKey + "-R1");
+                sf2Sche.get(i)[1].setStationKey(matchKey + "-R2");
+                sf2Sche.get(i)[2].setStationKey(matchKey + "-R3");
+                sf2Sche.get(i)[3].setStationKey(matchKey + "-B1");
+                sf2Sche.get(i)[4].setStationKey(matchKey + "-B2");
+                sf2Sche.get(i)[5].setStationKey(matchKey + "-B3");
 
                 sf2MatchDtl.get(ii).setMatchKey(matchKey);
                 sf2MatchDtl.get(ii).setMatchDtlKey(matchKey + "-DTL");
 
                 matchList.add(sf2Matches.get(0));
                 matchStations.put(sf2Matches.get(0), sf2Sche.get(i));
-                matchDetails.put(sf2Matches.get(0), sf2MatchDtl.get(i));
+                matchDetails.put(sf2Matches.get(0), sf2MatchDtl.get(ii));
 
 
                 sf2Num++;
@@ -1033,6 +1127,12 @@ public class MatchesController {
                 fSche.get(i)[3].setMatchKey(matchKey);
                 fSche.get(i)[4].setMatchKey(matchKey);
                 fSche.get(i)[5].setMatchKey(matchKey);
+                fSche.get(i)[0].setStationKey(matchKey + "-R1");
+                fSche.get(i)[1].setStationKey(matchKey + "-R2");
+                fSche.get(i)[2].setStationKey(matchKey + "-R3");
+                fSche.get(i)[3].setStationKey(matchKey + "-B1");
+                fSche.get(i)[4].setStationKey(matchKey + "-B2");
+                fSche.get(i)[5].setStationKey(matchKey + "-B3");
 
                 fMatchDtl.get(ii).setMatchKey(matchKey);
                 fMatchDtl.get(ii).setMatchDtlKey(matchKey + "-DTL");
@@ -1197,6 +1297,12 @@ public class MatchesController {
 
                 for (MatchParticipant[] mp : this.matchStations.values()) {
                     if (mp[0].getMatchKey().equals(selectedMatch.getMatchKey())) {
+                        System.out.println(mp[0].getMatchKey());
+                        System.out.println(mp[1].getMatchKey());
+                        System.out.println(mp[2].getMatchKey());
+                        System.out.println(mp[3].getMatchKey());
+                        System.out.println(mp[4].getMatchKey());
+                        System.out.println(mp[5].getMatchKey());
                         mPs = mp;
                         break;
                     }

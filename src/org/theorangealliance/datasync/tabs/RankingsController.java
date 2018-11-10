@@ -174,7 +174,6 @@ public class RankingsController {
             TOAEndpoint deleteEndpoint = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/rankings");
             deleteEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
             TOARequestBody deleteBody = new TOARequestBody();
-            //deleteBody.setEventKey(Config.EVENT_ID);
             deleteEndpoint.setBody(deleteBody);
             deleteEndpoint.execute(((response, success) -> {
                 if (success) {

@@ -327,8 +327,8 @@ public class DataSyncController implements Initializable {
                     sendInfo("Found division id " + Config.DIVISION_NAME);
                     tabTeams.setDisable(false);
                     tabMatches.setDisable(false);
-                    tabRankings.setDisable(false);
-                    tabSync.setDisable(false);
+                    //tabRankings.setDisable(false);
+                    //tabSync.setDisable(false);
                     tabAllianceSelection.setDisable(false);
 
                 } else {
@@ -481,7 +481,9 @@ public class DataSyncController implements Initializable {
                 this.matchesController.checkMatchParticipants();
 //                this.rankingsController.syncRankings();
                 // We're going to try THIS instead....
-                this.rankingsController.getRankingsByFile();
+                //this.rankingsController.getRankingsByFile();
+                //How About This?!?!?!?
+                this.rankingsController.getRankingsFIRSTApi();
                 this.rankingsController.postRankings();
                 if (this.btnSyncMatches.selectedProperty().get()) {
                      this.matchesController.postCompletedMatches();
