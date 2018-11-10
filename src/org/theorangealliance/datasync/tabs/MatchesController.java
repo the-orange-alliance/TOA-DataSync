@@ -311,6 +311,7 @@ public class MatchesController {
         //Dont Think we need this anymore....
         //if (matchList.size() <= 0) {
             getMatchesFromFIRSTApi1819();
+            postCompletedMatches();
         //} else {
             //uploadQueue.clear();
             //teamWinLoss.clear();
@@ -585,6 +586,7 @@ public class MatchesController {
         }
         if(matches != null) {
             controller.btnMatchUpload.setDisable(true);
+            uploadQueue.clear();
             matchList.clear();
             matchStations.clear();
             matchDetails.clear();
@@ -605,6 +607,10 @@ public class MatchesController {
                     MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
                     match.setIsUploaded(getUploadedFromMatchKey(match.getMatchKey()));
+                    if (match.isDone() && !match.isUploaded()) {
+                        TOALogger.log(Level.INFO, "Added match " + match.getMatchKey() + " to the upload queue.");
+                        uploadQueue.add(match);
+                    }
 
                     calculateWL(match, MatchParticipants);
 
@@ -662,6 +668,10 @@ public class MatchesController {
                     MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
                     match.setIsUploaded(getUploadedFromMatchKey(match.getMatchKey()));
+                    if (match.isDone() && !match.isUploaded()) {
+                        TOALogger.log(Level.INFO, "Added match " + match.getMatchKey() + " to the upload queue.");
+                        uploadQueue.add(match);
+                    }
 
                     calculateWL(match, MatchParticipants);
 
@@ -713,6 +723,10 @@ public class MatchesController {
                     MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
                     match.setIsUploaded(getUploadedFromMatchKey(match.getMatchKey()));
+                    if (match.isDone() && !match.isUploaded()) {
+                        TOALogger.log(Level.INFO, "Added match " + match.getMatchKey() + " to the upload queue.");
+                        uploadQueue.add(match);
+                    }
 
                     calculateWL(match, MatchParticipants);
 
@@ -760,6 +774,10 @@ public class MatchesController {
                     MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
                     match.setIsUploaded(getUploadedFromMatchKey(match.getMatchKey()));
+                    if (match.isDone() && !match.isUploaded()) {
+                        TOALogger.log(Level.INFO, "Added match " + match.getMatchKey() + " to the upload queue.");
+                        uploadQueue.add(match);
+                    }
 
                     calculateWL(match, MatchParticipants);
 
@@ -1357,7 +1375,7 @@ public class MatchesController {
                 for (MatchParticipant[] mp : this.matchStations.values()) {
                     if (mp[0].getMatchKey().equals(selectedMatch.getMatchKey())) {
                         mPs = mp;
-                        if(putRouteExtra.equals("PUT")){
+                        if(methodType.equals("PUT")){
                             putRouteExtra = mp[0].getMatchKey() + "/";
                         }
                         break;
