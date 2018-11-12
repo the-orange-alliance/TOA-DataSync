@@ -378,8 +378,8 @@
                               <TableColumn fx:id="colRankWins" prefWidth="75.0" resizable="false" text="Wins" />
                               <TableColumn fx:id="colRankLosses" prefWidth="75.0" resizable="false" text="Losses" />
                               <TableColumn fx:id="colRankTies" prefWidth="75.0" resizable="false" text="Ties" />
-                              <TableColumn fx:id="colRankQP" prefWidth="60.0" resizable="false" text="QP" />
                               <TableColumn fx:id="colRankRP" prefWidth="60.0" resizable="false" text="RP" />
+                              <TableColumn fx:id="colRankTBP" prefWidth="60.0" resizable="false" text="TBP" />
                               <TableColumn fx:id="colRankScore" prefWidth="119.0" resizable="false" text="Highest Score" />
                               <TableColumn fx:id="colRankPlayed" prefWidth="105.0" resizable="false" text="Played" />
                           </columns>

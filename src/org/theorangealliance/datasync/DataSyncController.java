@@ -114,8 +114,8 @@ public class DataSyncController implements Initializable {
     @FXML public TableColumn<TeamRanking, Integer> colRankWins;
     @FXML public TableColumn<TeamRanking, Integer> colRankLosses;
     @FXML public TableColumn<TeamRanking, Integer> colRankTies;
-    @FXML public TableColumn<TeamRanking, Integer> colRankQP;
     @FXML public TableColumn<TeamRanking, Integer> colRankRP;
+    @FXML public TableColumn<TeamRanking, Integer> colRankTBP;
     @FXML public TableColumn<TeamRanking, Integer> colRankScore;
     @FXML public TableColumn<TeamRanking, Integer> colRankPlayed;
     @FXML public Button btnRankUpload;

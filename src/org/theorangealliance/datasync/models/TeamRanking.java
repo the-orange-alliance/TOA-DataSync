@@ -12,8 +12,8 @@ public class TeamRanking {
     private SimpleIntegerProperty wins;
     private SimpleIntegerProperty losses;
     private SimpleIntegerProperty ties;
-    private SimpleIntegerProperty qualPoints;
     private SimpleIntegerProperty rankPoints;
+    private SimpleIntegerProperty tieBreakerPoints;
     private SimpleIntegerProperty highestScore;
     private SimpleIntegerProperty played;
 
@@ -23,8 +23,8 @@ public class TeamRanking {
         this.wins = new SimpleIntegerProperty(0);
         this.losses = new SimpleIntegerProperty(0);
         this.ties = new SimpleIntegerProperty(0);
-        this.qualPoints = new SimpleIntegerProperty(0);
         this.rankPoints = new SimpleIntegerProperty(0);
+        this.tieBreakerPoints = new SimpleIntegerProperty(0);
         this.highestScore = new SimpleIntegerProperty(0);
         this.played = new SimpleIntegerProperty(0);
     }
@@ -69,20 +69,20 @@ public class TeamRanking {
         this.ties.set(ties);
     }
 
-    public int getQualPoints() {
-        return qualPoints.get();
-    }
-
-    public void setQualPoints(int qualPoints) {
-        this.qualPoints.set(qualPoints);
-    }
-
     public int getRankPoints() {
         return rankPoints.get();
     }
 
     public void setRankPoints(int rankPoints) {
         this.rankPoints.set(rankPoints);
+    }
+
+    public int getTieBreakerPoints() {
+        return tieBreakerPoints.get();
+    }
+
+    public void setTieBreakerPoints(int tieBreakerPoints) {
+        this.tieBreakerPoints.set(tieBreakerPoints);
     }
 
     public int getHighestScore() {

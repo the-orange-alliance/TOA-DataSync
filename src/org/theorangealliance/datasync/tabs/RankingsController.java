@@ -43,8 +43,8 @@ public class RankingsController {
         this.controller.colRankWins.setCellValueFactory(new PropertyValueFactory<>("wins"));
         this.controller.colRankLosses.setCellValueFactory(new PropertyValueFactory<>("losses"));
         this.controller.colRankTies.setCellValueFactory(new PropertyValueFactory<>("ties"));
-        this.controller.colRankQP.setCellValueFactory(new PropertyValueFactory<>("qualPoints"));
         this.controller.colRankRP.setCellValueFactory(new PropertyValueFactory<>("rankPoints"));
+        this.controller.colRankTBP.setCellValueFactory(new PropertyValueFactory<>("tieBreakerPoints"));
         this.controller.colRankScore.setCellValueFactory(new PropertyValueFactory<>("highestScore"));
         this.controller.colRankPlayed.setCellValueFactory(new PropertyValueFactory<>("played"));
 
@@ -75,7 +75,7 @@ public class RankingsController {
                         int highScore = Integer.parseInt(e.child(5).text());
                         int played = Integer.parseInt(e.child(6).text());
                         TeamRanking ranking = teamRankings.get(rank-1);
-                        ranking.setQualPoints(qualPoints);
+                        //ranking.setQualPoints(qualPoints);
                         ranking.setRankPoints(rankPoints);
                         ranking.setHighestScore(highScore);
                         ranking.setPlayed(played);
@@ -116,7 +116,7 @@ public class RankingsController {
                     int highScore = Integer.parseInt(e.child(5).text());
                     int played = Integer.parseInt(e.child(6).text());
                     TeamRanking ranking = new TeamRanking(rank, team);
-                    ranking.setQualPoints(qualPoints);
+                    //ranking.setQualPoints(qualPoints);
                     ranking.setRankPoints(rankPoints);
                     ranking.setHighestScore(highScore);
                     ranking.setPlayed(played);
@@ -148,7 +148,7 @@ public class RankingsController {
                     TeamRanking ranking = new TeamRanking(tr.getTeamRanking(), tr.getTeamNumber());
                     int[] results = controller.getTeamWL().get(tr.getTeamNumber());
                     //TODO: Update when more data is added to API
-                    //ranking.setQualPoints(qualPoints);
+                    ranking.setTieBreakerPoints(tr.getTeamTieBreakerPoints());
                     ranking.setRankPoints(tr.getTeamRP());
                     //ranking.setHighestScore(highScore);
                     ranking.setPlayed(tr.getTeamMatchesPlayed());
@@ -187,8 +187,9 @@ public class RankingsController {
                         rankJSON.setEventKey(Config.EVENT_ID);
                         rankJSON.setTeamKey(ranking.getTeamKey());
                         rankJSON.setHighestScore(ranking.getHighestScore());
-                        rankJSON.setQualPoints(ranking.getQualPoints());
+                        rankJSON.setQualPoints(0);
                         rankJSON.setRankPoints(ranking.getRankPoints());
+                        rankJSON.setTieBreakerPoints(ranking.getTieBreakerPoints());
                         rankJSON.setDisqualified(0);
                         rankJSON.setPlayed(ranking.getPlayed());
                         rankJSON.setWins(ranking.getWins());

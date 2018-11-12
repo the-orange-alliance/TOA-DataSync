@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 /**
  * Created by Kyle Flynn on 12/1/2017.
+ * Modded By Soren Zaiser for 2018 Scoring System 11/11/18
  */
 public class TeamRankingJSON {
 
@@ -15,7 +16,6 @@ public class TeamRankingJSON {
 
     @SerializedName("team_key")
     private int teamKey;
-
 
     private int rank;
 
@@ -34,6 +34,9 @@ public class TeamRankingJSON {
 
     @SerializedName("qualifying_points")
     private int qualPoints;
+
+    @SerializedName("tie_breaker_points")
+    private int tieBreakerPoints;
 
     private int played;
 
@@ -125,6 +128,14 @@ public class TeamRankingJSON {
 
     public void setQualPoints(int qualPoints) {
         this.qualPoints = qualPoints;
+    }
+
+    public int getTieBreakerPoints() {
+        return tieBreakerPoints;
+    }
+
+    public void setTieBreakerPoints(int tieBreakerPoints) {
+        this.tieBreakerPoints = tieBreakerPoints;
     }
 
     public int getPlayed() {
