@@ -476,9 +476,9 @@ public class DataSyncController implements Initializable {
                 TOALogger.log(Level.INFO, "Executing update #" + count + " at " + DateFormat.getTimeInstance(DateFormat.SHORT).format(date));
                 TOALogger.log(Level.INFO, "There are " + Thread.activeCount() + " threads.");
                 this.matchesController.syncMatches();
-                this.matchesController.checkMatchSchedule();
-                this.matchesController.checkMatchDetails();
-                this.matchesController.checkMatchParticipants();
+                this.matchesController.checkMatchSchedule(); //Gets Matches and updates display
+                this.matchesController.checkMatchDetails(); //Gets MAtch Details
+                this.matchesController.checkMatchParticipants();// Gets Match Participants
 //                this.rankingsController.syncRankings();
                 // We're going to try THIS instead....
                 //this.rankingsController.getRankingsByFile();

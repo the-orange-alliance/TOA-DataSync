@@ -212,6 +212,7 @@ public class MatchesController {
                 if (uploadedMatches.size() > 0) {
                     this.controller.labelScheduleUploaded.setTextFill(Color.GREEN);
                     this.controller.labelScheduleUploaded.setText("Schedule Already Posted");
+                    this.controller.sendInfo("Grabbed " + uploadedMatches.size() + " matches from TOA");
                 } else {
                     this.controller.labelScheduleUploaded.setTextFill(Color.RED);
                     this.controller.labelScheduleUploaded.setText("Schedule NOT Posted");
@@ -298,7 +299,7 @@ public class MatchesController {
         }
     }
 
-    //TODO: Definately Broken with New API
+
     public void syncMatches() {
         if(controller.rbNewScore.isSelected()) {
             syncMatches1819();
@@ -667,12 +668,6 @@ public class MatchesController {
                     MatchGeneral match = mValues.getMatchGeneral();
                     MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
-                    match.setIsUploaded(getUploadedFromMatchKey(match.getMatchKey()));
-                    if (match.isDone() && !match.isUploaded()) {
-                        TOALogger.log(Level.INFO, "Added match " + match.getMatchKey() + " to the upload queue.");
-                        uploadQueue.add(match);
-                    }
-
                     calculateWL(match, MatchParticipants);
 
                     sf1MatchDtl.add(getMatchDetails1819FirstAPI(("elim/sf/1/" + (sfMatchNum-10)), match.getMatchKey(), 2));
@@ -722,12 +717,6 @@ public class MatchesController {
                     MatchGeneral match = mValues.getMatchGeneral();
                     MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
-                    match.setIsUploaded(getUploadedFromMatchKey(match.getMatchKey()));
-                    if (match.isDone() && !match.isUploaded()) {
-                        TOALogger.log(Level.INFO, "Added match " + match.getMatchKey() + " to the upload queue.");
-                        uploadQueue.add(match);
-                    }
-
                     calculateWL(match, MatchParticipants);
 
                     sf2MatchDtl.add(getMatchDetails1819FirstAPI(("elim/sf/2/" + (sfMatchNum-20)), match.getMatchKey(), 2));
@@ -773,12 +762,6 @@ public class MatchesController {
                     MatchGeneral match = mValues.getMatchGeneral();
                     MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
-                    match.setIsUploaded(getUploadedFromMatchKey(match.getMatchKey()));
-                    if (match.isDone() && !match.isUploaded()) {
-                        TOALogger.log(Level.INFO, "Added match " + match.getMatchKey() + " to the upload queue.");
-                        uploadQueue.add(match);
-                    }
-
                     calculateWL(match, MatchParticipants);
 
                     fMatchDtl.add(getMatchDetails1819FirstAPI(("elim/finals/" + fMatchNum), match.getMatchKey(), 3));
@@ -794,6 +777,7 @@ public class MatchesController {
             controller.sendError("Unable to get Finals matches");
         }
         //Now that we parsed ALL of the elim matches, we can fix the matches
+        checkMatchParticipants();
         fixTheElimMatches();
         if (uploadedMatches != null) {
             if (uploadedMatches.size() == matchList.size()) {
@@ -1050,6 +1034,12 @@ public class MatchesController {
                 sf1MatchDtl.get(ii).setMatchKey(matchKey);
                 sf1MatchDtl.get(ii).setMatchDtlKey(matchKey + "-DTL");
 
+                sf1Matches.get(0).setIsUploaded(getUploadedFromMatchKey(sf1Matches.get(0).getMatchKey()));
+                if (sf1Matches.get(0).isDone() && !sf1Matches.get(0).isUploaded()) {
+                    TOALogger.log(Level.INFO, "Added match " + sf1Matches.get(0).getMatchKey() + " to the upload queue.");
+                    uploadQueue.add(sf1Matches.get(0));
+                }
+
                 matchList.add(sf1Matches.get(0));
                 matchStations.put(sf1Matches.get(0), sf1Sche.get(i));
                 matchDetails.put(sf1Matches.get(0), sf1MatchDtl.get(i));
@@ -1102,6 +1092,12 @@ public class MatchesController {
 
                 sf2MatchDtl.get(ii).setMatchKey(matchKey);
                 sf2MatchDtl.get(ii).setMatchDtlKey(matchKey + "-DTL");
+
+                sf2Matches.get(0).setIsUploaded(getUploadedFromMatchKey(sf2Matches.get(0).getMatchKey()));
+                if (sf2Matches.get(0).isDone() && !sf2Matches.get(0).isUploaded()) {
+                    TOALogger.log(Level.INFO, "Added match " + sf2Matches.get(0).getMatchKey() + " to the upload queue.");
+                    uploadQueue.add(sf2Matches.get(0));
+                }
 
                 matchList.add(sf2Matches.get(0));
                 matchStations.put(sf2Matches.get(0), sf2Sche.get(i));
@@ -1156,6 +1152,12 @@ public class MatchesController {
                 fMatchDtl.get(ii).setMatchKey(matchKey);
                 fMatchDtl.get(ii).setMatchDtlKey(matchKey + "-DTL");
 
+                fMatches.get(0).setIsUploaded(getUploadedFromMatchKey(fMatches.get(0).getMatchKey()));
+                if (fMatches.get(0).isDone() && !fMatches.get(0).isUploaded()) {
+                    TOALogger.log(Level.INFO, "Added match " + fMatches.get(0).getMatchKey() + " to the upload queue.");
+                    uploadQueue.add(fMatches.get(0));
+                }
+
                 matchList.add(fMatches.get(0));
                 matchStations.put(fMatches.get(0), fSche.get(i));
                 matchDetails.put(fMatches.get(0), fMatchDtl.get(i));
@@ -1173,6 +1175,7 @@ public class MatchesController {
     public void postCompletedMatches() {
         if (uploadQueue.size() > 0) {
             for (MatchGeneral completeMatch : uploadQueue) {
+                this.controller.sendInfo("Attempting to upload Match " + completeMatch.getMatchKey());
                 String methodType = "POST";
                 String putRouteExtra = "";
                 for (MatchGeneralJSON match : uploadedMatches) {
@@ -1247,7 +1250,8 @@ public class MatchesController {
                         checkMatchDetails();
                     }
                 }));
-                checkMatchParticipants();
+
+                //checkMatchParticipants();
 
                 methodType = "POST";
                 putRouteExtra = "";
@@ -1256,7 +1260,7 @@ public class MatchesController {
                     methodType = "PUT";
                 } else {
                     for (MatchParticipantJSON matchPar : uploadedMatchParticipants) {
-                        if (matchPar.getMatchKey().equals(selectedMatch.getMatchKey())) {
+                        if (matchPar.getMatchKey().equals(completeMatch.getMatchKey())) {
                             methodType = "PUT";
                         }
                     }
@@ -1265,7 +1269,7 @@ public class MatchesController {
                 MatchParticipant[] mPs = null;
 
                 for (MatchParticipant[] mp : this.matchStations.values()) {
-                    if (mp[0].getMatchKey().equals(selectedMatch.getMatchKey())) {
+                    if (mp[0].getMatchKey().equals(completeMatch.getMatchKey())) {
                         mPs = mp;
                         if(methodType.equals("PUT")){
                             putRouteExtra = mp[0].getMatchKey() +  "/";
