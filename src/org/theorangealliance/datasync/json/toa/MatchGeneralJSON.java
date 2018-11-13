@@ -71,6 +71,9 @@ public class MatchGeneralJSON {
     @SerializedName("blue_end_score")
     private int blueEndScore;
 
+    @SerializedName("video_url")
+    private String videoUrl;
+
     /* Dont know if these will ever get added back
     @SerializedName("video_url")
     private String videoURL;
@@ -249,6 +252,14 @@ public class MatchGeneralJSON {
 
     public void setBlueEndScore(int blueEndScore) {
         this.blueEndScore = blueEndScore;
+    }
+
+    public String getVideoUrl() {
+        return videoUrl;
+    }
+
+    public void setVideoUrl(String videoUrl) {
+        this.videoUrl = videoUrl;
     }
 
     /* Dont Know if these will ever get added back

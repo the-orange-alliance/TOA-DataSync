@@ -28,6 +28,7 @@ public class MatchGeneral {
     private int blueTeleScore;
     private int redEndScore;
     private int blueEndScore;
+    private String videoUrl;
 
     public MatchGeneral(String matchName, int tournamentLevel, Date scheduledTime, int fieldNumber) {
         this.matchName = new SimpleStringProperty(matchName);
@@ -255,5 +256,13 @@ public class MatchGeneral {
 
     public void setBlueEndScore(int blueEndScore) {
         this.blueEndScore = blueEndScore;
+    }
+
+    public String getVideoUrl() {
+        return videoUrl;
+    }
+
+    public void setVideoUrl(String videoUrl) {
+        this.videoUrl = videoUrl;
     }
 }

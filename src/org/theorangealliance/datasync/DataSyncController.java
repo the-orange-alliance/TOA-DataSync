@@ -83,10 +83,12 @@ public class DataSyncController implements Initializable {
     @FXML public Button btnMatchUpload;
     @FXML public Button btnMatchBrowserView;
     @FXML public Button btnMatchOpen;
+    @FXML public Button btnSetUrl;
     @FXML public TableView<MatchGeneral> tableMatches;
     @FXML public TableColumn<MatchGeneral, String> colMatchName;
     @FXML public TableColumn<MatchGeneral, Boolean> colMatchDone;
     @FXML public TableColumn<MatchGeneral, Boolean> colMatchPosted;
+    @FXML public TextField txtVideoUrl;
     @FXML public Label labelScheduleUploaded;
     @FXML public Label labelMatchLevel;
     @FXML public Label labelMatchField;
@@ -105,6 +107,7 @@ public class DataSyncController implements Initializable {
     @FXML public Label labelBlueScore;
     @FXML public Label labelRedTeams;
     @FXML public Label labelBlueTeams;
+    @FXML public Label labelVideoUrl;
 
     /* This is for our rankings tab. */
     @FXML public Tab tabRankings;
@@ -306,6 +309,11 @@ public class DataSyncController implements Initializable {
             //Archive Scoring File
             testDirOldScoreing();
         }
+    }
+
+    @FXML
+    public void setVideoUrl(){
+        this.matchesController.setSelectedMatchVideo();
     }
 
     private void loadEventFromFIRST() {

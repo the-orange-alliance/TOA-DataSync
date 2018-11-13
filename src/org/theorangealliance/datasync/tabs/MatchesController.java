@@ -71,6 +71,7 @@ public class MatchesController {
     private ArrayList<MatchDetail1819JSON> sf1MatchDtl = new ArrayList<>();//SF1 Matches
     private ArrayList<MatchDetail1819JSON> sf1MatchPar = new ArrayList<>();//SF1 Matches
 
+
     private HashMap<Integer, int[]> teamWinLoss;
 
     private Queue<MatchGeneral> uploadQueue;
@@ -137,6 +138,7 @@ public class MatchesController {
     }
 
     private void openMatchView(MatchGeneral match) {
+        this.controller.txtVideoUrl.setText("");
         controller.btnMatchOpen.setDisable(true);
         if (match.isDone()) { //&& uploadedMatches.size() > 0) {
             controller.btnMatchUpload.setDisable(false);
@@ -164,6 +166,7 @@ public class MatchesController {
         controller.labelMatchLevel.setText("Level: " + match.getTournamentLevel());
         controller.labelMatchField.setText("Field: " + match.getFieldNumber());
         controller.labelMatchPlay.setText("Play: " + match.getPlayNumber());
+        controller.labelVideoUrl.setText(match.getVideoUrl());
         controller.labelMatchName.setText(match.getMatchName());
         controller.labelMatchKey.setText(match.getMatchKey());
 
@@ -191,6 +194,17 @@ public class MatchesController {
         controller.labelBlueScore.setUnderline(match.getRedScore() <= match.getBlueScore());
         controller.labelRedScore.setText("" + match.getRedScore());
         controller.labelBlueScore.setText("" + match.getBlueScore());
+    }
+
+    public void setSelectedMatchVideo(){
+        int i = 0;
+        for(MatchGeneral gen : matchList){
+            if(gen.getMatchKey().equals(selectedMatch.getMatchKey())){
+                break;
+            }
+            i++;
+        }
+        matchList.get(i).setVideoUrl(controller.txtVideoUrl.getText());
     }
 
     public void openMatchDetails() {
@@ -718,8 +732,6 @@ public class MatchesController {
                     controller.sendError("Unable to get score for " + m.getMatchNumber());
                 }
             }//Close For Loop
-        } else {
-            controller.sendError("Unable to get SF 1 matches");
         }
 
         /* SF2 */
@@ -739,7 +751,7 @@ public class MatchesController {
         //Make sure conn was successful
         if (matchesSF2 != null) {
 
-            for(ElimMatches m : matchesSF2.getElimMatches()) {
+            for (ElimMatches m : matchesSF2.getElimMatches()) {
 
                 Match qualMatch = null;
                 try {
@@ -747,19 +759,19 @@ public class MatchesController {
                 } catch (Exception e) {
                     controller.sendError("Connection to FIRST Scoring system unsuccessful. " + e);
                 }
-                if(qualMatch != null) {
+                if (qualMatch != null) {
                     elimMatches++;
 
                     //We Get A string that looks like "SF1-2" We Remove the SF, then Replace the "-" with an empty string.
                     int sfMatchNum = Integer.parseInt(m.matchNumber.substring(2).replace("-", ""));
-                   MatchGeneralAndMatchParticipant mValues = getMatchGeneralFromFirstAPI(2, sfMatchNum, elimMatches, m, null, qualMatch);
+                    MatchGeneralAndMatchParticipant mValues = getMatchGeneralFromFirstAPI(2, sfMatchNum, elimMatches, m, null, qualMatch);
 
                     MatchGeneral match = mValues.getMatchGeneral();
                     MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
 
                     calculateWL(match, MatchParticipants);
 
-                    sf2MatchDtl.add(getMatchDetails1819FirstAPI(("elim/sf/2/" + (sfMatchNum-20)), match.getMatchKey(), 2));
+                    sf2MatchDtl.add(getMatchDetails1819FirstAPI(("elim/sf/2/" + (sfMatchNum - 20)), match.getMatchKey(), 2));
                     sf2Matches.add(match);
                     sf2Sche.add(MatchParticipants);
 
@@ -767,8 +779,6 @@ public class MatchesController {
                     controller.sendError("Unable to get score for " + m.getMatchNumber());
                 }
             }//Close For Loop
-        } else {
-            controller.sendError("Unable to get SF 2 matches");
         }
 
         /* Finals Matches */
@@ -813,9 +823,8 @@ public class MatchesController {
                 }
             }
 
-        } else {
-            controller.sendError("Unable to get Finals matches");
         }
+
         //Now that we parsed ALL of the elim matches, we can fix the matches
         checkMatchParticipants();
         fixTheElimMatches();
@@ -825,11 +834,21 @@ public class MatchesController {
             } else {
                 controller.sendError("Successfully imported " + matchList.size() + " matches from the Scoring System. However, uploaded schedule and local schedule differ.");
             }
+        }
+        if(matchList.size() > 0){
             this.controller.btnMatchUpload.setVisible(true);
             this.controller.btnMatchBrowserView.setVisible(true);
             this.controller.btnMatchOpen.setVisible(true);
-
+            this.controller.txtVideoUrl.setDisable(false);
+            this.controller.btnSetUrl.setDisable(false);
+        } else {
+            this.controller.btnMatchUpload.setVisible(false);
+            this.controller.btnMatchBrowserView.setVisible(false);
+            this.controller.btnMatchOpen.setVisible(false);
+            this.controller.txtVideoUrl.setDisable(true);
+            this.controller.btnSetUrl.setDisable(true);
         }
+
     }
 
     private boolean getUploadedFromMatchKey (String matchKey) {
@@ -1251,6 +1270,7 @@ public class MatchesController {
                 matchJSON.setBlueEndScore(completeMatch.getBlueEndScore());
                 matchJSON.setBluePenalty(completeMatch.getBluePenalty());
                 matchJSON.setBlueScore(completeMatch.getBlueScore());
+                matchJSON.setVideoUrl(completeMatch.getVideoUrl());
                 requestBody.addValue(matchJSON);
                 matchEndpoint.setBody(requestBody);
                 matchEndpoint.execute(((response, success) -> {
@@ -1399,6 +1419,7 @@ public class MatchesController {
                 matchJSON.setBlueEndScore(selectedMatch.getBlueEndScore());
                 matchJSON.setBluePenalty(selectedMatch.getBluePenalty());
                 matchJSON.setBlueScore(selectedMatch.getBlueScore());
+                matchJSON.setVideoUrl(selectedMatch.getVideoUrl());
                 requestBody.addValue(matchJSON);
                 matchEndpoint.setBody(requestBody);
                 matchEndpoint.execute(((response, success) -> {
