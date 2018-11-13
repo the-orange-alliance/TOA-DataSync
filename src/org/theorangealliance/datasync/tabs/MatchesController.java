@@ -4,13 +4,20 @@ import com.google.gson.stream.MalformedJsonException;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.paint.Color;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.theorangealliance.datasync.DataSyncController;
+import org.theorangealliance.datasync.MatchDetailsController;
 import org.theorangealliance.datasync.json.toa.*;
 import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.json.first.*;
@@ -142,6 +149,8 @@ public class MatchesController {
             controller.btnMatchBrowserView.setDisable(true);
         }
 
+        controller.btnMatchOpen.setDisable(false);
+
         MatchParticipant[] teams = matchStations.get(match);
         if (teams != null) {
             String redTeams = teams[0].getTeamKey() + teams[0].getStatusString() + " " + teams[1].getTeamKey() + teams[1].getStatusString();
@@ -185,7 +194,84 @@ public class MatchesController {
     }
 
     public void openMatchDetails() {
-        // TODO - Actually make
+        MatchDetail1819JSON dtl = getSelectedMatchDetails();
+
+        if(dtl != null) {
+            try{
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/MatchDetails.fxml"));
+                Parent root1 = (Parent) fxmlLoader.load();
+                Stage stage = new Stage();
+                stage.initModality(Modality.APPLICATION_MODAL);
+                stage.initStyle(StageStyle.UNDECORATED);
+                stage.setTitle("Match Details for Match " + dtl.getMatchKey());
+                stage.setScene(new Scene(root1));
+                stage.alwaysOnTopProperty();
+                MatchDetailsController dtlCont = fxmlLoader.getController();
+                dtlCont.matchKey.setText("Match Details for Match: " + dtl.getMatchKey());
+                dtlCont.redLanded.setText("# of Robots Landed: " + dtl.getRedAutoLand());
+                dtlCont.redSample.setText("Sample Status: " + dtl.getRedAutoSamp());
+                dtlCont.redClaimed.setText("# Claimed: " + dtl.getRedAutoClaim());
+                dtlCont.redParked.setText("# of Robots Parked: " + dtl.getRedAutoClaim());
+                dtlCont.redGold.setText("# of Gold Particles Scored: " + dtl.getRedDriverGold());
+                dtlCont.redSilver.setText("# of Silver Particles Scored: " + dtl.getRedDriverSilver());
+                dtlCont.redDepot.setText("# of Particles in Depot: " + dtl.getRedDriverDepot());
+                dtlCont.redLatched.setText("# of Robots Latched: " + dtl.getRedEndLatch());
+                dtlCont.redPart.setText("# of Robots Partially Parked in Crater: " + dtl.getRedEndIn());
+                dtlCont.redFull.setText("# of Robots Fully Parked in Crater: " + dtl.getRedEndComp());
+                dtlCont.blueLanded.setText("# of Robots Landed: " + dtl.getBlueAutoLand());
+                dtlCont.blueSample.setText("Sample Status: " + dtl.getBlueAutoSamp());
+                dtlCont.blueClaimed.setText("# Claimed: " + dtl.getBlueAutoClaim());
+                dtlCont.blueParked.setText("# of Robots Parked: " + dtl.getBlueAutoClaim());
+                dtlCont.blueGold.setText("# of Gold Particles Scored: " + dtl.getBlueDriverGold());
+                dtlCont.blueSilver.setText("# of Silver Particles Scored: " + dtl.getBlueDriverSilver());
+                dtlCont.blueDepot.setText("# of Particles in Depot: " + dtl.getBlueDriverDepot());
+                dtlCont.blueLatched.setText("# of Robots Latched: " + dtl.getBlueEndLatch());
+                dtlCont.bluePart.setText("# of Robots Partially Parked in Crater: " + dtl.getBlueEndIn());
+                dtlCont.blueFull.setText("# of Robots Fully Parked in Crater: " + dtl.getBlueEndComp());
+                stage.show();
+            } catch (Exception e) {
+                this.controller.sendError("Failed to Show match Details " + e);
+            }
+        } else {
+            this.controller.sendError("Could Not get Match Details");
+        }
+    }
+
+    private String generateMatchDetailsString(MatchDetail1819JSON dtl){
+        String prettyText = "Match Key: " + dtl.getMatchKey() + "\r";
+        prettyText += "---------Red--------- \r";
+        prettyText += "Red Minor Penalties: " + dtl.getRedMinPen() + "\r";
+        prettyText += "Red Major Penalties: " + dtl.getRedMajPen() + "\r";
+        prettyText += "Red Auto \r";
+        prettyText += "Red # Robots Landed: " + dtl.getRedAutoLand() + "\r";
+        prettyText += "Red Sample Status: " + dtl.getRedAutoSamp() + "\r";
+        prettyText += "Red # Claimed: " + dtl.getRedAutoClaim() + "\r";
+        prettyText += "Red # Robots Parked: " + dtl.getRedAutoPark() + "\r";
+        prettyText += "Red Teleop \r";
+        prettyText += "Red Gold Minerals: " + dtl.getRedDriverGold() + "\r";
+        prettyText += "Red Silver Minerals: " + dtl.getRedDriverSilver() + "\r";
+        prettyText += "Red Depot Minerals: " + dtl.getRedDriverDepot() + "\r";
+        prettyText += "Red End Game \r";
+        prettyText += "Red # Robots Latched: " + dtl.getRedEndLatch() + "\r";
+        prettyText += "Red # Robots Partially In Crater: " + dtl.getRedEndIn() + "\r";
+        prettyText += "Red # Robots Completely In Crater: " + dtl.getRedEndComp() + "\r";
+        prettyText += "---------Blue--------- \r";
+        prettyText += "Blue Minor Penalties: " + dtl.getBlueMinPen() + "\r";
+        prettyText += "Blue Major Penalties: " + dtl.getBlueMajPen() + "\r";
+        prettyText += "Blue Auto \r";
+        prettyText += "Blue # Robots Landed: " + dtl.getBlueAutoLand() + "\r";
+        prettyText += "Blue Sample Status: " + dtl.getBlueAutoSamp() + "\r";
+        prettyText += "Blue # Claimed: " + dtl.getBlueAutoClaim() + "\r";
+        prettyText += "Blue # Robots Parked: " + dtl.getBlueAutoPark() + "\r";
+        prettyText += "Blue Teleop \r";
+        prettyText += "Blue Gold Minerals: " + dtl.getBlueDriverGold() + "\r";
+        prettyText += "Blue Silver Minerals: " + dtl.getBlueDriverSilver() + "\r";
+        prettyText += "Blue Depot Minerals: " + dtl.getBlueDriverDepot() + "\r";
+        prettyText += "Blue End Game \r";
+        prettyText += "Blue # Robots Latched: " + dtl.getBlueEndLatch() + "\r";
+        prettyText += "Blue # Robots Partially In Crater: " + dtl.getBlueEndIn() + "\r";
+        prettyText += "Blue # Robots Completely In Crater: " + dtl.getBlueEndComp() + "\r";
+        return prettyText;
     }
 
     public void viewFromTOA(){
@@ -309,17 +395,8 @@ public class MatchesController {
     }
 
     private void syncMatches1819(){
-        //Dont Think we need this anymore....
-        //if (matchList.size() <= 0) {
             getMatchesFromFIRSTApi1819();
             postCompletedMatches();
-        //} else {
-            //uploadQueue.clear();
-            //teamWinLoss.clear();
-
-            //Do Match Details
-
-        //}
     }
 
     private void syncMatches1718(){
@@ -978,6 +1055,13 @@ public class MatchesController {
                     return a;
                 }
             }
+        }
+        return null;
+    }
+
+    private MatchDetail1819JSON getSelectedMatchDetails(){
+        if(selectedMatch != null){
+            return matchDetails.get(selectedMatch);
         }
         return null;
     }
