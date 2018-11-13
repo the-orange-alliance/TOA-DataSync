@@ -237,43 +237,6 @@ public class MatchesController {
         }
     }
 
-    private String generateMatchDetailsString(MatchDetail1819JSON dtl){
-        String prettyText = "Match Key: " + dtl.getMatchKey() + "\r";
-        prettyText += "---------Red--------- \r";
-        prettyText += "Red Minor Penalties: " + dtl.getRedMinPen() + "\r";
-        prettyText += "Red Major Penalties: " + dtl.getRedMajPen() + "\r";
-        prettyText += "Red Auto \r";
-        prettyText += "Red # Robots Landed: " + dtl.getRedAutoLand() + "\r";
-        prettyText += "Red Sample Status: " + dtl.getRedAutoSamp() + "\r";
-        prettyText += "Red # Claimed: " + dtl.getRedAutoClaim() + "\r";
-        prettyText += "Red # Robots Parked: " + dtl.getRedAutoPark() + "\r";
-        prettyText += "Red Teleop \r";
-        prettyText += "Red Gold Minerals: " + dtl.getRedDriverGold() + "\r";
-        prettyText += "Red Silver Minerals: " + dtl.getRedDriverSilver() + "\r";
-        prettyText += "Red Depot Minerals: " + dtl.getRedDriverDepot() + "\r";
-        prettyText += "Red End Game \r";
-        prettyText += "Red # Robots Latched: " + dtl.getRedEndLatch() + "\r";
-        prettyText += "Red # Robots Partially In Crater: " + dtl.getRedEndIn() + "\r";
-        prettyText += "Red # Robots Completely In Crater: " + dtl.getRedEndComp() + "\r";
-        prettyText += "---------Blue--------- \r";
-        prettyText += "Blue Minor Penalties: " + dtl.getBlueMinPen() + "\r";
-        prettyText += "Blue Major Penalties: " + dtl.getBlueMajPen() + "\r";
-        prettyText += "Blue Auto \r";
-        prettyText += "Blue # Robots Landed: " + dtl.getBlueAutoLand() + "\r";
-        prettyText += "Blue Sample Status: " + dtl.getBlueAutoSamp() + "\r";
-        prettyText += "Blue # Claimed: " + dtl.getBlueAutoClaim() + "\r";
-        prettyText += "Blue # Robots Parked: " + dtl.getBlueAutoPark() + "\r";
-        prettyText += "Blue Teleop \r";
-        prettyText += "Blue Gold Minerals: " + dtl.getBlueDriverGold() + "\r";
-        prettyText += "Blue Silver Minerals: " + dtl.getBlueDriverSilver() + "\r";
-        prettyText += "Blue Depot Minerals: " + dtl.getBlueDriverDepot() + "\r";
-        prettyText += "Blue End Game \r";
-        prettyText += "Blue # Robots Latched: " + dtl.getBlueEndLatch() + "\r";
-        prettyText += "Blue # Robots Partially In Crater: " + dtl.getBlueEndIn() + "\r";
-        prettyText += "Blue # Robots Completely In Crater: " + dtl.getBlueEndComp() + "\r";
-        return prettyText;
-    }
-
     public void viewFromTOA(){
 
         try {
@@ -1689,7 +1652,7 @@ public class MatchesController {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Are you sure about this?");
         alert.setHeaderText("This operation cannot be undone.");
-        alert.setContentText("You are about to purge matches in TOA's databases for event " + Config.EVENT_ID + ". Matches will become unavailable until you re-upload.");
+        alert.setContentText("You are about to purge all matches in TOA's databases for event " + Config.EVENT_ID + ". Matches will become unavailable until you re-upload.");
 
         ButtonType okayButton = new ButtonType("Purge Matches");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -1699,9 +1662,25 @@ public class MatchesController {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == okayButton) {
 
+
+
+            /*
             deleteMatchData();
             deleteMatchScheduleMatches();
             deleteMatchScheduleTeams();
+            */
+
+            TOAEndpoint matchEp = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/matches/all");
+            matchEp.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+            TOARequestBody requestBody = new TOARequestBody();
+            matchEp.setBody(requestBody);
+            matchEp.execute(((response, success) -> {
+                if (success) {
+                    TOALogger.log(Level.INFO, "Deleted Matches.");
+                }else{
+                    TOALogger.log(Level.SEVERE, "Failed to delete matches from TOA.");
+                }
+            }));
 
             for(MatchGeneral match : matchList){
                 match.setIsUploaded(false);

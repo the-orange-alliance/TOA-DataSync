@@ -291,7 +291,7 @@
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                           </rowConstraints>
                            <children>
-                              <Label text="Match Detail View" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.valignment="TOP">
+                              <Label prefWidth="206.0" text="Match Detail View" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.valignment="TOP">
                                  <font>
                                     <Font name="System Bold" size="18.0" />
                                  </font>
