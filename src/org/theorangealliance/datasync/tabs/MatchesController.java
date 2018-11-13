@@ -986,6 +986,8 @@ public class MatchesController {
             }
 
         } else if(qM != null) {
+            boolean[] sur = {qM.getRedAlliance().isTeam1Surrogate, qM.getRedAlliance().isTeam2Surrogate, false, qM.getBlueAlliance().isTeam1Surrogate, qM.getBlueAlliance().isTeam2Surrogate, false};
+            surrogate = sur;
             MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, qM.getRedAlliance().getTeam1());
             MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, qM.getRedAlliance().getTeam2());
             MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, 0);
