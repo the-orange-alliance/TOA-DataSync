@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
@@ -631,31 +632,16 @@ public class DataSyncController implements Initializable {
 
     /* Prompts the user to select a file from the list, or run without a file */
     private String promptForSaveFile(ArrayList<String> files){
-
-        //New pane without text
-        JOptionPane fileSelector = new JOptionPane("");
-
-        //Buttons
-        fileSelector.setOptions(new String[] {"Select File", "Run without a file"});
-
-        //Dropdown menu
-        fileSelector.setSelectionValues(files.toArray());
-
-        //Makes and shows the window
-        JDialog window = fileSelector.createDialog(null, "Select a Settings File");
-        window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        window.setVisible(true);
-
-        //returns the selected value if "Select File" was pressed, null otherwise
-        try {
-            return fileSelector.getValue().equals("Select File") ? (String) fileSelector.getInputValue() : null;
-        }catch (NullPointerException e){//When the user closes the window
-            System.exit(0);
-        }
-
-        //We don't go here
-        return null;
-
+        //Create Dialog With list of Files
+        Dialog dialog = new ChoiceDialog(files.get(0), files);
+        //Set Title
+        dialog.setTitle("Select Settings");
+        //Set Header Text
+        dialog.setHeaderText("Select Settings File");
+        //Show Dialog
+        Optional result = dialog.showAndWait();
+        //Collect and Return Result
+        return (String) result.orElse(null);
     }
 
     /* Enables all windows, only used when BETA testing */
