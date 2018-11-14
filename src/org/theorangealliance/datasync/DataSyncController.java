@@ -483,19 +483,19 @@ public class DataSyncController implements Initializable {
                 Date date = new Date();
                 TOALogger.log(Level.INFO, "Executing update #" + count + " at " + DateFormat.getTimeInstance(DateFormat.SHORT).format(date));
                 TOALogger.log(Level.INFO, "There are " + Thread.activeCount() + " threads.");
-                this.matchesController.syncMatches();
+
+                if (this.btnSyncMatches.selectedProperty().get()) {
+                    this.matchesController.getMatchesFromFIRSTApi1819();
+                    this.matchesController.syncMatches();
+                }
                 this.matchesController.checkMatchSchedule(); //Gets Matches and updates display
                 this.matchesController.checkMatchDetails(); //Gets MAtch Details
                 this.matchesController.checkMatchParticipants();// Gets Match Participants
-//                this.rankingsController.syncRankings();
-                // We're going to try THIS instead....
-                //this.rankingsController.getRankingsByFile();
-                //How About This?!?!?!?
                 this.rankingsController.getRankingsFIRSTApi();
                 this.rankingsController.postRankings();
-                if (this.btnSyncMatches.selectedProperty().get()) {
+                /*if (this.btnSyncMatches.selectedProperty().get()) {
                      this.matchesController.postCompletedMatches();
-                }
+                }*/
             });
         });
     }

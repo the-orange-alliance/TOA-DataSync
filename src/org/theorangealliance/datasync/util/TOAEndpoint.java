@@ -104,7 +104,7 @@ public class TOAEndpoint implements Runnable {
                     in.close();
 
                     ErrorJSON error = getGson().fromJson(response.toString(), ErrorJSON.class);
-                    TOALogger.log(Level.WARNING, "URL " + error.getUrl() + " returned " + error.getStatus() + ": " + error.getCode() + " Response Code: " + con.getResponseCode());
+                    TOALogger.log(Level.WARNING, "URL " + url.toString() + " returned " + error.getStatus() + ": " + error.getCode() + " Response Code: " + con.getResponseCode());
 
                     Platform.runLater(() -> {
                         if (this.completeListener != null) {
