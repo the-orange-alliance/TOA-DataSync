@@ -366,7 +366,7 @@
                                  </GridPane.margin>
                               </Label>
                               <Button fx:id="btnMatchOpen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#openMatchDetails" prefWidth="85.0" text="View Details" GridPane.columnIndex="4" GridPane.halignment="LEFT" GridPane.rowIndex="6" />
-                              <TextField fx:id="txtVideoUrl" prefHeight="25.0" prefWidth="122.0" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.valignment="BOTTOM">
+                              <TextField fx:id="txtVideoUrl" disable="true" prefHeight="25.0" prefWidth="122.0" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.valignment="BOTTOM">
                                  <GridPane.margin>
                                     <Insets bottom="5.0" left="5.0" right="5.0" />
                                  </GridPane.margin></TextField>
@@ -383,7 +383,7 @@
                                     <Insets bottom="10.0" />
                                  </GridPane.margin>
                               </Label>
-                              <Button fx:id="btnSetUrl" mnemonicParsing="false" onAction="#setVideoUrl" prefHeight="0.0" prefWidth="52.0" text="Set" GridPane.columnIndex="5" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="TOP">
+                              <Button fx:id="btnSetUrl" disable="true" mnemonicParsing="false" onAction="#setVideoUrl" prefHeight="0.0" prefWidth="52.0" text="Set" GridPane.columnIndex="5" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="TOP">
                                  <GridPane.margin>
                                     <Insets right="5.0" />
                                  </GridPane.margin>
