@@ -20,7 +20,7 @@ import java.util.logging.Level;
 public class TOAEndpoint implements Runnable {
 
 //    private final String BASE_URL = "https://theorangealliance.org/api/";
-    private final String BASE_URL = "http://localhost:8008/api/";
+    private final String BASE_URL = "https://theorangealliance.org/api/";
     private String endpoint;
     private String requestType;
     private String apiKey;
