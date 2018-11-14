@@ -372,7 +372,6 @@ public class MatchesController {
     }
 
     private void syncMatches1819(){
-            getMatchesFromFIRSTApi1819();
             postCompletedMatches();
     }
 
@@ -826,7 +825,6 @@ public class MatchesController {
         }
 
         //Now that we parsed ALL of the elim matches, we can fix the matches
-        checkMatchParticipants();
         fixTheElimMatches();
         if (uploadedMatches != null) {
             if (uploadedMatches.size() == matchList.size()) {
@@ -848,7 +846,7 @@ public class MatchesController {
             this.controller.txtVideoUrl.setDisable(true);
             this.controller.btnSetUrl.setDisable(true);
         }
-
+        checkMatchDetails();
     }
 
     private boolean getUploadedFromMatchKey (String matchKey) {
@@ -857,22 +855,28 @@ public class MatchesController {
         boolean returnValue = false;
 
         // Not very efficient, but it is what is is... I hate O(N^2) algorithms.
-        for (MatchDetail1819JSON detail : uploadedDetails) {
-            if (detail.getMatchKey().equals(matchKey)) {
-                returnValue = true;
-                fullyUploaded = true;
-            }
-        }
-
-        for (MatchGeneralJSON general : uploadedMatches) {
-            if (general.getMatchKey().equals(matchKey)) {
-                if (general.getPlayNumber() == 0) {
-                    returnValue = false;
-                } else if (fullyUploaded) {
+        if(uploadedDetails != null) {
+            for (MatchDetail1819JSON detail : uploadedDetails) {
+                if (detail.getMatchKey().equals(matchKey)) {
                     returnValue = true;
+                    fullyUploaded = true;
                 }
             }
         }
+
+
+        if(uploadedMatches != null){
+            for (MatchGeneralJSON general : uploadedMatches) {
+                if (general.getMatchKey().equals(matchKey)) {
+                    if (general.getPlayNumber() == 0) {
+                        returnValue = false;
+                    } else if (fullyUploaded) {
+                        returnValue = true;
+                    }
+                }
+            }
+        }
+
         return returnValue;
     }
 
@@ -1316,11 +1320,8 @@ public class MatchesController {
                         matchList.get(completeMatch.getCanonicalMatchNumber()-1).setIsUploaded(true);
                         controller.tableMatches.refresh();
                         TOALogger.log(Level.INFO, "Successfully uploaded detail results to TOA. " + response);
-                        checkMatchDetails();
                     }
                 }));
-
-                //checkMatchParticipants();
 
                 methodType = "POST";
                 putRouteExtra = "";
@@ -1367,7 +1368,6 @@ public class MatchesController {
                 matchParEndpoint.execute(((response, success) -> {
                     if (success) {
                         controller.sendInfo("Successfully uploaded match partipants results to TOA. " + response);
-                        checkMatchParticipants();
                     } else {
                         controller.sendError("Connection to TOA unsuccessful. " + response);
                     }
@@ -1427,6 +1427,7 @@ public class MatchesController {
                 matchEndpoint.execute(((response, success) -> {
                     if (success) {
                         controller.sendInfo("Successfully uploaded results to TOA. " + response);
+                        checkMatchSchedule();
                     } else {
                         controller.sendError("Connection to TOA unsuccessful. " + response);
                     }
@@ -1523,7 +1524,6 @@ public class MatchesController {
                         controller.tableMatches.refresh();
                         controller.sendInfo("Successfully uploaded detail results to TOA. " + response);
                         checkMatchDetails();
-                        checkMatchParticipants();
                         controller.btnMatchBrowserView.setDisable(false);
                     } else {
                         controller.sendError("Connection to TOA unsuccessful. " + response);
@@ -1708,7 +1708,14 @@ public class MatchesController {
             for(MatchGeneral match : matchList){
                 match.setIsUploaded(false);
             }
-
+            uploadedDetails.clear();
+            uploadedMatches.clear();
+            uploadedMatchParticipants.clear();
+            checkMatchSchedule();
+            checkMatchParticipants();
+            checkMatchDetails();
+            controller.tableMatches.refresh();
+            //getMatchesFromFIRSTApi1819();
         }
 
     }
