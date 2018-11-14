@@ -223,7 +223,6 @@ public class TeamsController {
                     eventTeam.setEventKey(Config.EVENT_ID);
                 }
                 eventTeam.setTeamKey(team.getTeamKey());
-                eventTeam.setTeamNumber(Integer.parseInt(team.getTeamKey()));
                 eventTeam.setTeamIsActive(true);
                 requestBody.addValue(eventTeam);
             }

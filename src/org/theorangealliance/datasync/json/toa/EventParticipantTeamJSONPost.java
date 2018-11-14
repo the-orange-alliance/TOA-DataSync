@@ -13,9 +13,6 @@ public class EventParticipantTeamJSONPost {
     @SerializedName("team_key")
     private String teamKey;
 
-    @SerializedName("team_number")
-    private int teamNumber;
-
     @SerializedName("is_active")
     private boolean teamIsActive;
 
@@ -44,14 +41,6 @@ public class EventParticipantTeamJSONPost {
 
     public void setTeamKey(String teamKey) {
         this.teamKey = teamKey;
-    }
-
-    public int getTeamNumber() {
-        return teamNumber;
-    }
-
-    public void setTeamNumber(int teamNumber) {
-        this.teamNumber = teamNumber;
     }
 
     public boolean isTeamIsActive() {
