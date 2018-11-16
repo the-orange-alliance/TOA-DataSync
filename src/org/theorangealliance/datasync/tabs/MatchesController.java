@@ -1039,7 +1039,10 @@ public class MatchesController {
 
         if(alls != null) {
             for(AllianceFIRST a : alls.getAlliances()){
-                if(a.getAllianceCaptain() == t1 || a.getAlliancePick1() == t2 || a.getAlliancePick2() == t3) {
+                if(a.getAllianceCaptain() == t1 || a.getAlliancePick1() == t2 || (a.getAlliancePick2() == t3 && t3 > 0)) {
+                    if(a.getAlliancePick2() < 1){
+                        a.setAlliancePick2(0);
+                    }
                     return a;
                 }
             }

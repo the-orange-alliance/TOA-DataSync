@@ -27,6 +27,7 @@ public class FIRSTEndpointNonLambda {
 
     public static String getResp(String endpoint) {
         try {
+            TOALogger.log(Level.INFO, "Making GET request to URL " + BASE_URL + endpoint);
             URL url = new URL(BASE_URL + endpoint);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
