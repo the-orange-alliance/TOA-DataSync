@@ -9,11 +9,10 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import org.theorangealliance.datasync.json.toa.EventJSON;
 import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.json.first.Event;
+import org.theorangealliance.datasync.models.Award;
 import org.theorangealliance.datasync.models.MatchGeneral;
 import org.theorangealliance.datasync.models.Team;
 import org.theorangealliance.datasync.models.TeamRanking;
@@ -23,15 +22,11 @@ import org.theorangealliance.datasync.util.FIRSTEndpoint;
 import org.theorangealliance.datasync.json.first.Events;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.text.DateFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -139,6 +134,15 @@ public class DataSyncController implements Initializable {
 
     /* This is for our awards tab */
     @FXML public Tab tabAwards;
+    @FXML public TableView<Award> tableAwards;
+    @FXML public TableColumn<Award, String>colAwardKey;
+    @FXML public TableColumn<Award, String>colAward;
+    @FXML public TableColumn<Award, String>colAwardTeamKey;
+    @FXML public TableColumn<Award, Boolean>colAwardIsUploaded;
+    @FXML public Button btnAwardsPost;
+    @FXML public Button btnAwardsDelete;
+    @FXML public Button btnAwardsGet;
+    @FXML public Button btnAwardsGetTOA;
 
     /* This is for our advancement tab */
     @FXML public Tab tabAdvancement;
@@ -155,6 +159,7 @@ public class DataSyncController implements Initializable {
     private RankingsController rankingsController;
     private SyncController syncController;
     private AlliancesController alliancesController;
+    private AwardsController awardsController;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -163,6 +168,7 @@ public class DataSyncController implements Initializable {
         this.rankingsController = new RankingsController(this);
         this.syncController = new SyncController(this);
         this.alliancesController = new AlliancesController(this);
+        this.awardsController = new AwardsController(this);
 
         labelSetupTest.setTextFill(Color.RED);
         labelSetupDir.setTextFill(Color.RED);
@@ -339,6 +345,7 @@ public class DataSyncController implements Initializable {
                     tabRankings.setDisable(false);
                     tabSync.setDisable(false);
                     tabAllianceSelection.setDisable(false);
+                    tabAwards.setDisable(false);
 
                 } else {
                     sendError("Connection to FIRST Scoring system unsuccessful. " + response);
@@ -552,6 +559,26 @@ public class DataSyncController implements Initializable {
     @FXML
     public void purgeAlliances(){
         this.alliancesController.purgeAlliances();
+    }
+
+    @FXML
+    public void uploadAwards() {
+        this.awardsController.uploadAwards();
+    }
+
+    @FXML
+    public void getAwardsFIRST() {
+        this.awardsController.getAwardsFIRST();
+    }
+
+    @FXML
+    public void getAwardsTOA() {
+        this.awardsController.loadToaAwards();
+    }
+
+    @FXML
+    public void purgeAwards() {
+        this.awardsController.purgeAwards();
     }
 
     public HashMap<Integer, int[]> getTeamWL() {

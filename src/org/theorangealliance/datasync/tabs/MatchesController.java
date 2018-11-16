@@ -59,17 +59,14 @@ public class MatchesController {
     private ArrayList<MatchGeneral> fMatches = new ArrayList<>(); //Finals Matches
     private ArrayList<MatchParticipant[]> fSche = new ArrayList<>(); //Finals Matches
     private ArrayList<MatchDetail1819JSON> fMatchDtl = new ArrayList<>(); //Finals Matches
-    private ArrayList<MatchDetail1819JSON> fMatchPar = new ArrayList<>(); //Finals Matches
 
     private ArrayList<MatchGeneral> sf2Matches = new ArrayList<>();//SF2 Matches
     private ArrayList<MatchParticipant[]> sf2Sche = new ArrayList<>();//SF2 Matches
     private ArrayList<MatchDetail1819JSON> sf2MatchDtl = new ArrayList<>();//SF2 Matches
-    private ArrayList<MatchDetail1819JSON> sf2MatchPar = new ArrayList<>();//SF2 Matches
 
     private ArrayList<MatchGeneral> sf1Matches = new ArrayList<>();//SF1 Matches
     private ArrayList<MatchParticipant[]> sf1Sche = new ArrayList<>();//SF1 Matches
     private ArrayList<MatchDetail1819JSON> sf1MatchDtl = new ArrayList<>();//SF1 Matches
-    private ArrayList<MatchDetail1819JSON> sf1MatchPar = new ArrayList<>();//SF1 Matches
 
 
     private HashMap<Integer, int[]> teamWinLoss;
@@ -361,7 +358,6 @@ public class MatchesController {
             }
         }
     }
-
 
     public void syncMatches() {
         if(controller.rbNewScore.isSelected()) {
