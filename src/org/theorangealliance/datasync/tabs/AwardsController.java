@@ -172,7 +172,7 @@ public class AwardsController {
                         Award award = new Award();
                         String awardID = getAwardIDFromName(a.getAwardName());
                         if(awardID != null) {
-                            award.setAwardID(awardID);
+                            award.setAwardID(awardID + recipNum));
                             award.setAwardName(a.getAwardName());
                             award.setAwardKey(Config.EVENT_ID + "-" + awardID + recipNum);
                             award.setIsUploaded(false);
