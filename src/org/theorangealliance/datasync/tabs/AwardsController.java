@@ -172,8 +172,8 @@ public class AwardsController {
                         Award award = new Award();
                         String awardID = getAwardIDFromName(a.getAwardName());
                         if(awardID != null) {
-                            award.setAwardID(awardID);
-                            award.setAwardName(a.getAwardName());
+                            award.setAwardID(awardID + recipNum);
+                            award.setAwardName(getAwardNameFromID(award.getAwardID()));
                             award.setAwardKey(Config.EVENT_ID + "-" + awardID + recipNum);
                             award.setIsUploaded(false);
                             //Check If Award is uploaded
@@ -239,6 +239,75 @@ public class AwardsController {
             default:
                 return null;
         }
+    }
+
+    private String getAwardNameFromID(String key){
+        if (key.startsWith("INS")) {
+            if(key.substring(key.length() - 1).equals("1")){
+                return "Inspire Award Winner";
+            } else {
+                return "Inspire Award Finalist";
+            }
+        } else if (key.startsWith("THK")) {
+            if(key.substring(key.length() - 1).equals("1")){
+                return "Think Award Winner";
+            } else {
+                return "Think Award Finalist";
+            }
+        } else if (key.startsWith("CNT")) {
+            if(key.substring(key.length() - 1).equals("1")){
+                return "Connect Award Winner";
+            } else {
+                return "Connect Award Finalist";
+            }
+        } else if (key.startsWith("INV")) {
+            if(key.substring(key.length() - 1).equals("1")){
+                return "Rockwell Collins Innovate Award Winner";
+            } else {
+                return "Rockwell Collins Innovate Award Finalist";
+            }
+        } else if (key.startsWith("DSN")) {
+            if(key.substring(key.length() - 1).equals("1")){
+                return "Design Award Winner";
+            } else {
+                return "Design Award Finalist";
+            }
+        } else if (key.startsWith("MOT")) {
+            if(key.substring(key.length() - 1).equals("1")){
+                return "Motivate Award Winner";
+            }else {
+                return "Motivate Award Finalist";
+            }
+        } else if (key.startsWith("CTL")) {
+            if(key.substring(key.length() - 1).equals("1")){
+                return "Control Award Winner";
+            } else {
+                return "Control Award Finalist";
+            }
+        } else if (key.startsWith("PRM")) {
+            if(key.substring(key.length() - 1).equals("1")){
+                return "Promote Award Winner";
+            } else {
+                return "Promote Award Finalist";
+            }
+        } else if (key.startsWith("CMP")) {
+            if(key.substring(key.length() - 1).equals("1")){
+                return "Compass Award Winner";
+            } else {
+                return "Compass Award Finalist";
+            }
+        } else if (key.startsWith("JUD")) {
+            if(key.substring(key.length() - 1).equals("1")){
+                return "Judges Award Winner";
+            } else {
+                return "Judges Award Finalist";
+            }
+        } else if (key.startsWith("WIN")) {
+            return "Winning Alliance Award Winners";
+        } else if (key.startsWith("FIN")) {
+            return "Finalist Alliance Award Winners";
+        }
+        return null;
     }
 
 }

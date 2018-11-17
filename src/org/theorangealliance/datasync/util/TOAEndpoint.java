@@ -19,8 +19,8 @@ import java.util.logging.Level;
  */
 public class TOAEndpoint implements Runnable {
 
-    private final String BASE_URL = "https://theorangealliance.org/api/"; //Real API
-//    private final String BASE_URL = "http://localhost:8008/api/"; //TEST API
+//    private final String BASE_URL = "https://theorangealliance.org/api/"; //Real API
+    private final String BASE_URL = "http://localhost:8008/api/"; //TEST API
     private String endpoint;
     private String requestType;
     private String apiKey;
@@ -49,7 +49,10 @@ public class TOAEndpoint implements Runnable {
     }
 
     public void setBody(TOARequestBody requestBody) {
-        this.bodyJSON = getGson().toJson(requestBody);
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.serializeNulls();
+        Gson gson = gsonBuilder.create();
+        this.bodyJSON = gson.toJson(requestBody);
     }
 
     public void execute(TOACompleteListener completeListener) {
