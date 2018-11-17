@@ -8,7 +8,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 import org.theorangealliance.datasync.json.toa.EventJSON;
 import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.json.first.Event;
@@ -665,6 +667,9 @@ public class DataSyncController implements Initializable {
         dialog.setTitle("Select Settings");
         //Set Header Text
         dialog.setHeaderText("Select Settings File");
+        //Set Icon because it shows in the task bar
+        Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/app_ico.png")));
         //Show Dialog
         Optional result = dialog.showAndWait();
         //Collect and Return Result

@@ -559,7 +559,7 @@
                                  </font>
                               </Button>
                               <Button fx:id="btnAwardsDelete" mnemonicParsing="false" onAction="#purgeAwards" text="Purge Awards" GridPane.columnIndex="3" GridPane.halignment="CENTER" />
-                              <Button fx:id="btnAwardsPost" mnemonicParsing="false" onAction="#uploadAwards" text="Upload to TOA" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
+                              <Button fx:id="btnAwardsPost" mnemonicParsing="false" onAction="#uploadAwards" text="Upload ALL to TOA" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
                            </children>
                         </GridPane>
                      </children></AnchorPane>

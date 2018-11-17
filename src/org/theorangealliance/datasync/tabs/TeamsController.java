@@ -6,6 +6,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.toa.EventParticipantTeamJSON;
 import org.theorangealliance.datasync.json.first.TeamFIRST;
@@ -190,6 +192,10 @@ public class TeamsController {
         ButtonType okayButton = new ButtonType("Upload Teams");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
+        //Set Icon because it shows in the task bar
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/app_ico.png")));
+
         alert.getButtonTypes().setAll(okayButton, cancelButton);
 
         Optional<ButtonType> result = alert.showAndWait();
@@ -245,6 +251,10 @@ public class TeamsController {
 
         ButtonType okayButton = new ButtonType("Purge Anyway");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        //Set Icon because it shows in the task bar
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/app_ico.png")));
 
         alert.getButtonTypes().setAll(okayButton, cancelButton);
 

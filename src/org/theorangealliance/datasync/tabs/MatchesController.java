@@ -12,6 +12,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -1385,6 +1386,10 @@ public class MatchesController {
             ButtonType okayButton = new ButtonType("Upload Results");
             ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
+            //Set Icon because it shows in the task bar
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/app_ico.png")));
+
             alert.getButtonTypes().setAll(okayButton, cancelButton);
 
             Optional<ButtonType> result = alert.showAndWait();
@@ -1542,6 +1547,10 @@ public class MatchesController {
         ButtonType okayButton = new ButtonType("Upload Matches");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
+        //Set Icon because it shows in the task bar
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/app_ico.png")));
+
         alert.getButtonTypes().setAll(okayButton, cancelButton);
 
         Optional<ButtonType> result = alert.showAndWait();
@@ -1678,6 +1687,10 @@ public class MatchesController {
 
         ButtonType okayButton = new ButtonType("Purge Matches");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        //Set Icon because it shows in the task bar
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/app_ico.png")));
 
         alert.getButtonTypes().setAll(okayButton, cancelButton);
 

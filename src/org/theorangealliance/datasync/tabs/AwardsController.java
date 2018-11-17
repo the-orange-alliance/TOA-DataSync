@@ -8,7 +8,9 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.first.AwardArray;
 import org.theorangealliance.datasync.json.first.AwardFIRST;
@@ -19,10 +21,7 @@ import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.FIRSTEndpointNonLambda;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 import org.theorangealliance.datasync.util.TOARequestBody;
-
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.logging.Level;
 
@@ -64,13 +63,35 @@ public class AwardsController {
 
     }
 
-    private void getAwardsTOA(){
+    private void getAwardsTOA(boolean loadIntoTable){
+        uploadedAwards.clear();
         TOAEndpoint matchesEndpoint = new TOAEndpoint("GET", "event/" + Config.EVENT_ID + "/awards");
         matchesEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         matchesEndpoint.execute(((response, success) -> {
             if (success) {
-                uploadedAwards = matchesEndpoint.getGson().fromJson(response, ArrayList.class);
+                AwardTOA[] awards = matchesEndpoint.getGson().fromJson(response, AwardTOA[].class);
+                if(awards.length > 0){
+                    for(AwardTOA a : awards){
+                        uploadedAwards.add(a);
+                    }
+                }
                 TOALogger.log(Level.INFO, "Grabbed " + uploadedAwards.size() + " awards from TOA.");
+
+                if(loadIntoTable){
+                    if(uploadedAwards != null && uploadedAwards.size() > 0){
+                        for(AwardTOA a : uploadedAwards) {
+                            Award award = new Award();
+                            award.setIsUploaded(true);
+                            award.setAwardName(a.getAwardName());
+                            award.setTeamKey(a.getTeamKey());
+                            award.setAwardID(a.getAwardID());
+                            award.setAwardKey(a.getAwardKey());
+                            awardList.add(award);
+                        }
+                    }
+                    this.controller.tableAwards.refresh();
+                }
+
             } else {
                 this.controller.sendError("Error: " + response);
             }
@@ -88,6 +109,10 @@ public class AwardsController {
         ButtonType okayButton = new ButtonType("Sure?");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
+        //Set Icon because it shows in the task bar
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/app_ico.png")));
+
         alert.getButtonTypes().setAll(okayButton, cancelButton);
 
         Optional<ButtonType> result = alert.showAndWait();
@@ -100,6 +125,10 @@ public class AwardsController {
 
             ButtonType o = new ButtonType("Upload");
             ButtonType c = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+            //Set Icon because it shows in the task bar
+            Stage s = (Stage) a.getDialogPane().getScene().getWindow();
+            s.getIcons().add(new Image(getClass().getResourceAsStream("/app_ico.png")));
 
             alert.getButtonTypes().setAll(o, c);
 
@@ -202,7 +231,8 @@ public class AwardsController {
 
 
     public void loadToaAwards() {
-
+        awardList.clear();
+        getAwardsTOA(true);
     }
 
 

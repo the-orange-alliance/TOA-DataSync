@@ -3,6 +3,8 @@ package org.theorangealliance.datasync.tabs;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.util.Config;
 
@@ -44,6 +46,10 @@ public class SyncController implements Runnable {
 
         ButtonType okayButton = new ButtonType("Sure?");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        //Set Icon because it shows in the task bar
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/app_ico.png")));
 
         alert.getButtonTypes().setAll(okayButton, cancelButton);
 
