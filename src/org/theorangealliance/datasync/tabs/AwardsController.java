@@ -235,6 +235,9 @@ public class AwardsController {
             case "Compass Award":
                 return "CMP";
             case "Judges\u0027 Award":
+            case "Judge\u0027s Award":
+            case "Judges' Award":
+            case "Judge's Award":
                 return "JUD";
             default:
                 return null;
