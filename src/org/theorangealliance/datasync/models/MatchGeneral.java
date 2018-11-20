@@ -15,7 +15,8 @@ public class MatchGeneral {
     private SimpleBooleanProperty isUploaded;
     private String matchKey;
     private int tournamentLevel;
-    private Date scheduledTime;
+    private String scheduledTime;
+    private String lastCommitTime;
     private int playNumber;
     private int fieldNumber;
     private int redScore;
@@ -30,12 +31,11 @@ public class MatchGeneral {
     private int blueEndScore;
     private String videoUrl;
 
-    public MatchGeneral(String matchName, int tournamentLevel, Date scheduledTime, int fieldNumber) {
+    public MatchGeneral(String matchName, int tournamentLevel, int fieldNumber) {
         this.matchName = new SimpleStringProperty(matchName);
         this.isDone = new SimpleBooleanProperty(false);
         this.isUploaded = new SimpleBooleanProperty(false);
         this.tournamentLevel = tournamentLevel;
-        this.scheduledTime = scheduledTime;
         this.fieldNumber = fieldNumber;
     }
 
@@ -162,12 +162,20 @@ public class MatchGeneral {
         this.tournamentLevel = tournamentLevel;
     }
 
-    public Date getScheduledTime() {
+    public String getScheduledTime() {
         return scheduledTime;
     }
 
-    public void setScheduledTime(Date scheduledTime) {
+    public void setScheduledTime(String scheduledTime) {
         this.scheduledTime = scheduledTime;
+    }
+
+    public String getLastCommitTime() {
+        return lastCommitTime;
+    }
+
+    public void setLastCommitTime(String lastCommitTime) {
+        this.lastCommitTime = lastCommitTime;
     }
 
     public int getFieldNumber() {

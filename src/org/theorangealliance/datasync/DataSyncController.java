@@ -106,6 +106,7 @@ public class DataSyncController implements Initializable {
     @FXML public Label labelRedTeams;
     @FXML public Label labelBlueTeams;
     @FXML public Label labelVideoUrl;
+    @FXML public Label labelCommitTime;
 
     /* This is for our rankings tab. */
     @FXML public Tab tabRankings;

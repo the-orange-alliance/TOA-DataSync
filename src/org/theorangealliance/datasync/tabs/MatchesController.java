@@ -22,7 +22,6 @@ import org.theorangealliance.datasync.MatchDetailsController;
 import org.theorangealliance.datasync.json.toa.*;
 import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.json.first.*;
-import org.theorangealliance.datasync.models.Alliance;
 import org.theorangealliance.datasync.models.MatchGeneral;
 import org.theorangealliance.datasync.models.MatchGeneralAndMatchParticipant;
 import org.theorangealliance.datasync.models.MatchParticipant;
@@ -35,12 +34,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 
 /**
  * Created by Kyle Flynn on 11/29/2017.
+ * Modded By Soren Zaiser for 2018 Scorekeeping System on 11/01/18
  */
 public class MatchesController {
 
@@ -164,6 +165,7 @@ public class MatchesController {
         controller.labelMatchLevel.setText("Level: " + match.getTournamentLevel());
         controller.labelMatchField.setText("Field: " + match.getFieldNumber());
         controller.labelMatchPlay.setText("Play: " + match.getPlayNumber());
+        controller.labelCommitTime.setText(match.getLastCommitTime());
         controller.labelVideoUrl.setText(match.getVideoUrl());
         controller.labelMatchName.setText(match.getMatchName());
         controller.labelMatchKey.setText(match.getMatchKey());
@@ -508,7 +510,6 @@ public class MatchesController {
                     MatchGeneral match = new MatchGeneral(
                             MatchGeneral.buildMatchName(tournamentLevel, matchNumber),
                             MatchGeneral.buildTOATournamentLevel(tournamentLevel, matchNumber),
-                            null,
                             fieldNumber);
                     char qualChar = match.getMatchName().contains("Qual") ? 'Q' : 'E';
                     if (qualChar == 'E') {
@@ -832,6 +833,7 @@ public class MatchesController {
         }
         if(matchList.size() > 0){
             this.controller.btnMatchUpload.setVisible(true);
+            this.controller.btnMatchScheduleUpload.setDisable(false);
             this.controller.btnMatchBrowserView.setVisible(true);
             this.controller.btnMatchOpen.setVisible(true);
             this.controller.txtVideoUrl.setDisable(false);
@@ -842,6 +844,7 @@ public class MatchesController {
             this.controller.btnMatchOpen.setVisible(false);
             this.controller.txtVideoUrl.setDisable(true);
             this.controller.btnSetUrl.setDisable(true);
+            this.controller.btnMatchScheduleUpload.setDisable(true);
         }
         checkMatchDetails();
     }
@@ -939,7 +942,6 @@ public class MatchesController {
         MatchGeneral match = new MatchGeneral(
                 MatchGeneral.buildMatchName(tournLevel, matchNum),
                 MatchGeneral.buildTOATournamentLevel(tournLevel, matchNum),
-                null,
                 qualMatch.getFieldNumber());
 
         //TODO: Update the -1 with the actual play #
@@ -977,7 +979,7 @@ public class MatchesController {
                     }
                     i++;
                 }
-            } else {
+            } else { //Something went wrong. We should never get here, but this is just a saftey backup.
                 MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, (eM.getRedAlliance().getAllianceCaptain() == -1) ? 0 : eM.getRedAlliance().getAllianceCaptain());
                 MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, (eM.getRedAlliance().getAlliancePick1() == -1) ? 0 : eM.getRedAlliance().getAlliancePick1());
                 MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, (eM.getRedAlliance().getAlliancePick2() == -1) ? 0 : eM.getRedAlliance().getAlliancePick2());
@@ -987,8 +989,7 @@ public class MatchesController {
             }
 
         } else if(qM != null) {
-            boolean[] sur = {qM.getRedAlliance().isTeam1Surrogate, qM.getRedAlliance().isTeam2Surrogate, false, qM.getBlueAlliance().isTeam1Surrogate, qM.getBlueAlliance().isTeam2Surrogate, false};
-            surrogate = sur;
+            surrogate = new boolean[]{qM.getRedAlliance().isTeam1Surrogate, qM.getRedAlliance().isTeam2Surrogate, false, qM.getBlueAlliance().isTeam1Surrogate, qM.getBlueAlliance().isTeam2Surrogate, false};
             MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, qM.getRedAlliance().getTeam1());
             MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, qM.getRedAlliance().getTeam2());
             MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, 0);
@@ -1008,6 +1009,8 @@ public class MatchesController {
         match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
         match.setIsDone(qualMatch.isFinished());
 
+        match.setScheduledTime(null); //TODO: update when avalible in FIRST API
+        match.setLastCommitTime(dateFromUnix(qualMatch.getLastCommitTime()));
         match.setRedPenalty(qualMatch.getBlueSpecifics().getPenaltyPoints());//These are backwards, so we have to do it this way
         match.setBluePenalty(qualMatch.getRedSpecifics().getPenaltyPoints());
         match.setRedAutoScore(qualMatch.getRedSpecifics().getAutoPoints());
@@ -1024,6 +1027,12 @@ public class MatchesController {
         returnValue.setMatchParticipants(MatchParticipants);
 
         return returnValue;
+    }
+
+    private String dateFromUnix(Long firstDate) {
+        Date date = new Date(firstDate);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return sdf.format(date);
     }
 
     private AllianceFIRST getAllianceFirstFromTeams(int t1, int t2, int t3) {
@@ -1244,7 +1253,7 @@ public class MatchesController {
         }
     }
 
-    public void postCompletedMatches() {
+    private void postCompletedMatches() {
         if (uploadQueue.size() > 0) {
             for (MatchGeneral completeMatch : uploadQueue) {
                 this.controller.sendInfo("Attempting to upload Match " + completeMatch.getMatchKey());
@@ -1262,10 +1271,12 @@ public class MatchesController {
                 MatchGeneralJSON matchJSON = new MatchGeneralJSON();
                 matchJSON.setMatchKey(completeMatch.getMatchKey());
                 matchJSON.setEventKey(Config.EVENT_ID);
+                matchJSON.setScheduledTime(completeMatch.getScheduledTime());
                 matchJSON.setFieldNumber(completeMatch.getFieldNumber());
                 matchJSON.setMatchName(completeMatch.getMatchName());
                 matchJSON.setPlayNumber(1);
                 matchJSON.setTournamentLevel(completeMatch.getTournamentLevel());
+                matchJSON.setLastCommitTime(completeMatch.getLastCommitTime());
                 matchJSON.setRedAutoScore(completeMatch.getRedAutoScore());
                 matchJSON.setRedTeleScore(completeMatch.getRedTeleScore());
                 matchJSON.setRedEndScore(completeMatch.getRedEndScore());
@@ -1411,10 +1422,12 @@ public class MatchesController {
                 MatchGeneralJSON matchJSON = new MatchGeneralJSON();
                 matchJSON.setMatchKey(selectedMatch.getMatchKey());
                 matchJSON.setEventKey(Config.EVENT_ID);
+                matchJSON.setScheduledTime(selectedMatch.getScheduledTime());
                 matchJSON.setFieldNumber(selectedMatch.getFieldNumber());
                 matchJSON.setMatchName(selectedMatch.getMatchName());
                 matchJSON.setPlayNumber(1);
                 matchJSON.setTournamentLevel(selectedMatch.getTournamentLevel());
+                matchJSON.setLastCommitTime(selectedMatch.getLastCommitTime());
                 matchJSON.setRedAutoScore(selectedMatch.getRedAutoScore());
                 matchJSON.setRedTeleScore(selectedMatch.getRedTeleScore());
                 matchJSON.setRedEndScore(selectedMatch.getRedEndScore());
@@ -1661,6 +1674,7 @@ public class MatchesController {
                 matchJSON.setMatchName(match.getMatchName());
                 matchJSON.setPlayNumber(0);
                 matchJSON.setFieldNumber(match.getFieldNumber());
+                matchJSON.setScheduledTime(match.getScheduledTime());
                 matchJSON.setScoreNull();
                 requestBody.addValue(matchJSON);
             }

@@ -32,14 +32,8 @@ public class MatchGeneralJSON {
     @SerializedName("field_number")
     private int fieldNumber;
 
-    @SerializedName("prestart_time")
-    private String prestartTime;
-
-    @SerializedName("prestart_count")
-    private String prestartCount;
-
-    @SerializedName("cycle_time")
-    private String cycleTime;
+    @SerializedName("scorekeeper_commit_time")
+    private String lastCommitTime;
 
     @SerializedName("red_score")
     private int redScore;
@@ -75,8 +69,6 @@ public class MatchGeneralJSON {
     private String videoUrl;
 
     /* Dont know if these will ever get added back
-    @SerializedName("video_url")
-    private String videoURL;
 
     @SerializedName("participants")
     private MatchParticipantJSON[] participant;*/
@@ -92,6 +84,7 @@ public class MatchGeneralJSON {
         this.setBlueEndScore(-1);
         this.setRedPenalty(-1);
         this.setBluePenalty(-1);
+        this.setLastCommitTime(null);
     }
 
     public String getMatchKey() {
@@ -150,28 +143,12 @@ public class MatchGeneralJSON {
         this.fieldNumber = fieldNumber;
     }
 
-    public String getPrestartTime() {
-        return prestartTime;
+    public String getLastCommitTime() {
+        return lastCommitTime;
     }
 
-    public void setPrestartTime(String prestartTime) {
-        this.prestartTime = prestartTime;
-    }
-
-    public String getPrestartCount() {
-        return prestartCount;
-    }
-
-    public void setPrestartCount(String prestartCount) {
-        this.prestartCount = prestartCount;
-    }
-
-    public String getCycleTime() {
-        return cycleTime;
-    }
-
-    public void setCycleTime(String cycleTime) {
-        this.cycleTime = cycleTime;
+    public void setLastCommitTime(String lastCommitTime) {
+        this.lastCommitTime = lastCommitTime;
     }
 
     public int getRedScore() {

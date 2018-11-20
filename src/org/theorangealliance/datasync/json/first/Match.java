@@ -19,7 +19,7 @@ public class Match {
     private int fieldNumber;
 
     @SerializedName("time")
-    private String startTime;
+    private Long lastCommitTime;
 
     @SerializedName("redScore")
     private int redScore;
@@ -50,12 +50,12 @@ public class Match {
         this.fieldNumber = fieldNumber;
     }
 
-    public String getStartTime() {
-        return startTime;
+    public Long getLastCommitTime() {
+        return lastCommitTime;
     }
 
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
+    public void setLastCommitTime(Long lastCommitTime) {
+        this.lastCommitTime = lastCommitTime;
     }
 
     public int getRedScore() {

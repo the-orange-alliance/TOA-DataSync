@@ -344,17 +344,17 @@
                                     <Font size="14.0" />
                                  </font>
                               </Label>
-                              <Label fx:id="labelMatchLevel" text="Tournament Level" GridPane.columnSpan="2" GridPane.valignment="TOP">
+                              <Label fx:id="labelMatchLevel" prefHeight="17.0" prefWidth="152.0" text="Tournament Level" GridPane.columnSpan="2" GridPane.valignment="TOP">
                                  <GridPane.margin>
                                     <Insets left="10.0" top="1.0" />
                                  </GridPane.margin>
                               </Label>
-                              <Label fx:id="labelMatchField" text="Field Number" GridPane.columnSpan="2">
+                              <Label fx:id="labelMatchField" prefHeight="17.0" prefWidth="154.0" text="Field Number" GridPane.columnSpan="2">
                                  <GridPane.margin>
                                     <Insets left="10.0" />
                                  </GridPane.margin>
                               </Label>
-                              <Label fx:id="labelMatchPlay" text="Play Number" GridPane.columnSpan="2" GridPane.valignment="BOTTOM">
+                              <Label fx:id="labelMatchPlay" prefHeight="17.0" prefWidth="154.0" text="Play Number" GridPane.columnSpan="2" GridPane.valignment="BOTTOM">
                                  <GridPane.margin>
                                     <Insets left="10.0" />
                                  </GridPane.margin>
@@ -382,6 +382,11 @@
                                     <Insets right="5.0" />
                                  </GridPane.margin>
                               </Button>
+                              <Label fx:id="labelCommitTime" layoutX="20.0" layoutY="43.0" prefHeight="17.0" prefWidth="150.0" text="Last Comited" GridPane.columnSpan="2" GridPane.rowIndex="1" GridPane.valignment="TOP">
+                                 <GridPane.margin>
+                                    <Insets left="10.0" />
+                                 </GridPane.margin>
+                              </Label>
                            </children>
                         </GridPane>
                         <Separator layoutX="225.0" layoutY="360.0" prefHeight="2.0" prefWidth="500.0" AnchorPane.rightAnchor="0.0" />
