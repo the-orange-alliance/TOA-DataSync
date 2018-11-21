@@ -7,6 +7,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.json.toa.EventParticipantTeamJSON;
@@ -88,10 +89,19 @@ public class TeamsController {
 
                controller.btnTeamsPost.setDisable(false);
                controller.btnTeamsDelete.setDisable(false);
+
+               //Do Dashboard Stuff
+               this.controller.cb_teams.setTextFill(Color.GREEN);
+               this.controller.cb_teams.setSelected(true);
+               this.controller.btn_cb_teams.setDisable(true);
            } else {
                controller.sendError("Connection to TOA unsuccessful. " + response);
                controller.btnTeamsPost.setDisable(true);
                controller.btnTeamsDelete.setDisable(true);
+               //Do Dashboard Stuff
+               this.controller.cb_teams.setTextFill(Color.RED);
+               this.controller.cb_teams.setSelected(false);
+               this.controller.btn_cb_teams.setDisable(false);
            }
         }));
     }
@@ -203,8 +213,8 @@ public class TeamsController {
             //TODO: Fix For international teams at some point
             teamsList.sort((team1, team2) -> (Integer.parseInt(team1.getTeamKey()) > Integer.parseInt(team2.getTeamKey()) ? 1 : -1));
             controller.sendInfo("Uploading data from event " + Config.EVENT_ID + "...");
-            TOAEndpoint deleteEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/teams");
-            deleteEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+            TOAEndpoint postEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/teams");
+            postEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
             TOARequestBody requestBody = new TOARequestBody();
             //requestBody.setEventKey(Config.EVENT_ID);
             int div1 = 0;
@@ -232,10 +242,15 @@ public class TeamsController {
                 eventTeam.setTeamIsActive(true);
                 requestBody.addValue(eventTeam);
             }
-            deleteEndpoint.setBody(requestBody);
-            deleteEndpoint.execute((response, success) -> {
+            postEndpoint.setBody(requestBody);
+            postEndpoint.execute((response, success) -> {
                 if (success) {
                     controller.sendInfo("Successfully uploaded data to TOA. " + response);
+                    //Do Checklist stuff
+                    controller.cb_teams.setSelected(true);
+                    controller.cb_teams.setTextFill(Color.GREEN);
+                    controller.cb_teams.setDisable(true);
+                    controller.btn_cb_teams.setDisable(true);
                 } else {
                     controller.sendError("Connection to TOA unsuccessful. " + response);
                 }
@@ -270,6 +285,10 @@ public class TeamsController {
             deleteEndpoint.execute((response, success) -> {
                 if (success) {
                     controller.sendInfo("Successfully purged data from TOA. " + response);
+                    //Do Checklist stuff
+                    controller.cb_teams.setSelected(false);
+                    controller.cb_teams.setTextFill(Color.RED);
+                    controller.btn_cb_teams.setDisable(false);
                 } else {
                     controller.sendError("Connection to TOA unsuccessful. " + response);
                 }

@@ -1,5 +1,7 @@
 package org.theorangealliance.datasync;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -11,6 +13,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.theorangealliance.datasync.json.toa.EventJSON;
 import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.json.first.Event;
@@ -45,6 +48,8 @@ public class DataSyncController implements Initializable {
     /* Default output file */
     private String saveFileName = "Settings" + SAVE_FILE_EXTENSION;
 
+    /* This is our main tab pane */
+    @FXML public TabPane tabPaneMain;
     /* This is the left-side of the setup tab. */
     @FXML public Tab tabSetup;
     @FXML public TextField txtSetupKey;
@@ -61,6 +66,21 @@ public class DataSyncController implements Initializable {
     @FXML public ComboBox<String> cbFirstEvents;
     @FXML public Label labelSetupDir;
 
+    /* This is for our Dashboard Tab */
+    @FXML public Tab tabDashboard;
+    @FXML public CheckBox cb_connectScore;
+    @FXML public Button btn_cb_score;
+    @FXML public CheckBox cb_teams;
+    @FXML public Button btn_cb_teams;
+    @FXML public CheckBox cb_matches;
+    @FXML public Button btn_cb_matches;
+    @FXML public CheckBox cb_autoSync;
+    @FXML public Button btn_cb_autoSync;
+    @FXML public CheckBox cb_replay;
+    @FXML public Button btn_cb_replay;
+    @FXML public CheckBox cb_awards;
+    @FXML public Button btn_cb_awards;
+
     /* This is for our teams tab. */
     @FXML public Tab tabTeams;
     @FXML public TableView<Team> tableTeams;
@@ -71,6 +91,7 @@ public class DataSyncController implements Initializable {
     @FXML public TableColumn colTeamsShort;
     @FXML public TableColumn colTeamsLong;
     @FXML public TableColumn colTeamsLocation;
+    @FXML public Button btnTeamsGet;
     @FXML public Button btnTeamsPost;
     @FXML public Button btnTeamsDelete;
 
@@ -163,6 +184,7 @@ public class DataSyncController implements Initializable {
     private SyncController syncController;
     private AlliancesController alliancesController;
     private AwardsController awardsController;
+    private DashboardController dashboardController;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -172,6 +194,7 @@ public class DataSyncController implements Initializable {
         this.syncController = new SyncController(this);
         this.alliancesController = new AlliancesController(this);
         this.awardsController = new AwardsController(this);
+        this.dashboardController = new DashboardController(this);
 
         labelSetupTest.setTextFill(Color.RED);
         labelSetupDir.setTextFill(Color.RED);
@@ -235,6 +258,7 @@ public class DataSyncController implements Initializable {
                     btnSetupSelect.setDisable(false);
                     btnSetupTestDir.setDisable(false);
 
+                    teamsController.getTeamsByURL();
                     matchesController.checkMatchSchedule();
                     matchesController.checkMatchDetails();
                     matchesController.checkMatchParticipants();
@@ -326,6 +350,84 @@ public class DataSyncController implements Initializable {
         this.matchesController.setSelectedMatchVideo();
     }
 
+    @FXML
+    public void btnGoConnect(){
+        //This should never get pressed
+    }
+
+    @FXML
+    public void btnGoTeams(){
+        tabPaneMain.getSelectionModel().select(2);
+        generateButtonFlash(btnTeamsPost).play();
+        generateButtonFlash(btnTeamsGet).play();
+    }
+
+    @FXML
+    public void btnGoMatches(){
+        tabPaneMain.getSelectionModel().select(3);
+        generateButtonFlash(btnMatchImport).play();
+        generateButtonFlash(btnMatchScheduleUpload).play();
+    }
+
+    @FXML
+    public void btnGoSync(){
+        tabPaneMain.getSelectionModel().select(8);
+        generateButtonFlash(btnSyncStart).play();
+    }
+
+    @FXML
+    public void btnGoReplay(){
+        tabPaneMain.getSelectionModel().select(3);
+        generateButtonFlash(btnMatchUpload).play();
+    }
+
+    @FXML
+    public void btnGoAwards(){
+        tabPaneMain.getSelectionModel().select(6);
+        generateButtonFlash(btnAwardsGet).play();
+        generateButtonFlash(btnAwardsPost).play();
+    }
+
+    @FXML
+    public void cbReplayed(){
+        if(cb_replay.isSelected()){
+            cb_replay.setTextFill(Color.GREEN);
+        } else {
+            cb_replay.setTextFill(Color.RED);
+        }
+    }
+
+    private Timeline generateButtonFlash(Button button){
+        Timeline flasher = new Timeline(
+                new KeyFrame(Duration.seconds(0.5), e -> {
+                    button.setDefaultButton(true);
+                }),
+
+                new KeyFrame(Duration.seconds(1.0), e -> {
+                    button.setDefaultButton(false);
+                }),
+
+                new KeyFrame(Duration.seconds(1.5), e -> {
+                    button.setDefaultButton(true);
+                }),
+
+                new KeyFrame(Duration.seconds(2.0), e -> {
+                    button.setDefaultButton(false);
+                }),
+
+                new KeyFrame(Duration.seconds(2.5), e -> {
+                    button.setDefaultButton(true);
+                }),
+
+                new KeyFrame(Duration.seconds(3.0), e -> {
+                    button.setDefaultButton(false);
+                })
+
+
+        );
+        return flasher;
+    }
+
     private void loadEventFromFIRST() {
         if (cbFirstEvents.getSelectionModel() != null) {
             String[] eventID = cbFirstEvents.getSelectionModel().getSelectedItem().split("\\|");
@@ -349,6 +451,8 @@ public class DataSyncController implements Initializable {
                     tabSync.setDisable(false);
                     tabAllianceSelection.setDisable(false);
                     tabAwards.setDisable(false);
+                    tabDashboard.setDisable(false);
+                    tabPaneMain.getSelectionModel().select(1);
 
                 } else {
                     sendError("Connection to FIRST Scoring system unsuccessful. " + response);
@@ -360,10 +464,6 @@ public class DataSyncController implements Initializable {
             labelSetupDir.setTextFill(Color.RED);
             labelSetupDir.setText("Please select an event");
         }
-    }
-
-    private void uploadDBFile() {
-
     }
 
     private void testDirOldScoreing() {

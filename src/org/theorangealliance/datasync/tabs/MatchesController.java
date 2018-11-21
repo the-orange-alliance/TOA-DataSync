@@ -276,12 +276,24 @@ public class MatchesController {
                     this.controller.labelScheduleUploaded.setTextFill(Color.GREEN);
                     this.controller.labelScheduleUploaded.setText("Schedule Already Posted");
                     this.controller.sendInfo("Grabbed " + uploadedMatches.size() + " matches from TOA");
+                    //Do Dashboard Stuff
+                    this.controller.cb_matches.setTextFill(Color.GREEN);
+                    this.controller.cb_matches.setSelected(true);
+                    this.controller.btn_cb_matches.setDisable(true);
                 } else {
                     this.controller.labelScheduleUploaded.setTextFill(Color.RED);
                     this.controller.labelScheduleUploaded.setText("Schedule NOT Posted");
+                    //Do Dashboard Stuff
+                    this.controller.cb_matches.setTextFill(Color.RED);
+                    this.controller.cb_matches.setSelected(false);
+                    this.controller.btn_cb_matches.setDisable(false);
                 }
             } else {
                 this.controller.sendError("Error: " + response);
+                //Do Dashboard Stuff
+                this.controller.cb_matches.setTextFill(Color.RED);
+                this.controller.cb_matches.setSelected(false);
+                this.controller.btn_cb_matches.setDisable(false);
             }
         }));
     }
@@ -371,7 +383,7 @@ public class MatchesController {
     }
 
     private void syncMatches1819(){
-            postCompletedMatches();
+        postCompletedMatches();
     }
 
     private void syncMatches1718(){
@@ -1570,6 +1582,10 @@ public class MatchesController {
         if (result.get() == okayButton) {
             postMatchScheduleMatches();
             postMatchScheduleTeams();
+            //Do Dashboard Things
+            this.controller.cb_matches.setTextFill(Color.GREEN);
+            this.controller.cb_matches.setSelected(true);
+            this.controller.btn_cb_teams.setDisable(true);
 
             this.controller.btnMatchUpload.setVisible(true);
             this.controller.btnMatchBrowserView.setVisible(true);
@@ -1726,6 +1742,10 @@ public class MatchesController {
             matchEp.execute(((response, success) -> {
                 if (success) {
                     TOALogger.log(Level.INFO, "Deleted Matches.");
+                    //Do Dashboard Stuff
+                    this.controller.cb_matches.setTextFill(Color.RED);
+                    this.controller.cb_matches.setSelected(false);
+                    this.controller.btn_cb_matches.setDisable(false);
                 }else{
                     TOALogger.log(Level.SEVERE, "Failed to delete matches from TOA.");
                 }

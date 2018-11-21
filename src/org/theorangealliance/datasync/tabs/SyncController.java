@@ -4,6 +4,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.theorangealliance.datasync.DataSyncController;
 import org.theorangealliance.datasync.util.Config;
@@ -60,6 +61,11 @@ public class SyncController implements Runnable {
             this.totalSyncs = 0;
             controller.btnSyncStop.setDisable(false);
             controller.btnSyncMatches.setDisable(true);
+            //Do Dashboard Stuff
+            controller.cb_autoSync.setSelected(true);
+            controller.cb_autoSync.setTextFill(Color.GREEN);
+            controller.btn_cb_autoSync.setDisable(true);
+
             service.scheduleAtFixedRate(this, 0, 40, TimeUnit.SECONDS);
             executeAdapter = toaExecuteAdapter;
         }
@@ -69,6 +75,10 @@ public class SyncController implements Runnable {
         controller.btnSyncStart.setDisable(false);
         controller.btnSyncStop.setDisable(true);
         controller.btnSyncMatches.setDisable(false);
+        //Do Dashboard Stuff
+        controller.cb_autoSync.setSelected(false);
+        controller.cb_autoSync.setTextFill(Color.RED);
+        controller.btn_cb_autoSync.setDisable(false);
         if (service != null) {
             service.shutdownNow();
         }

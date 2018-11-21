@@ -61,6 +61,7 @@ public class AwardsController {
 
         this.uploadedAwards = new ArrayList<>();
 
+        this.controller.btnAwardsPost.setDisable(true);
     }
 
     private void getAwardsTOA(boolean loadIntoTable){
@@ -91,9 +92,10 @@ public class AwardsController {
                     }
                     this.controller.tableAwards.refresh();
                 }
-
+                this.controller.btnAwardsPost.setDisable(false);
             } else {
                 this.controller.sendError("Error: " + response);
+                this.controller.btnAwardsPost.setDisable(true);
             }
         }));
     }
@@ -177,6 +179,10 @@ public class AwardsController {
                     uploadedAwards.add(award);
                     controller.tableAwards.refresh();
                     TOALogger.log(Level.INFO, "Successfully uploaded Award " + a.getAwardKey() + ". " + response);
+                    //Do Dashboard Stuff
+                    controller.cb_awards.setSelected(false);
+                    controller.cb_awards.setTextFill(Color.RED);
+                    controller.btn_cb_awards.setDisable(false);
                 }
             }));
         }
@@ -217,9 +223,11 @@ public class AwardsController {
                             award.setTeamKey(r + "");
                             awardList.add(award);
                             recipNum++;
+                            this.controller.btnAwardsPost.setDisable(false);
                         } else {
                             this.controller.sendError("Could Not Get Award ID from " + a.getAwardName());
                             TOALogger.log(Level.INFO, "Could Not Get Award ID from " + a.getAwardName());
+                            this.controller.btnAwardsPost.setDisable(true);
                         }
                     }
                 }
