@@ -245,7 +245,45 @@ public class AwardsController {
 
 
     public void purgeAwards() {
-        //TODO: When route becomes avaliable
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Are you sure about this?");
+        alert.setHeaderText("This operation cannot be undone.");
+        alert.setContentText("You are about to purge all awards in TOA's databases for event " + Config.EVENT_ID + ". Awards will become unavailable until you re-upload.");
+
+        ButtonType okayButton = new ButtonType("Purge Awards");
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        //Set Icon because it shows in the task bar
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/app_ico.png")));
+
+        alert.getButtonTypes().setAll(okayButton, cancelButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == okayButton) {
+
+            TOAEndpoint matchEp = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/awards");
+            matchEp.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+            TOARequestBody requestBody = new TOARequestBody();
+            matchEp.setBody(requestBody);
+            matchEp.execute(((response, success) -> {
+                if (success) {
+                    TOALogger.log(Level.INFO, "Deleted Awards.");
+                    //Do Dashboard Stuff
+                    this.controller.cb_awards.setTextFill(Color.RED);
+                    this.controller.cb_awards.setSelected(false);
+                    this.controller.btn_cb_awards.setDisable(false);
+                }else{
+                    TOALogger.log(Level.SEVERE, "Failed to delete awards from TOA.");
+                }
+            }));
+
+            for(Award a : awardList){
+                a.setIsUploaded(false);
+            }
+            controller.tableAwards.refresh();
+            this.getAwardsTOA(false);
+        }
     }
 
     private String getAwardIDFromName(String name) {

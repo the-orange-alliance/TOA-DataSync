@@ -198,9 +198,10 @@
                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                           </rowConstraints>
                            <children>
-                              <Label text="TOA DataSync Dashboard" underline="true" GridPane.halignment="CENTER">
+                              <Label text="TOA DataSync Dashboard" underline="true" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
                                  <font>
                                     <Font name="System Bold" size="36.0" />
                                  </font>
@@ -255,7 +256,7 @@
                               </CheckBox>
                               <Label text="(Only do after ALL awards have been presented)" GridPane.halignment="LEFT" GridPane.rowIndex="6" GridPane.valignment="BOTTOM">
                                  <GridPane.margin>
-                                    <Insets left="50.0" />
+                                    <Insets left="80.0" />
                                  </GridPane.margin>
                               </Label>
                               <Button fx:id="btn_cb_score" disable="true" mnemonicParsing="false" onAction="#btnGoConnect" prefHeight="25.0" prefWidth="78.0" text="Go" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
@@ -288,6 +289,19 @@
                                     <Insets right="10.0" />
                                  </GridPane.margin>
                               </Button>
+                              <Label prefHeight="37.0" prefWidth="698.0" text="At the end of your event, please remember to send your archive file from the official scoring system to FIRST. This way, we can sort out any discrepancies later. League Meets or unofficial events may email their archives directly to data@theorangealliance.org" textAlignment="CENTER" wrapText="true" GridPane.rowIndex="7" GridPane.valignment="BOTTOM">
+                                 <GridPane.margin>
+                                    <Insets bottom="5.0" left="5.0" right="5.0" />
+                                 </GridPane.margin>
+                                 <font>
+                                    <Font size="11.0" />
+                                 </font>
+                              </Label>
+                              <Label GridPane.valignment="TOP">
+                                 <GridPane.margin>
+                                    <Insets left="5.0" top="5.0" />
+                                 </GridPane.margin>
+                              </Label>
                            </children>
                            <padding>
                               <Insets left="5.0" right="5.0" />
