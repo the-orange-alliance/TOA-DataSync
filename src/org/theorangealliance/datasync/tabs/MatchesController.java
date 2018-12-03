@@ -863,28 +863,28 @@ public class MatchesController {
 
     private boolean getUploadedFromMatchKey (String matchKey) {
         boolean fullyUploaded = false;
-
         boolean returnValue = false;
 
         // Not very efficient, but it is what is is... I hate O(N^2) algorithms.
         if(uploadedDetails != null) {
             for (MatchDetail1819JSON detail : uploadedDetails) {
-                if (detail.getMatchKey().equals(matchKey)) {
+                if (detail.getMatchKey().equalsIgnoreCase(matchKey)) {
                     returnValue = true;
                     fullyUploaded = true;
+                    break;
                 }
             }
         }
 
-
         if(uploadedMatches != null){
             for (MatchGeneralJSON general : uploadedMatches) {
-                if (general.getMatchKey().equals(matchKey)) {
+                if (general.getMatchKey().equalsIgnoreCase(matchKey)) {
                     if (general.getPlayNumber() == 0) {
                         returnValue = false;
                     } else if (fullyUploaded) {
                         returnValue = true;
                     }
+                    break;
                 }
             }
         }
