@@ -251,6 +251,7 @@ public class TeamsController {
                     controller.cb_teams.setTextFill(Color.GREEN);
                     controller.cb_teams.setDisable(true);
                     controller.btn_cb_teams.setDisable(true);
+                    controller.btnTeamsPost.setDisable(true);
                 } else {
                     controller.sendError("Connection to TOA unsuccessful. " + response);
                 }
@@ -289,6 +290,7 @@ public class TeamsController {
                     controller.cb_teams.setSelected(false);
                     controller.cb_teams.setTextFill(Color.RED);
                     controller.btn_cb_teams.setDisable(false);
+                    controller.btnTeamsPost.setDisable(false);
                 } else {
                     controller.sendError("Connection to TOA unsuccessful. " + response);
                 }
