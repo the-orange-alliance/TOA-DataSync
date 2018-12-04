@@ -31,6 +31,7 @@ import java.util.Optional;
 
 /**
  * Created by Kyle Flynn on 11/29/2017.
+ * Modded By Soren for 2018 FIRST Scoring System 11/11/18
  */
 public class TeamsController {
 
@@ -216,7 +217,6 @@ public class TeamsController {
             TOAEndpoint postEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/teams");
             postEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
             TOARequestBody requestBody = new TOARequestBody();
-            //requestBody.setEventKey(Config.EVENT_ID);
             int div1 = 0;
             int div2 = 0;
             for (int i = 0; i < teamsList.size(); i++) {
@@ -281,7 +281,6 @@ public class TeamsController {
             TOAEndpoint deleteEndpoint = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/teams");
             deleteEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
             TOARequestBody requestBody = new TOARequestBody();
-            //requestBody.setEventKey(Config.EVENT_ID);
             deleteEndpoint.setBody(requestBody);
             deleteEndpoint.execute((response, success) -> {
                 if (success) {
@@ -296,13 +295,6 @@ public class TeamsController {
                 }
             });
         }
-    }
-
-    private String getCurrentTime() {
-        Date dt = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-        return sdf.format(dt);
     }
 
     private String getRegion(String state, String country){
