@@ -641,6 +641,7 @@ public class MatchesController {
     }
 
     public void getMatchesFromFIRSTApi1819() {
+        boolean allQualComplete = true;
         /* Qualifacation Matches*/
         QualMatchesArray matches = null;
         try{
@@ -674,6 +675,8 @@ public class MatchesController {
                     if (match.isDone() && !match.isUploaded()) {
                         TOALogger.log(Level.INFO, "Added match " + match.getMatchKey() + " to the upload queue.");
                         uploadQueue.add(match);
+                    } else if (!match.isDone()) {
+                        allQualComplete = false;
                     }
 
                     calculateWL(match, MatchParticipants);
@@ -706,11 +709,14 @@ public class MatchesController {
         ElimMatchesArray matchesSF1 = null;
         //Try to connect to scoring system
         //If connnection is failed, JSON will not parse and then matchesSF1 will be null
-        try{
-            matchesSF1 = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + Config.FIRST_API_EVENT_ID + "/elim/sf/1"), ElimMatchesArray.class);
-        } catch (Exception e) {
-            controller.sendError("Connection to FIRST Scoring system unsuccessful. " + e);
+        if(allQualComplete) {
+            try{
+                matchesSF1 = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + Config.FIRST_API_EVENT_ID + "/elim/sf/1"), ElimMatchesArray.class);
+            } catch (Exception e) {
+                controller.sendError("Connection to FIRST Scoring system unsuccessful. " + e);
+            }
         }
+
 
         //Make sure connection was successful
         if (matchesSF1 != null) {
@@ -751,10 +757,12 @@ public class MatchesController {
         sf2MatchDtl.clear();
 
         ElimMatchesArray matchesSF2 = null;
-        try {
-            matchesSF2 = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + Config.FIRST_API_EVENT_ID + "/elim/sf/2"), ElimMatchesArray.class);
-        } catch (Exception e) {
-            controller.sendError("Connection to FIRST Scoring system unsuccessful. " + e);
+        if(allQualComplete) {
+            try {
+                matchesSF2 = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + Config.FIRST_API_EVENT_ID + "/elim/sf/2"), ElimMatchesArray.class);
+            } catch (Exception e) {
+                controller.sendError("Connection to FIRST Scoring system unsuccessful. " + e);
+            }
         }
 
         //Make sure conn was successful
@@ -797,10 +805,12 @@ public class MatchesController {
         fMatchDtl.clear();
 
         ElimMatchesArray matchesF = null;
-        try {
-            matchesF = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + Config.FIRST_API_EVENT_ID + "/elim/finals/"), ElimMatchesArray.class);
-        } catch (Exception e) {
-            controller.sendError("Connection to FIRST Scoring system unsuccessful. " + e);
+        if(matchesSF1 != null || matchesSF2 != null) { //If the SF matches are null, then we KNOW there wont be any Finals matches
+            try {
+                matchesF = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + Config.FIRST_API_EVENT_ID + "/elim/finals/"), ElimMatchesArray.class);
+            } catch (Exception e) {
+                controller.sendError("Connection to FIRST Scoring system unsuccessful. " + e);
+            }
         }
         if (matchesF != null) {
 
@@ -1761,7 +1771,6 @@ public class MatchesController {
             checkMatchParticipants();
             checkMatchDetails();
             controller.tableMatches.refresh();
-            //getMatchesFromFIRSTApi1819();
         }
 
     }
