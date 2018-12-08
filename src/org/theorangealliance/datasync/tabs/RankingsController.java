@@ -199,7 +199,9 @@ public class RankingsController {
                         rankJSON.setTies(ranking.getTies());
                         rankJSON.setRank(ranking.getRank());
                         rankJSON.setRankChange(0);
-                        postBody.addValue(rankJSON);
+                        if (rankJSON.getRank() > 0) { //Make Sure rank is actually active
+                            postBody.addValue(rankJSON);
+                        }
                     }
                     postEndpoint.setBody(postBody);
                     postEndpoint.execute(((response1, success1) -> {
