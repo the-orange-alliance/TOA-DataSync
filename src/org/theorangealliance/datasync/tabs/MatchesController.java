@@ -1276,8 +1276,12 @@ public class MatchesController {
     }
 
     private void postCompletedMatches() {
+        boolean haveParticipants = true;
+
         if (uploadQueue.size() > 0) {
+
             for (MatchGeneral completeMatch : uploadQueue) {
+                //Parse Data For Match General
                 this.controller.sendInfo("Attempting to upload Match " + completeMatch.getMatchKey());
                 String methodType = "POST";
                 String putRouteExtra = "";
@@ -1312,11 +1316,9 @@ public class MatchesController {
                 matchJSON.setVideoUrl(completeMatch.getVideoUrl());
                 requestBody.addValue(matchJSON);
                 matchEndpoint.setBody(requestBody);
-                matchEndpoint.execute(((response, success) -> {
-                    if (success) {
-                        TOALogger.log(Level.INFO, "Successfully uploaded results to TOA. " + response);
-                    }
-                }));
+
+
+                //Parse Data for Match Details
 
                 methodType = "POST";
                 putRouteExtra = "";
@@ -1347,15 +1349,9 @@ public class MatchesController {
                 TOARequestBody detailBody = new TOARequestBody();
                 detailBody.addValue(detailJSON);
                 detailEndpoint.setBody(detailBody);
-                detailEndpoint.execute(((response, success) -> {
-                    if (success) {
-                        uploadQueue.remove(completeMatch);
-                        matchList.get(completeMatch.getCanonicalMatchNumber()-1).setIsUploaded(true);
-                        controller.tableMatches.refresh();
-                        TOALogger.log(Level.INFO, "Successfully uploaded detail results to TOA. " + response);
-                    }
-                }));
 
+
+                //Parese Data for Match Participants
                 methodType = "POST";
                 putRouteExtra = "";
 
@@ -1384,27 +1380,60 @@ public class MatchesController {
                 TOAEndpoint matchParEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches/" + putRouteExtra + "participants");
                 matchParEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
                 TOARequestBody matchParticipantBody = new TOARequestBody();
-                for(MatchParticipant m : mPs){
-                    MatchParticipantJSON mPJson = new MatchParticipantJSON();
-                    mPJson.setMatchParticipantKey(m.getStationKey());
-                    mPJson.setMatchKey(m.getMatchKey());
-                    mPJson.setStation(m.getStation());
-                    mPJson.setStationStatus(m.getStationStatus());
-                    mPJson.setTeamKey(m.getTeamKey() + "");
-                    mPJson.setRefStatus(0);//TODO: Fix?
-                    if(Integer.parseInt(mPJson.getTeamKey()) > 0) {
-                        matchParticipantBody.addValue(mPJson);
+                if(mPs != null) {
+                    for(MatchParticipant m : mPs){ //Todo: I don't know why these aren't stored in JSON by default, Fix at some point
+                        MatchParticipantJSON mPJson = new MatchParticipantJSON();
+                        mPJson.setMatchParticipantKey(m.getStationKey());
+                        mPJson.setMatchKey(m.getMatchKey());
+                        mPJson.setStation(m.getStation());
+                        mPJson.setStationStatus(m.getStationStatus());
+                        mPJson.setTeamKey(m.getTeamKey() + "");
+                        mPJson.setRefStatus(0);//TODO: Fix?
+                        if(Integer.parseInt(mPJson.getTeamKey()) > 0) {
+                            matchParticipantBody.addValue(mPJson);
+                        }
                     }
-
+                } else {
+                    //Dont Upload Match, because we don't have participants
+                    haveParticipants = false;
                 }
+
+                //Dont Upload Match, because we don't have participants
+                if(matchParticipantBody.getValues().isEmpty()) {
+                    haveParticipants = false;
+                }
+
                 matchParEndpoint.setBody(matchParticipantBody);
-                matchParEndpoint.execute(((response, success) -> {
-                    if (success) {
-                        controller.sendInfo("Successfully uploaded match partipants results to TOA. " + response);
-                    } else {
-                        controller.sendError("Connection to TOA unsuccessful. " + response);
-                    }
-                }));
+
+                /* Execute Queries */
+                if(haveParticipants) {
+                    //Match General Data
+                    matchEndpoint.execute(((response, success) -> {
+                        if (success) {
+                            TOALogger.log(Level.INFO, "Successfully uploaded results to TOA. " + response);
+                        }
+                    }));
+                    //Match Participants
+                    matchParEndpoint.execute(((response, success) -> {
+                        if (success) {
+                            controller.sendInfo("Successfully uploaded match partipants results to TOA. " + response);
+                        } else {
+                            controller.sendError("Connection to TOA unsuccessful. " + response);
+                        }
+                    }));
+                    //Match Details
+                    detailEndpoint.execute(((response, success) -> {
+                        if (success) {
+                            uploadQueue.remove(completeMatch);
+                            matchList.get(completeMatch.getCanonicalMatchNumber()-1).setIsUploaded(true);
+                            controller.tableMatches.refresh();
+                            TOALogger.log(Level.INFO, "Successfully uploaded match detail results to TOA. " + response);
+                        }
+                    }));
+                } else {
+                    TOALogger.log(Level.INFO, "Didn't upload match " + detailJSON.getMatchKey() + " because there were no event participants.");
+                }
+
             }
         }
     }
@@ -1643,7 +1672,6 @@ public class MatchesController {
                 }
             }
 
-
             if (!uploaded) {
                 for (MatchParticipant matchPar : matchPars) {
                     if (matchPar.getTeamKey() != 0) {
@@ -1690,7 +1718,6 @@ public class MatchesController {
                     }
                 }
             }
-
 
             if (!uploaded) {
                 MatchGeneralJSON matchJSON = new MatchGeneralJSON();
