@@ -271,6 +271,7 @@ public class MatchesController {
         matchesEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         matchesEndpoint.execute(((response, success) -> {
             if (success) {
+                checkMatchParticipants();
                 uploadedMatches = new HashSet<>(Arrays.asList(matchesEndpoint.getGson().fromJson(response, MatchGeneralJSON[].class)));
                 if (uploadedMatches.size() > 0) {
                     this.controller.labelScheduleUploaded.setTextFill(Color.GREEN);
@@ -303,7 +304,7 @@ public class MatchesController {
         matchesEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         matchesEndpoint.execute(((response, success) -> {
             if (success) {
-                uploadedDetails = new HashSet<>(Arrays.asList(matchesEndpoint.getGson().fromJson(response, MatchDetail1819JSON[].class)));
+
                 TOALogger.log(Level.INFO, "Grabbed match details for " + uploadedDetails.size() + " matches.");
             } else {
                 this.controller.sendError("Error: " + response);
@@ -1619,8 +1620,8 @@ public class MatchesController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == okayButton) {
-            postMatchScheduleMatches();
             postMatchScheduleTeams();
+            postMatchScheduleMatches();
             //Do Dashboard Things
             this.controller.cb_matches.setTextFill(Color.GREEN);
             this.controller.cb_matches.setSelected(true);
@@ -1681,7 +1682,10 @@ public class MatchesController {
                         matchParJSON.setStation(matchPar.getStation());
                         matchParJSON.setTeamKey(matchPar.getTeamKey() + "");
                         matchParJSON.setStationStatus(matchPar.getStationStatus());
-                        requestBody.addValue(matchParJSON);
+                        if(!matchParJSON.getTeamKey().equalsIgnoreCase("-1")) {
+                            requestBody.addValue(matchParJSON);
+                        }
+
                     }
                 }
             }
@@ -1705,31 +1709,38 @@ public class MatchesController {
         scheduleEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         TOARequestBody requestBody = new TOARequestBody();
         for (int i = 0; i < matchList.size(); i++) {
+
             MatchGeneral match = matchList.get(i);
 
-            // TODO - Needs testing!
-
-            boolean uploaded = false;
-            if(uploadedMatches != null){
-                for (MatchGeneralJSON uploadedMatch : uploadedMatches) {
-                    if (match.getMatchKey().equals(uploadedMatch.getMatchKey())) {
-                        uploaded = true;
-                        break;
-                    }
+            boolean matchParExists = false;
+            for (MatchParticipantJSON mPj : uploadedMatchParticipants) {
+                if (mPj.getMatchKey().equalsIgnoreCase(match.getMatchKey())) {
+                    matchParExists = true;
                 }
             }
+            if (matchParExists) {
+                boolean uploaded = false;
+                if (uploadedMatches != null) {
+                    for (MatchGeneralJSON uploadedMatch : uploadedMatches) {
+                        if (match.getMatchKey().equals(uploadedMatch.getMatchKey())) {
+                            uploaded = true;
+                            break;
+                        }
+                    }
+                }
 
-            if (!uploaded) {
-                MatchGeneralJSON matchJSON = new MatchGeneralJSON();
-                matchJSON.setEventKey(Config.EVENT_ID);
-                matchJSON.setMatchKey(match.getMatchKey());
-                matchJSON.setTournamentLevel(match.getTournamentLevel());
-                matchJSON.setMatchName(match.getMatchName());
-                matchJSON.setPlayNumber(0);
-                matchJSON.setFieldNumber(match.getFieldNumber());
-                matchJSON.setScheduledTime(match.getScheduledTime());
-                matchJSON.setScoreNull();
-                requestBody.addValue(matchJSON);
+                if (!uploaded) {
+                    MatchGeneralJSON matchJSON = new MatchGeneralJSON();
+                    matchJSON.setEventKey(Config.EVENT_ID);
+                    matchJSON.setMatchKey(match.getMatchKey());
+                    matchJSON.setTournamentLevel(match.getTournamentLevel());
+                    matchJSON.setMatchName(match.getMatchName());
+                    matchJSON.setPlayNumber(0);
+                    matchJSON.setFieldNumber(match.getFieldNumber());
+                    matchJSON.setScheduledTime(match.getScheduledTime());
+                    matchJSON.setScoreNull();
+                    requestBody.addValue(matchJSON);
+                }
             }
         }
         scheduleEndpoint.setBody(requestBody);
