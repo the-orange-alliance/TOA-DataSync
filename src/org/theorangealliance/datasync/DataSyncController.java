@@ -179,7 +179,7 @@ public class DataSyncController implements Initializable {
     @FXML public CheckBox btnSyncMatches;
 
     /* Instances of our tab controllers. */
-    private TeamsController teamsController;
+    public TeamsController teamsController;
     private MatchesController matchesController;
     private RankingsController rankingsController;
     private SyncController syncController;
@@ -621,12 +621,12 @@ public class DataSyncController implements Initializable {
 
     @FXML
     public void postEventTeams() {
-        this.teamsController.postEventTeams();
+        this.teamsController.postEventTeamsAskUser();
     }
 
     @FXML
     public void deleteEventTeams() {
-        this.teamsController.deleteEventTeams();
+        this.teamsController.deleteEventTeamsAskUser();
     }
 
     /* Matches Tab Functions */

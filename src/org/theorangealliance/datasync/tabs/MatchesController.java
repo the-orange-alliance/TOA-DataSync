@@ -1620,6 +1620,13 @@ public class MatchesController {
         if (result.get() == okayButton) {
             postMatchScheduleTeams();
             postMatchScheduleMatches();
+
+            //Now that we know the schedule is generated, the teams list is final.
+            //Lets purge and reupload it.  Thanks @CHEER4FTC, this is actually very important.
+            this.controller.teamsController.purgeEventTeams();
+            this.controller.teamsController.uploadEventTeams();
+
+
             //Do Dashboard Things
             this.controller.cb_matches.setTextFill(Color.GREEN);
             this.controller.cb_matches.setSelected(true);

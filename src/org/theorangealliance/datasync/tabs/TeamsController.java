@@ -194,7 +194,8 @@ public class TeamsController {
         }
     }
 
-    public void postEventTeams() {
+    //This will ask the user if they want to upload the teams
+    public void postEventTeamsAskUser() {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Are you sure about this?");
         alert.setHeaderText("This operation cannot be undone.");
@@ -211,54 +212,59 @@ public class TeamsController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == okayButton) {
-            teamsList.sort((team1, team2) -> (Integer.parseInt(team1.getTeamKey().replaceAll("[^\\d.]", "")) > Integer.parseInt(team2.getTeamKey().replaceAll("[^\\d.]", "")) ? 1 : -1));
-            controller.sendInfo("Uploading data from event " + Config.EVENT_ID + "...");
-            TOAEndpoint postEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/teams");
-            postEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
-            TOARequestBody requestBody = new TOARequestBody();
-            int div1 = 0;
-            int div2 = 0;
-            for (int i = 0; i < teamsList.size(); i++) {
-                Team team = teamsList.get(i);
-                EventParticipantTeamJSONPost eventTeam = new EventParticipantTeamJSONPost();
-
-                if (Config.DUAL_DIVISION_EVENT) {
-                    String newEventID = Config.EVENT_ID.substring(0, Config.EVENT_ID.length()-1);
-                    if (team.getTeamDivKey() == 1) {
-                        eventTeam.setParticipantKey(newEventID + team.getTeamDivKey() + "-T" + (div1+1));
-                        eventTeam.setEventKey(newEventID + team.getTeamDivKey());
-                        div1++;
-                    } else {
-                        eventTeam.setParticipantKey(newEventID + team.getTeamDivKey() + "-T" + (div2+1));
-                        eventTeam.setEventKey(newEventID + team.getTeamDivKey());
-                        div2++;
-                    }
-                } else {
-                    eventTeam.setParticipantKey(Config.EVENT_ID + "-T" + (i+1));
-                    eventTeam.setEventKey(Config.EVENT_ID);
-                }
-                eventTeam.setTeamKey(team.getTeamKey());
-                eventTeam.setTeamIsActive(true);
-                requestBody.addValue(eventTeam);
-            }
-            postEndpoint.setBody(requestBody);
-            postEndpoint.execute((response, success) -> {
-                if (success) {
-                    controller.sendInfo("Successfully uploaded data to TOA. " + response);
-                    //Do Checklist stuff
-                    controller.cb_teams.setSelected(true);
-                    controller.cb_teams.setTextFill(Color.GREEN);
-                    controller.cb_teams.setDisable(true);
-                    controller.btn_cb_teams.setDisable(true);
-                    controller.btnTeamsPost.setDisable(true);
-                } else {
-                    controller.sendError("Connection to TOA unsuccessful. " + response);
-                }
-            });
+            uploadEventTeams();
         }
     }
 
-    public void deleteEventTeams() {
+    public void uploadEventTeams(){
+        teamsList.sort((team1, team2) -> (Integer.parseInt(team1.getTeamKey().replaceAll("[^\\d.]", "")) > Integer.parseInt(team2.getTeamKey().replaceAll("[^\\d.]", "")) ? 1 : -1));
+        controller.sendInfo("Uploading data from event " + Config.EVENT_ID + "...");
+        TOAEndpoint postEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/teams");
+        postEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+        TOARequestBody requestBody = new TOARequestBody();
+        int div1 = 0;
+        int div2 = 0;
+        for (int i = 0; i < teamsList.size(); i++) {
+            Team team = teamsList.get(i);
+            EventParticipantTeamJSONPost eventTeam = new EventParticipantTeamJSONPost();
+
+            if (Config.DUAL_DIVISION_EVENT) {
+                String newEventID = Config.EVENT_ID.substring(0, Config.EVENT_ID.length()-1);
+                if (team.getTeamDivKey() == 1) {
+                    eventTeam.setParticipantKey(newEventID + team.getTeamDivKey() + "-T" + (div1+1));
+                    eventTeam.setEventKey(newEventID + team.getTeamDivKey());
+                    div1++;
+                } else {
+                    eventTeam.setParticipantKey(newEventID + team.getTeamDivKey() + "-T" + (div2+1));
+                    eventTeam.setEventKey(newEventID + team.getTeamDivKey());
+                    div2++;
+                }
+            } else {
+                eventTeam.setParticipantKey(Config.EVENT_ID + "-T" + (i+1));
+                eventTeam.setEventKey(Config.EVENT_ID);
+            }
+            eventTeam.setTeamKey(team.getTeamKey());
+            eventTeam.setTeamIsActive(true);
+            requestBody.addValue(eventTeam);
+        }
+        postEndpoint.setBody(requestBody);
+        postEndpoint.execute((response, success) -> {
+            if (success) {
+                controller.sendInfo("Successfully uploaded data to TOA. " + response);
+                //Do Checklist stuff
+                controller.cb_teams.setSelected(true);
+                controller.cb_teams.setTextFill(Color.GREEN);
+                controller.cb_teams.setDisable(true);
+                controller.btn_cb_teams.setDisable(true);
+                controller.btnTeamsPost.setDisable(true);
+            } else {
+                controller.sendError("Connection to TOA unsuccessful. " + response);
+            }
+        });
+    }
+
+    //This will ask the user if they want to delete the teams
+    public void deleteEventTeamsAskUser() {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Are you sure about this?");
         alert.setHeaderText("This operation cannot be undone.");
@@ -275,25 +281,29 @@ public class TeamsController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == okayButton) {
-            // Begin the purging of the data table...
-            controller.sendInfo("Purging data from event " + Config.EVENT_ID + "...");
-            TOAEndpoint deleteEndpoint = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/teams");
-            deleteEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
-            TOARequestBody requestBody = new TOARequestBody();
-            deleteEndpoint.setBody(requestBody);
-            deleteEndpoint.execute((response, success) -> {
-                if (success) {
-                    controller.sendInfo("Successfully purged data from TOA. " + response);
-                    //Do Checklist stuff
-                    controller.cb_teams.setSelected(false);
-                    controller.cb_teams.setTextFill(Color.RED);
-                    controller.btn_cb_teams.setDisable(false);
-                    controller.btnTeamsPost.setDisable(false);
-                } else {
-                    controller.sendError("Connection to TOA unsuccessful. " + response);
-                }
-            });
+            purgeEventTeams();
         }
+    }
+
+    public void purgeEventTeams(){
+        // Begin the purging of the data table...
+        controller.sendInfo("Purging EventParticipant data from event " + Config.EVENT_ID + "...");
+        TOAEndpoint deleteEndpoint = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/teams");
+        deleteEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+        TOARequestBody requestBody = new TOARequestBody();
+        deleteEndpoint.setBody(requestBody);
+        deleteEndpoint.execute((response, success) -> {
+            if (success) {
+                controller.sendInfo("Successfully purged data from TOA. " + response);
+                //Do Checklist stuff
+                controller.cb_teams.setSelected(false);
+                controller.cb_teams.setTextFill(Color.RED);
+                controller.btn_cb_teams.setDisable(false);
+                controller.btnTeamsPost.setDisable(false);
+            } else {
+                controller.sendError("Connection to TOA unsuccessful. " + response);
+            }
+        });
     }
 
     private String getRegion(String state, String country){
