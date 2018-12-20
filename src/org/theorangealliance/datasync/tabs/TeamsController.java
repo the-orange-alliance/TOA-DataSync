@@ -211,8 +211,7 @@ public class TeamsController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == okayButton) {
-            //TODO: Fix For international teams at some point
-            teamsList.sort((team1, team2) -> (Integer.parseInt(team1.getTeamKey()) > Integer.parseInt(team2.getTeamKey()) ? 1 : -1));
+            teamsList.sort((team1, team2) -> (Integer.parseInt(team1.getTeamKey().replaceAll("[^\\d.]", "")) > Integer.parseInt(team2.getTeamKey().replaceAll("[^\\d.]", "")) ? 1 : -1));
             controller.sendInfo("Uploading data from event " + Config.EVENT_ID + "...");
             TOAEndpoint postEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/teams");
             postEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
