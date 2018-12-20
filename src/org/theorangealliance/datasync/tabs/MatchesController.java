@@ -34,7 +34,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -304,8 +303,7 @@ public class MatchesController {
         matchesEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         matchesEndpoint.execute(((response, success) -> {
             if (success) {
-
-                TOALogger.log(Level.INFO, "Grabbed match details for " + uploadedDetails.size() + " matches.");
+                //TOALogger.log(Level.INFO, "Grabbed match details for " + uploadedDetails.size() + " matches.");
             } else {
                 this.controller.sendError("Error: " + response);
             }

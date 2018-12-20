@@ -25,6 +25,7 @@ import org.theorangealliance.datasync.tabs.*;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.FIRSTEndpoint;
 import org.theorangealliance.datasync.json.first.Events;
+import org.theorangealliance.datasync.util.FIRSTEndpointNonLambda;
 import org.theorangealliance.datasync.util.TOAEndpoint;
 
 import java.awt.*;
@@ -186,6 +187,8 @@ public class DataSyncController implements Initializable {
     private AwardsController awardsController;
     private DashboardController dashboardController;
 
+    public String[] arguments = DataSync.arguments;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         this.teamsController = new TeamsController(this);
@@ -212,8 +215,80 @@ public class DataSyncController implements Initializable {
 
         }
 
-        readSettings();
+        /* Arguments
+         *  -skip-config : Skip Dialog asking for config file
+         *  -event-key=<event_key> : Event Key
+         *  -api-key=<api_key> : API Key
+         *  -scoring-ip=<scoring_ip> : IP address for scoring system
+         *  -scoring-event=<first_event_key> : Event Key from FIRST scoring system
+         *  -test-toa : attempt connection to TOA with given credentials
+         *  -test-first : attempt connection to FIRST with given data
+         *  -load-first : attempt to load event from FIRST provided the IP was correct
+         */
 
+        //Parse Arguments
+        boolean skipConfig = false;
+        String toaEventKey = "";
+        String toaApiKey = "";
+        String firstIP = "";
+        String firstEventKey = "";
+        boolean testToa = false;
+        boolean testFirst = false;
+        boolean loadFirst = false;
+        for(String a : this.arguments){
+            if(a.equalsIgnoreCase("-skip-config")){
+                skipConfig = true;
+            } else if(a.toLowerCase().startsWith("-event-key=")) {
+                toaEventKey = a.substring(11);
+            } else if(a.toLowerCase().startsWith("-api-key=")) {
+                toaApiKey = a.substring(9);
+            } else if(a.toLowerCase().startsWith("-scoring-ip=")) {
+                firstIP = a.substring(12);
+            } else if(a.toLowerCase().startsWith("-scoring-event=")) {
+                firstEventKey = a.substring(15);
+            } else if(a.equalsIgnoreCase("-test-toa")) {
+                testToa = true;
+            } else if(a.equalsIgnoreCase("-test-first")) {
+                testFirst = true;
+            } else if(a.equalsIgnoreCase("-load-first")) {
+                loadFirst = true;
+            }
+        }
+        //Set Text Boxes and Check TOA if requested
+        this.txtSetupID.setText(toaEventKey);
+        this.txtSetupKey.setText(toaApiKey);
+        if(testToa){
+            this.testConnection();
+        }
+        this.txtSetupDir.setText(firstIP);
+        if(testToa && testFirst){//  TODO: Add in check for TOA connection successful
+            openScoringDialog();
+
+            int i = 0;
+            for(String s : cbFirstEvents.getItems()){ //Select the event which was given in the flag
+                if(s.toLowerCase().startsWith(firstEventKey.toLowerCase())){
+                    cbFirstEvents.getSelectionModel().select(i);
+                    if(loadFirst) {
+                        this.testDirectory();
+                    }
+                    break;
+                } else {
+                    labelSetupDir.setText("Event from launch argument not found");
+                    labelSetupDir.setTextFill(Color.RED);
+                }
+                i++;
+            }
+
+        } else {
+            labelSetupDir.setText("No TOA connection, did not check FIRST");
+            labelSetupDir.setTextFill(Color.RED);
+        }
+
+
+
+        if(!skipConfig){
+            readSettings();
+        }
     }
 
     @FXML
@@ -261,7 +336,6 @@ public class DataSyncController implements Initializable {
                     teamsController.getTeamsByURL();
                     matchesController.checkMatchSchedule();
                     matchesController.checkMatchDetails();
-                    matchesController.checkMatchParticipants();
                 } else {
                     sendError("Connection to TOA unsuccessful. " + response);
 
@@ -283,48 +357,56 @@ public class DataSyncController implements Initializable {
             //We want to contact the IP address and GET the events if the IP is correct. If it isn't... The Ip is wrong.
             if (txtSetupDir.getText().length() > 1) {
                 Config.FIRST_API_IP = txtSetupDir.getText();
-                FIRSTEndpoint firstEvents = new FIRSTEndpoint("events/");
-                firstEvents.execute(((response, success) -> {
-                    if (success) {
-                        cbFirstEvents.getItems().clear();
-                        sendInfo("Successfully pulled events from FIRST scoring system.");
-                        //TOALogger.log(Level.INFO, response);
-                        Events events = firstEvents.getGson().fromJson(response, Events.class);
+                Events events = null;
+                try {
+                    events = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/"), Events.class);
+                } catch (Exception e) {
+                    sendError("Connection to FIRST Scoring system unsuccessful. ");
+                    cbFirstEvents.setDisable(true);
+                    btnSetupTestDir.setDisable(true);
+                }
+                if(events != null) {
+                    cbFirstEvents.getItems().clear();
+                    sendInfo("Successfully pulled events from FIRST scoring system.");
 
-                        for (String eventName : events.getEventID()) {
-                            FIRSTEndpoint firstEvent = new FIRSTEndpoint("events/" + eventName);
-                            firstEvent.execute(((r, s) -> {
-                                if (success) {
-                                    Event e = firstEvent.getGson().fromJson(r, Event.class);
-                                    cbFirstEvents.getItems().add(e.getEventCode() + " | " + e.getEventName());
-                                    cbFirstEvents.getSelectionModel().selectFirst();
-                                }}));
-                        }
-
-                        if (events.getEventID().length == 0) {
-                            //Set Success but 0 events Text
-                            labelSetupDir.setText("Found Zero Events. Please create an event within the scoring system and try again.");
-                            labelSetupDir.setTextFill(Color.YELLOW);
-                            //Disable input devices
+                    for (String eventName : events.getEventID()) {
+                        Event event = null;
+                        try{
+                            event = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + eventName), Event.class);
+                        } catch (Exception e) {
+                            sendError("Connection to FIRST Scoring system unsuccessful. ");
                             cbFirstEvents.setDisable(true);
                             btnSetupTestDir.setDisable(true);
-                        } else {
-                            //Set Success Text
-                            labelSetupDir.setText("Connection Successful. Found " + events.getEventID().length + " event(s).");
-                            labelSetupDir.setTextFill(Color.GREEN);
-                            //Enable Input Devices
-                            cbFirstEvents.setDisable(false);
-                            cbFirstEvents.getSelectionModel().selectFirst();
-                            btnSetupTestDir.setDisable(false);
-                            this.saveSettings();
                         }
+                        if(event != null){
+                            cbFirstEvents.getItems().add(event.getEventCode() + " | " + event.getEventName());
+                            cbFirstEvents.getSelectionModel().selectFirst();
+                        }
+                    }
 
-                    } else {
-                        sendError("Connection to FIRST Scoring system unsuccessful. " + response);
+                    if (events.getEventID().length == 0) {
+                        //Set Success but 0 events Text
+                        labelSetupDir.setText("Found Zero Events. Please create an event within the scoring system and try again.");
+                        labelSetupDir.setTextFill(Color.YELLOW);
+                        //Disable input devices
                         cbFirstEvents.setDisable(true);
                         btnSetupTestDir.setDisable(true);
+                    } else {
+                        //Set Success Text
+                        labelSetupDir.setText("Connection Successful. Found " + events.getEventID().length + " event(s).");
+                        labelSetupDir.setTextFill(Color.GREEN);
+                        //Enable Input Devices
+                        cbFirstEvents.setDisable(false);
+                        cbFirstEvents.getSelectionModel().selectFirst();
+                        btnSetupTestDir.setDisable(false);
+                        this.saveSettings();
                     }
-                }));
+
+                } else {
+                    sendError("Connection to FIRST Scoring system unsuccessful. ");
+                    cbFirstEvents.setDisable(true);
+                    btnSetupTestDir.setDisable(true);
+                }
             } else {
                 //No IP address entered
                 labelSetupDir.setText("Please Enter an IP Address");

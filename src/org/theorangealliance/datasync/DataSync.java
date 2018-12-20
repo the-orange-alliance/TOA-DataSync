@@ -18,12 +18,17 @@ import java.util.logging.Level;
 public class DataSync extends Application {
 
     private static Stage mainStage;
+    public static String[] arguments;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
 
         try {
-            Parent root = FXMLLoader.load(getClass().getResource("/DataSync.fxml"));
+            TOALogger.init();
+            TOALogger.log(Level.INFO, Config.VERSION + " initialized.");
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/DataSync.fxml"));
+            Parent root = loader.load();
             Scene scene = new Scene(root);
 
             mainStage = primaryStage;
@@ -33,8 +38,6 @@ public class DataSync extends Application {
             mainStage.setResizable(false);
             mainStage.show();
 
-            TOALogger.init();
-            TOALogger.log(Level.INFO, Config.VERSION + " initialized.");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -42,6 +45,7 @@ public class DataSync extends Application {
     }
 
     public static void main(String[] args) {
+        arguments = args;
         launch(args);
     }
 
