@@ -188,15 +188,24 @@ public class TeamsController {
                                 teamsEndpoint.execute(((toaR, toaS) -> {
                                     if (toaS) {
                                         TeamJSON[] team = teamsEndpoint.getGson().fromJson(toaR, TeamJSON[].class);
-                                        Team eventTeam = new Team(
-                                                team[0].getTeamKey(),
-                                                1,
-                                                team[0].getTeamRegionKey(),
-                                                team[0].getTeamLeagueKey(),
-                                                team[0].getTeamNameShort(),
-                                                team[0].getTeamNameLong(),
-                                                team[0].getTeamCity() + ", " + team[0].getTeamCity() + ", " + team[0].getTeamCountry());
+                                        if(team.length == 1){
+                                            Team eventTeam = new Team(
+                                                    team[0].getTeamKey(),
+                                                    1,
+                                                    team[0].getTeamRegionKey(),
+                                                    team[0].getTeamLeagueKey(),
+                                                    team[0].getTeamNameShort(),
+                                                    team[0].getTeamNameLong(),
+                                                    team[0].getTeamCity() + ", " + team[0].getTeamCity() + ", " + team[0].getTeamCountry());
                                             teamsList.add(eventTeam);
+                                        } else {
+                                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                                            alert.setTitle("Error");
+                                            alert.setHeaderText("Non-Existant Team");
+                                            alert.setContentText("This team is not on TOA, and therefore, must not have been registered in TIMS. Please contact contact@theorangealliance.org soon so we can manually add the team.");
+
+                                            alert.showAndWait();
+                                        }
                                     } else {
                                         Alert alert = new Alert(Alert.AlertType.ERROR);
                                         alert.setTitle("Error");
