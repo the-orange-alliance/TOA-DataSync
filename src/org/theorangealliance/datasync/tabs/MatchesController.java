@@ -1,6 +1,5 @@
 package org.theorangealliance.datasync.tabs;
 
-import com.google.gson.stream.MalformedJsonException;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -1810,7 +1809,7 @@ public class MatchesController {
         controller.tableMatches.refresh();
     }
 
-    
+
     /************Get Data*************/
     public HashMap<MatchGeneral, MatchDetail1819JSON> getMatchDetails(){
 

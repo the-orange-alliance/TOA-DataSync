@@ -52,51 +52,7 @@ public class RankingsController {
 
         this.controller.tableRankings.setItems(this.teamRankings);
     }
-
-    public void syncRankings() {
-        if (teamRankings.size() <= 0) {
-            getRankingsByFile();
-        } else {
-            try {
-                File rankReport;
-                if (Config.DUAL_DIVISION_EVENT) {
-                    rankReport = new File(Config.SCORING_DIR + File.separator + "reports" + File.separator + "Rankings_" + Config.EVENT_NAME.replace(" ", "_") + "_" + Config.DIVISION_NAME.replace(" ", "_") + ".html");
-                } else {
-                    rankReport = new File(Config.SCORING_DIR + File.separator + "reports" + File.separator + "Rankings_" + Config.EVENT_NAME.replace(" ", "_") + ".html");
-                }
-                Document rankDoc = Jsoup.parse(rankReport, "UTF-8");
-                Element tableBody = rankDoc.body().getElementsByAttribute("cellpadding").first().child(0);
-                Elements rankElems = tableBody.getElementsByAttribute("align");
-                teamRankings.sort((team1, team2) -> (team1.getRank() > team2.getRank() ? 1 : -1));
-                for (Element e : rankElems) {
-                    if (e.isBlock() && e.select("th").size() == 0) {
-                        int rank = Integer.parseInt(e.child(0).text());
-                        int team = Integer.parseInt(e.child(1).text());
-                        int qualPoints = Integer.parseInt(e.child(3).text());
-                        int rankPoints = Integer.parseInt(e.child(4).text());
-                        int highScore = Integer.parseInt(e.child(5).text());
-                        int played = Integer.parseInt(e.child(6).text());
-                        TeamRanking ranking = teamRankings.get(rank-1);
-                        //ranking.setQualPoints(qualPoints);
-                        ranking.setRankPoints(rankPoints);
-                        ranking.setHighestScore(highScore);
-                        ranking.setPlayed(played);
-                        int[] results = controller.getTeamWL().get(team);
-                        if (results != null) {
-                            ranking.setWins(results[0]);
-                            ranking.setLosses(results[1]);
-                            ranking.setTies(results[2]);
-                        }
-                    }
-                }
-                controller.tableRankings.refresh();
-                TOALogger.log(Level.INFO, "Rankings sync successful.");
-            } catch (Exception e) {
-                TOALogger.log(Level.SEVERE, "Error reading rankings file: " + e.getLocalizedMessage());
-            }
-        }
-    }
-
+    //This gets the rankings from the HTML file
     public void getRankingsByFile() {
         try {
             File rankReport;
@@ -138,6 +94,7 @@ public class RankingsController {
         }
     }
 
+    //This gets the rankings from FIRST's API
     public void getRankingsFIRSTApi(){
         //TODO: Add Division Support
         FIRSTEndpoint firstRankings = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/rankings/");
@@ -168,6 +125,7 @@ public class RankingsController {
         }));
     }
 
+    //This POSTs the rankings to TOA
     public void postRankings() {
         if (teamRankings.size() > 0) {
             /* We HAVE to make a DELETE request first
@@ -216,7 +174,8 @@ public class RankingsController {
         }
     }
 
-    public void deleteRankings() {
+    //This asks the user if they want to delete the rankings
+    public void deleteRankingsAskUser() {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Are you sure about this?");
         alert.setHeaderText("This operation cannot be undone.");
@@ -233,17 +192,22 @@ public class RankingsController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == okayButton) {
-            TOAEndpoint rankingEndpoint = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/rankings");
-            rankingEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
-            TOARequestBody requestBody = new TOARequestBody();
-            //requestBody.setEventKey(Config.EVENT_ID);
-            rankingEndpoint.setBody(requestBody);
-            rankingEndpoint.execute(((response, success) -> {
-                if (success) {
-                    TOALogger.log(Level.INFO, "Deleted rankings.");
-                }
-            }));
+            purgeAllRankings();
         }
+    }
+
+    //This deletes ALL rankings for the event
+    private void purgeAllRankings(){
+        TOAEndpoint deleteRankEndpoint = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/rankings");
+        deleteRankEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+        TOARequestBody requestBody = new TOARequestBody();
+        //requestBody.setEventKey(Config.EVENT_ID);
+        deleteRankEndpoint.setBody(requestBody);
+        deleteRankEndpoint.execute(((response, success) -> {
+            if (success) {
+                TOALogger.log(Level.INFO, "Deleted rankings.");
+            }
+        }));
     }
 
 }

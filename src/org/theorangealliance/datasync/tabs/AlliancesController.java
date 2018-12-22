@@ -28,35 +28,7 @@ public class AlliancesController {
 
     }
 
-    public void importAlliancesScoring(HashMap<MatchGeneral, MatchDetail1718JSON> scores){
-        File allianceFile = new File(Config.SCORING_DIR + File.separator + "alliances.txt");
-        if (allianceFile.exists()) {
-            try {
-                BufferedReader reader = new BufferedReader(new FileReader(allianceFile));
-                String line;
-                alliances = new Alliance[4];
-                while ((line = reader.readLine()) != null) {
-                    /** Alliance info */
-                    String[] allianceInfo = line.split("\\|");
-                    int division = Integer.parseInt(allianceInfo[0]);
-                    int allianceNumber = Integer.parseInt(allianceInfo[1]);
-                    int[] allianceNumbers = {Integer.parseInt(allianceInfo[3]), Integer.parseInt(allianceInfo[4]), Integer.parseInt(allianceInfo[5])};
-                    alliances[allianceNumber-1] = new Alliance(division, allianceNumber, allianceNumbers);
-                }
-                reader.close();
-                /* TODO - Make Upload Alliances so we can uncomment this
-                controller.btnUploadAlliances.setDisable(false);*/
-                //updateAllianceLabels(scores);
-                TOALogger.log(Level.INFO, "Alliance import successful.");
-            } catch (Exception e) {
-                e.printStackTrace();
-                controller.sendError("Could not open file. " + e.getLocalizedMessage());
-            }
-        } else {
-            controller.sendError("Could not locate alliances.txt from the Scoring System. Did you generate an elimination bracket?");
-        }
-    }
-
+    //This imports the alliances from FIRSTs API
     public void importAlliancesFIRSTApi(HashMap<MatchGeneral, MatchDetail1819JSON> scores){
         FIRSTEndpoint firstAlliances = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/elim/alliances/");
         firstAlliances.execute(((response, success) -> {
@@ -83,11 +55,11 @@ public class AlliancesController {
         }));
     }
 
+    //Who knows what this does (╯‵□′)╯︵┻━┻
     public void importAlliancesTOA(HashMap<MatchGeneral, MatchDetail1819JSON> scores){
 
         //TODO - This (May need the API updates from below to test)
         updateAllianceLabels(scores);
-
     }
 
     public void uploadAlliances(){

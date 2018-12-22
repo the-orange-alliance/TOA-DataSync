@@ -717,7 +717,7 @@ public class DataSyncController implements Initializable {
 
     @FXML
     public void deleteRankings() {
-        this.rankingsController.deleteRankings();
+        this.rankingsController.deleteRankingsAskUser();
     }
 
     /* Alliances Tab Functions */
@@ -748,7 +748,7 @@ public class DataSyncController implements Initializable {
 
     @FXML
     public void uploadAwards() {
-        this.awardsController.uploadAwards();
+        this.awardsController.uploadAwardsAskUser();
     }
 
     @FXML
@@ -763,7 +763,7 @@ public class DataSyncController implements Initializable {
 
     @FXML
     public void purgeAwards() {
-        this.awardsController.purgeAwards();
+        this.awardsController.deleteAwardsAskUser();
     }
 
     public HashMap<Integer, int[]> getTeamWL() {

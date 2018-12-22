@@ -64,6 +64,7 @@ public class AwardsController {
         this.controller.btnAwardsPost.setDisable(true);
     }
 
+    //This gets the awards from TOA
     private void getAwardsTOA(boolean loadIntoTable){
         uploadedAwards.clear();
         TOAEndpoint matchesEndpoint = new TOAEndpoint("GET", "event/" + Config.EVENT_ID + "/awards");
@@ -100,7 +101,8 @@ public class AwardsController {
         }));
     }
 
-    public void uploadAwards() {
+    //This Asks the user if they want to upload ALL awards
+    public void uploadAwardsAskUser() {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Are you sure about this?");
         alert.setHeaderText("This operation cannot be undone.");
@@ -137,12 +139,13 @@ public class AwardsController {
             Optional<ButtonType> r = alert.showAndWait();
 
             if(r.get() == o) {
-                uploadAwardsNoWarning();
+                uploadAwards();
             }
         }
     }
 
-    private void uploadAwardsNoWarning() {
+    //This uploads ALL awards
+    private void uploadAwards() {
         for(Award a : awardList){
             String methodType = "POST";
             String putRouteExtra = "";
@@ -188,6 +191,7 @@ public class AwardsController {
         }
     }
 
+    //This gets the awards from FIRST's API
     public void getAwardsFIRST() {
         AwardArray awards = null;
         try {
@@ -237,14 +241,14 @@ public class AwardsController {
         this.controller.tableAwards.refresh();
     }
 
-
+    //This gets awards from TOA and loads them into the table
     public void loadToaAwards() {
         awardList.clear();
         getAwardsTOA(true);
     }
 
-
-    public void purgeAwards() {
+    //This Asks the user if they want to delete the awards
+    public void deleteAwardsAskUser() {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Are you sure about this?");
         alert.setHeaderText("This operation cannot be undone.");
@@ -261,31 +265,38 @@ public class AwardsController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == okayButton) {
-
-            TOAEndpoint matchEp = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/awards");
-            matchEp.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
-            TOARequestBody requestBody = new TOARequestBody();
-            matchEp.setBody(requestBody);
-            matchEp.execute(((response, success) -> {
-                if (success) {
-                    TOALogger.log(Level.INFO, "Deleted Awards.");
-                    //Do Dashboard Stuff
-                    this.controller.cb_awards.setTextFill(Color.RED);
-                    this.controller.cb_awards.setSelected(false);
-                    this.controller.btn_cb_awards.setDisable(false);
-                }else{
-                    TOALogger.log(Level.SEVERE, "Failed to delete awards from TOA.");
-                }
-            }));
-
-            for(Award a : awardList){
-                a.setIsUploaded(false);
-            }
-            controller.tableAwards.refresh();
-            this.getAwardsTOA(false);
+            purgeAwards();
         }
     }
 
+    //This purges all of the awards
+    private void purgeAwards(){
+        TOAEndpoint deleteAwardEndpoint = new TOAEndpoint("DELETE", "event/" + Config.EVENT_ID + "/awards");
+        deleteAwardEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+        TOARequestBody requestBody = new TOARequestBody();
+        deleteAwardEndpoint.setBody(requestBody);
+        deleteAwardEndpoint.execute(((response, success) -> {
+            if (success) {
+                TOALogger.log(Level.INFO, "Deleted Awards.");
+
+                //Do Dashboard Stuff
+                this.controller.cb_awards.setTextFill(Color.RED);
+                this.controller.cb_awards.setSelected(false);
+                this.controller.btn_cb_awards.setDisable(false);
+            }else{
+                //Basically, you're screwed ¯\_(ツ)_/¯
+                TOALogger.log(Level.SEVERE, "Failed to delete awards from TOA.");
+            }
+        }));
+
+        for(Award a : awardList){
+            a.setIsUploaded(false);
+        }
+        controller.tableAwards.refresh();
+        this.getAwardsTOA(false);
+    }
+
+    //This converts an Award UD to a name
     private String getAwardIDFromName(String name) {
         switch (name) {
             case "Winning Alliance Award":
@@ -318,6 +329,7 @@ public class AwardsController {
         }
     }
 
+    //This converts an Award Name to an ID
     private String getAwardNameFromID(String key){
         if (key.startsWith("INS")) {
             if(key.substring(key.length() - 1).equals("1")){
