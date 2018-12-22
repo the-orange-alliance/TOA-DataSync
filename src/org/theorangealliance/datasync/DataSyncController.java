@@ -333,7 +333,7 @@ public class DataSyncController implements Initializable {
                     btnSetupSelect.setDisable(false);
                     btnSetupTestDir.setDisable(false);
 
-                    teamsController.getTeamsByURL();
+                    teamsController.getTeamsFromTOA();
                     matchesController.checkMatchSchedule();
                     matchesController.checkMatchDetails();
                 } else {
@@ -606,7 +606,7 @@ public class DataSyncController implements Initializable {
 
     @FXML
     public void getTeamsByURL() {
-        this.teamsController.getTeamsByURL();
+        this.teamsController.getTeamsFromTOA();
     }
 
     @FXML

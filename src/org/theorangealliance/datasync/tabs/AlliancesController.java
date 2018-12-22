@@ -1,7 +1,6 @@
 package org.theorangealliance.datasync.tabs;
 
 import org.theorangealliance.datasync.DataSyncController;
-import org.theorangealliance.datasync.json.toa.MatchDetail1718JSON;
 import org.theorangealliance.datasync.json.toa.MatchDetail1819JSON;
 import org.theorangealliance.datasync.logging.TOALogger;
 import org.theorangealliance.datasync.json.first.AllianceArray;
@@ -11,9 +10,6 @@ import org.theorangealliance.datasync.models.MatchGeneral;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.FIRSTEndpoint;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.util.HashMap;
 import java.util.logging.Level;
 

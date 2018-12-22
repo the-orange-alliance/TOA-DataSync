@@ -5,6 +5,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -14,6 +15,7 @@ import org.theorangealliance.datasync.json.toa.EventParticipantTeamJSON;
 import org.theorangealliance.datasync.json.first.TeamFIRST;
 import org.theorangealliance.datasync.json.first.Teams;
 import org.theorangealliance.datasync.json.toa.EventParticipantTeamJSONPost;
+import org.theorangealliance.datasync.json.toa.TeamJSON;
 import org.theorangealliance.datasync.models.Team;
 import org.theorangealliance.datasync.util.Config;
 import org.theorangealliance.datasync.util.FIRSTEndpoint;
@@ -26,6 +28,7 @@ import java.io.FileReader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Optional;
 
@@ -55,7 +58,8 @@ public class TeamsController {
         this.controller.btnTeamsDelete.setDisable(true);
     }
 
-    public void getTeamsByURL() {
+    //Get Teams from TOA
+    public void getTeamsFromTOA() {
         TOAEndpoint teamsEndpoint = new TOAEndpoint("event/" + Config.EVENT_ID + "/teams");
         teamsEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         teamsEndpoint.execute(((response, success) -> {
@@ -85,8 +89,9 @@ public class TeamsController {
                            team.getTeamSpecifics().getTeamCity() + ", " + team.getTeamSpecifics().getTeamCity() + ", " + team.getTeamSpecifics().getTeamCountry());
                    teamsList.add(eventTeam);
                }
-                //TODO: Fix for International Team
-               teamsList.sort((team1, team2) -> (Integer.parseInt(team1.getTeamKey()) > Integer.parseInt(team2.getTeamKey()) ? 1 : -1));
+
+               teamsList.sorted().setComparator(Comparator.comparing(Team::getTeamKey));
+
 
                controller.btnTeamsPost.setDisable(false);
                controller.btnTeamsDelete.setDisable(false);
@@ -107,6 +112,7 @@ public class TeamsController {
         }));
     }
 
+    //Get Teams from scoring file
     public void getTeamsByFile() {
         File teamsFile = new File(Config.SCORING_DIR + File.separator + "teams.txt");
         if (teamsFile.exists()) {
@@ -141,6 +147,7 @@ public class TeamsController {
         }
     }
 
+    //Get Teams from FIRST API
     public void getTeamsFromFIRSTApi() {
         FIRSTEndpoint firstEventTeams = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/teams/");
         firstEventTeams.execute(((response, success) -> {
@@ -168,7 +175,34 @@ public class TeamsController {
                                     t.getTeamNameLong(),
                                     t.getTeamCity() + ", " + t.getTeamStateProv() + ", " + t.getTeamCountry());
                             teamsList.add(team);
-                        } //We have bigger problems if this fails
+                        } else { //We will ask the user for the TOA equivalent of this team #
+                            TextInputDialog dialog = new TextInputDialog("");
+                            dialog.setTitle("Custom Team Found");
+                            dialog.setHeaderText("Team " + tN  + " is a custom team. What is their Team Key on TheOrangeAlliance? ");
+                            dialog.setContentText("Example: ISR11056");
+
+                            Optional<String> result = dialog.showAndWait();
+                            result.ifPresent(s1 -> {
+                                TOAEndpoint teamsEndpoint = new TOAEndpoint("team/" + result.get());
+                                teamsEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+                                teamsEndpoint.execute(((toaR, toaS) -> {
+                                    if (toaS) {
+                                        TeamJSON[] team = teamsEndpoint.getGson().fromJson(toaR, TeamJSON[].class);
+                                        Team eventTeam = new Team(
+                                                team[0].getTeamKey(),
+                                                1,
+                                                team[0].getTeamRegionKey(),
+                                                team[0].getTeamLeagueKey(),
+                                                team[0].getTeamNameShort(),
+                                                team[0].getTeamNameLong(),
+                                                team[0].getTeamCity() + ", " + team[0].getTeamCity() + ", " + team[0].getTeamCountry());
+                                            teamsList.add(eventTeam);
+                                    } else {
+                                        controller.sendError("Custom Team " + tN + " not found on TOA as " + result.get() + ". Please Reimport teams and try again.");
+                                    }
+                                }));
+                            });
+                        }
                     }));
                 }
 
@@ -180,18 +214,6 @@ public class TeamsController {
                 controller.sendError("Connection to FIRST Scoring system unsuccessful. " + response);
             }
         }));
-    }
-
-    public void getTeamsFromDB(ResultSet rs){
-        int i = 0;
-        try {
-            while (rs.next()) {
-                int teamNum = rs.getInt(1);
-                System.out.println(teamNum);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     //This will ask the user if they want to upload the teams
@@ -216,6 +238,7 @@ public class TeamsController {
         }
     }
 
+    //This will upload all of the event participants
     public void uploadEventTeams(){
         teamsList.sort((team1, team2) -> (Integer.parseInt(team1.getTeamKey().replaceAll("[^\\d.]", "")) > Integer.parseInt(team2.getTeamKey().replaceAll("[^\\d.]", "")) ? 1 : -1));
         controller.sendInfo("Uploading data from event " + Config.EVENT_ID + "...");
@@ -285,6 +308,7 @@ public class TeamsController {
         }
     }
 
+    //This will delete all EventParticipants on TOA
     public void purgeEventTeams(){
         // Begin the purging of the data table...
         controller.sendInfo("Purging EventParticipant data from event " + Config.EVENT_ID + "...");
@@ -306,6 +330,7 @@ public class TeamsController {
         });
     }
 
+    //This will get convert a state to a region
     private String getRegion(String state, String country){
         if(country.equalsIgnoreCase("usa") || country.equalsIgnoreCase("canada")) {
             if (state.equalsIgnoreCase("MI")) return "FIM";
@@ -315,6 +340,7 @@ public class TeamsController {
         }
     }
 
+    //This will convert a team number to a TOA team number
     private String convertTeamNumToTOA(int teamNum, String country){
         if(country.equalsIgnoreCase("usa") || (country.equalsIgnoreCase("canada"))){
             return teamNum + "";
