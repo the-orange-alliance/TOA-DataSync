@@ -643,7 +643,7 @@ public class DataSyncController implements Initializable {
 
     @FXML
     public void postMatchSchedule() {
-        this.matchesController.postMatchSchedule();
+        this.matchesController.postMatchScheduleAskUser();
     }
 
     @FXML
