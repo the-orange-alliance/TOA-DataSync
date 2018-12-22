@@ -178,7 +178,7 @@ public class TeamsController {
                         } else { //We will ask the user for the TOA equivalent of this team #
                             TextInputDialog dialog = new TextInputDialog("");
                             dialog.setTitle("Custom Team Found");
-                            dialog.setHeaderText("Team " + tN  + " is a custom team. What is their Team Key on TheOrangeAlliance? ");
+                            dialog.setHeaderText("Team " + tN  + " is a custom team. What is their Team Key on TheOrangeAlliance? (If you can't find it, type \"Not Found\")");
                             dialog.setContentText("Example: ISR11056");
 
                             Optional<String> result = dialog.showAndWait();
@@ -198,7 +198,13 @@ public class TeamsController {
                                                 team[0].getTeamCity() + ", " + team[0].getTeamCity() + ", " + team[0].getTeamCountry());
                                             teamsList.add(eventTeam);
                                     } else {
-                                        controller.sendError("Custom Team " + tN + " not found on TOA as " + result.get() + ". Please Reimport teams and try again.");
+                                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                                        alert.setTitle("Error");
+                                        alert.setHeaderText("Non-Existant Team");
+                                        alert.setContentText("This team is not on TOA, and therefore, must not have been registered in TIMS. Please contact contact@theorangealliance.org soon so we can manually add the team.");
+
+                                        alert.showAndWait();
+                                        //controller.sendError("Custom Team " + tN + " not found on TOA as " + result.get() + ". Please Reimport teams and try again.");
                                     }
                                 }));
                             });
