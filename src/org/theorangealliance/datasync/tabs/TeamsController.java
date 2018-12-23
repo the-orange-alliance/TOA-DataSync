@@ -17,19 +17,12 @@ import org.theorangealliance.datasync.json.first.Teams;
 import org.theorangealliance.datasync.json.toa.EventParticipantTeamJSONPost;
 import org.theorangealliance.datasync.json.toa.TeamJSON;
 import org.theorangealliance.datasync.models.Team;
-import org.theorangealliance.datasync.util.Config;
-import org.theorangealliance.datasync.util.FIRSTEndpoint;
-import org.theorangealliance.datasync.util.TOAEndpoint;
-import org.theorangealliance.datasync.util.TOARequestBody;
+import org.theorangealliance.datasync.util.*;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -149,86 +142,87 @@ public class TeamsController {
 
     //Get Teams from FIRST API
     public void getTeamsFromFIRSTApi() {
-        FIRSTEndpoint firstEventTeams = new FIRSTEndpoint("events/" + Config.FIRST_API_EVENT_ID + "/teams/");
-        firstEventTeams.execute(((response, success) -> {
-            if (success) {
-                teamsList.clear();
-                controller.sendInfo("Successfully pulled teams from FIRST scoring system.");
+        Teams teams = null;
+        try {
+            teams = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + Config.FIRST_API_EVENT_ID + "/teams/"), Teams.class);
+        } catch(Exception E) {}
 
-                //Get Team list from score system
-                Teams teams = firstEventTeams.getGson().fromJson(response, Teams.class);
+        if (teams != null) {
 
-                //Now get team data
-                for (int tN : teams.getTeamNumber()) {
-                    FIRSTEndpoint firstTeamData = new FIRSTEndpoint("teams/" + tN + "/");
-                    firstTeamData.execute(((r, s) -> {
-                        if(s) {
-                            TeamFIRST t = firstTeamData.getGson().fromJson(r, TeamFIRST.class);
-                            //TODO: FIX DIVISION INFO
-                            Team team = new Team(
-                                    convertTeamNumToTOA(t.getTeamNumber(),
-                                    t.getTeamCountry()),
-                                    0,
-                                    getRegion(t.getTeamStateProv(), t.getTeamCountry()),
-                                    null,
-                                    t.getTeamNameShort(),
-                                    t.getTeamNameLong(),
-                                    t.getTeamCity() + ", " + t.getTeamStateProv() + ", " + t.getTeamCountry());
-                            teamsList.add(team);
-                        } else { //We will ask the user for the TOA equivalent of this team #
-                            TextInputDialog dialog = new TextInputDialog("");
-                            dialog.setTitle("Custom Team Found");
-                            dialog.setHeaderText("Team " + tN  + " is a custom team. What is their Team Key on TheOrangeAlliance? (If you can't find it, type \"Not Found\")");
-                            dialog.setContentText("Example: ISR11056");
+            teamsList.clear();
+            controller.sendInfo("Successfully pulled teams from FIRST scoring system.");
 
-                            Optional<String> result = dialog.showAndWait();
-                            result.ifPresent(s1 -> {
-                                TOAEndpoint teamsEndpoint = new TOAEndpoint("team/" + result.get());
-                                teamsEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
-                                teamsEndpoint.execute(((toaR, toaS) -> {
-                                    if (toaS) {
-                                        TeamJSON[] team = teamsEndpoint.getGson().fromJson(toaR, TeamJSON[].class);
-                                        if(team.length == 1){
-                                            Team eventTeam = new Team(
-                                                    team[0].getTeamKey(),
-                                                    1,
-                                                    team[0].getTeamRegionKey(),
-                                                    team[0].getTeamLeagueKey(),
-                                                    team[0].getTeamNameShort(),
-                                                    team[0].getTeamNameLong(),
-                                                    team[0].getTeamCity() + ", " + team[0].getTeamCity() + ", " + team[0].getTeamCountry());
-                                            teamsList.add(eventTeam);
-                                        } else {
-                                            Alert alert = new Alert(Alert.AlertType.ERROR);
-                                            alert.setTitle("Error");
-                                            alert.setHeaderText("Non-Existant Team");
-                                            alert.setContentText("This team is not on TOA, and therefore, must not have been registered in TIMS. Please contact contact@theorangealliance.org soon so we can manually add the team.");
 
-                                            alert.showAndWait();
-                                        }
-                                    } else {
-                                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                                        alert.setTitle("Error");
-                                        alert.setHeaderText("Non-Existant Team");
-                                        alert.setContentText("This team is not on TOA, and therefore, must not have been registered in TIMS. Please contact contact@theorangealliance.org soon so we can manually add the team.");
+            //Now get team data
+            for (int tN : teams.getTeamNumber()) {
+                TeamFIRST t = null;
+                try{
+                    t = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("teams/" + tN + "/"), TeamFIRST.class);
+                }catch(Exception e) {}
 
-                                        alert.showAndWait();
-                                        //controller.sendError("Custom Team " + tN + " not found on TOA as " + result.get() + ". Please Reimport teams and try again.");
-                                    }
-                                }));
-                            });
-                        }
-                    }));
+                if(t != null) {
+                    //TODO: FIX DIVISION INFO
+                    Team team = new Team(
+                            convertTeamNumToTOA(t.getTeamNumber(), t.getTeamCountry()),
+                            0,
+                            getRegion(t.getTeamStateProv(), t.getTeamCountry()),
+                            null,
+                            t.getTeamNameShort(),
+                            t.getTeamNameLong(),
+                            t.getTeamCity() + ", " + t.getTeamStateProv() + ", " + t.getTeamCountry());
+                    teamsList.add(team);
+                } else { //We will ask the user for the TOA equivalent of this team #
+                    TextInputDialog dialog = new TextInputDialog("");
+                    dialog.setTitle("Custom Team Found");
+                    dialog.setHeaderText("Team " + tN  + " is a custom team. What is their Team Key on TheOrangeAlliance? (If you can't find it, type \"Not Found\")");
+                    dialog.setContentText("Example: ISR11056");
+
+                    Optional<String> result = dialog.showAndWait();
+                    result.ifPresent(s1 -> {
+                        TOAEndpoint teamsEndpoint = new TOAEndpoint("team/" + result.get());
+                        teamsEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+                        teamsEndpoint.execute(((toaR, toaS) -> {
+                            if (toaS) {
+                                TeamJSON[] team = teamsEndpoint.getGson().fromJson(toaR, TeamJSON[].class);
+                                if(team.length == 1){
+                                    Team eventTeam = new Team(
+                                            team[0].getTeamKey(),
+                                            1,
+                                            team[0].getTeamRegionKey(),
+                                            team[0].getTeamLeagueKey(),
+                                            team[0].getTeamNameShort(),
+                                            team[0].getTeamNameLong(),
+                                            team[0].getTeamCity() + ", " + team[0].getTeamCity() + ", " + team[0].getTeamCountry());
+                                    teamsList.add(eventTeam);
+                                } else {
+                                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                                    alert.setTitle("Error");
+                                    alert.setHeaderText("Non-Existant Team");
+                                    alert.setContentText("This team is not on TOA, and therefore, must not have been registered in TIMS. Please contact contact@theorangealliance.org soon so we can manually add the team.");
+
+                                    alert.showAndWait();
+                                }
+                            } else {
+                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                                alert.setTitle("Error");
+                                alert.setHeaderText("Non-Existant Team");
+                                alert.setContentText("This team is not on TOA, and therefore, must not have been registered in TIMS. Please contact contact@theorangealliance.org soon so we can manually add the team.");
+
+                                alert.showAndWait();
+                                //controller.sendError("Custom Team " + tN + " not found on TOA as " + result.get() + ". Please Reimport teams and try again.");
+                            }
+                        }));
+                    });
                 }
-
-                controller.btnTeamsPost.setDisable(false);
-                controller.btnTeamsDelete.setDisable(false);
-                controller.sendInfo("Successfully imported " + teamsList.size() + " teams from the Scoring System.");
-
-            } else {
-                controller.sendError("Connection to FIRST Scoring system unsuccessful. " + response);
             }
-        }));
+
+            controller.btnTeamsPost.setDisable(false);
+            controller.btnTeamsDelete.setDisable(false);
+            controller.sendInfo("Successfully imported " + teamsList.size() + " teams from the Scoring System.");
+
+        } else {
+            controller.sendError("Connection to FIRST Scoring system unsuccessful.");
+        }
     }
 
     //This will ask the user if they want to upload the teams
