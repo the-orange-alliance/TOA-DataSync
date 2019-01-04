@@ -171,48 +171,32 @@ public class TeamsController {
                             t.getTeamNameLong(),
                             t.getTeamCity() + ", " + t.getTeamStateProv() + ", " + t.getTeamCountry());
                     teamsList.add(team);
-                } else { //We will ask the user for the TOA equivalent of this team #
-                    TextInputDialog dialog = new TextInputDialog("");
-                    dialog.setTitle("Custom Team Found");
-                    dialog.setHeaderText("Team " + tN  + " is a custom team. What is their Team Key on TheOrangeAlliance? (If you can't find it, type \"Not Found\")");
-                    dialog.setContentText("Example: ISR11056");
-
-                    Optional<String> result = dialog.showAndWait();
-                    result.ifPresent(s1 -> {
-                        TOAEndpoint teamsEndpoint = new TOAEndpoint("team/" + result.get());
-                        teamsEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
-                        teamsEndpoint.execute(((toaR, toaS) -> {
-                            if (toaS) {
-                                TeamJSON[] team = teamsEndpoint.getGson().fromJson(toaR, TeamJSON[].class);
-                                if(team.length == 1){
-                                    Team eventTeam = new Team(
-                                            team[0].getTeamKey(),
-                                            1,
-                                            team[0].getTeamRegionKey(),
-                                            team[0].getTeamLeagueKey(),
-                                            team[0].getTeamNameShort(),
-                                            team[0].getTeamNameLong(),
-                                            team[0].getTeamCity() + ", " + team[0].getTeamCity() + ", " + team[0].getTeamCountry());
-                                    teamsList.add(eventTeam);
-                                } else {
-                                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                                    alert.setTitle("Error");
-                                    alert.setHeaderText("Non-Existant Team");
-                                    alert.setContentText("This team is not on TOA, and therefore, must not have been registered in TIMS. Please contact contact@theorangealliance.org soon so we can manually add the team.");
-
-                                    alert.showAndWait();
-                                }
+                } else { // We will search team in TOA
+                    TOAEndpoint teamsEndpoint = new TOAEndpoint("team/" + tN);
+                    teamsEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+                    teamsEndpoint.execute(((toaR, toaS) -> {
+                        if (toaS) {
+                            TeamJSON[] team = teamsEndpoint.getGson().fromJson(toaR, TeamJSON[].class);
+                            if(team.length == 1){
+                                Team eventTeam = new Team(
+                                        team[0].getTeamKey(),
+                                        1,
+                                        team[0].getTeamRegionKey(),
+                                        team[0].getTeamLeagueKey(),
+                                        team[0].getTeamNameShort(),
+                                        team[0].getTeamNameLong(),
+                                        team[0].getTeamCity() + ", " + team[0].getTeamCity() + ", " + team[0].getTeamCountry());
+                                teamsList.add(eventTeam);
                             } else {
                                 Alert alert = new Alert(Alert.AlertType.ERROR);
                                 alert.setTitle("Error");
                                 alert.setHeaderText("Non-Existant Team");
-                                alert.setContentText("This team is not on TOA, and therefore, must not have been registered in TIMS. Please contact contact@theorangealliance.org soon so we can manually add the team.");
+                                alert.setContentText("#" + tN +" is not on TOA, and therefore, must not have been registered in TIMS. Please contact contact@theorangealliance.org soon so we can manually add the team.");
 
                                 alert.showAndWait();
-                                //controller.sendError("Custom Team " + tN + " not found on TOA as " + result.get() + ". Please Reimport teams and try again.");
                             }
-                        }));
-                    });
+                        }
+                    }));
                 }
             }
 
@@ -349,13 +333,15 @@ public class TeamsController {
         }
     }
 
-    //This will convert a team number to a TOA team number
+    // This will convert a team number to a TOA team number
     private String convertTeamNumToTOA(int teamNum, String country){
-        if(country.equalsIgnoreCase("usa") || (country.equalsIgnoreCase("canada"))){
-            return teamNum + "";
-        } else {
-            return countryCodeConvert(country) + teamNum;
-        }
+        return teamNum + "";
+
+//        if(country.equalsIgnoreCase("usa") || (country.equalsIgnoreCase("canada"))){
+//            return teamNum + "";
+//        } else {
+//            return countryCodeConvert(country) + teamNum;
+//        }
     }
 
     // Convert a country name to it's 3 digit UN identifier.

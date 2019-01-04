@@ -5,7 +5,7 @@ package org.theorangealliance.datasync.util;
  */
 public class Config {
 
-    public static String VERSION = "v2.1.0 - BETA";
+    public static String VERSION = "v2.1.1";
 
     public static String FIRST_API_IP;
     public static String FIRST_API_EVENT_ID;
