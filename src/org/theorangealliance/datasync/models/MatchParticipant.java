@@ -2,6 +2,8 @@ package org.theorangealliance.datasync.models;
 
 /**
  * Created by Kyle Flynn on 11/29/2017.
+ * @deprecated by Soren Zaiser
+ * Reason: Just Use the JSON model
  */
 public class MatchParticipant {
 

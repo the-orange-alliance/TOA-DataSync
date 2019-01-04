@@ -1,5 +1,6 @@
 package org.theorangealliance.datasync.tabs;
 
+import com.google.gson.reflect.TypeToken;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,24 +50,24 @@ public class MatchesController {
     private HashSet<MatchDetail1819JSON> uploadedDetails;
     private HashSet<MatchParticipantJSON> uploadedMatchParticipants;
 
-    private HashMap<MatchGeneral, MatchParticipant[]> matchStations;
+    private HashMap<MatchGeneral, MatchParticipantJSON[]> matchParticipants;
     private HashMap<MatchGeneral, MatchDetail1819JSON> matchDetails;
     private HashMap<MatchGeneral, MatchDetail1718JSON> matchDetails1718;
     private MatchGeneral selectedMatch;
 
     /*For Fixing The Match IDs and Sorting */
 
-    private ArrayList<MatchGeneral> fMatches = new ArrayList<>(); //Finals Matches
-    private ArrayList<MatchParticipant[]> fSche = new ArrayList<>(); //Finals Matches
-    private ArrayList<MatchDetail1819JSON> fMatchDtl = new ArrayList<>(); //Finals Matches
+    private ArrayList<MatchGeneral> fMatches; //Finals Matches
+    private HashMap<MatchGeneral, MatchParticipantJSON[]> fSche; //Finals Matches
+    private HashMap<MatchGeneral, MatchDetail1819JSON> fMatchDtl; //Finals Matches
 
-    private ArrayList<MatchGeneral> sf2Matches = new ArrayList<>();//SF2 Matches
-    private ArrayList<MatchParticipant[]> sf2Sche = new ArrayList<>();//SF2 Matches
-    private ArrayList<MatchDetail1819JSON> sf2MatchDtl = new ArrayList<>();//SF2 Matches
+    private ArrayList<MatchGeneral> sf2Matches;//SF2 Matches
+    private HashMap<MatchGeneral, MatchParticipantJSON[]> sf2Sche;//SF2 Matches
+    private HashMap<MatchGeneral, MatchDetail1819JSON> sf2MatchDtl;//SF2 Matches
 
-    private ArrayList<MatchGeneral> sf1Matches = new ArrayList<>();//SF1 Matches
-    private ArrayList<MatchParticipant[]> sf1Sche = new ArrayList<>();//SF1 Matches
-    private ArrayList<MatchDetail1819JSON> sf1MatchDtl = new ArrayList<>();//SF1 Matches
+    private ArrayList<MatchGeneral> sf1Matches;//SF1 Matches
+    private HashMap<MatchGeneral, MatchParticipantJSON[]> sf1Sche;//SF1 Matches
+    private HashMap<MatchGeneral, MatchDetail1819JSON> sf1MatchDtl;//SF1 Matches
 
 
     private HashMap<Integer, int[]> teamWinLoss;
@@ -109,7 +110,7 @@ public class MatchesController {
         });
 
         this.uploadQueue = new LinkedList<>();
-        this.matchStations = new HashMap<>();
+        this.matchParticipants = new HashMap<>();
         this.matchDetails = new HashMap<>();
         this.teamWinLoss = new HashMap<>();
         this.matchList = FXCollections.observableArrayList();
@@ -178,7 +179,8 @@ public class MatchesController {
         matchesEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         matchesEndpoint.execute(((response, success) -> {
             if (success) {
-                //TOALogger.log(Level.INFO, "Grabbed match details for " + uploadedDetails.size() + " matches.");
+                uploadedDetails = matchesEndpoint.getGson().fromJson(response, new TypeToken<HashSet<MatchDetail1819JSON>>(){}.getType());
+                TOALogger.log(Level.INFO, "Grabbed match details for " + uploadedDetails.size() + " matches.");
             } else {
                 this.controller.sendError("Error: " + response);
             }
@@ -217,12 +219,12 @@ public class MatchesController {
 
         controller.btnMatchOpen.setDisable(false);
 
-        MatchParticipant[] teams = matchStations.get(match);
+        MatchParticipantJSON[] teams = matchParticipants.get(match);
         if (teams != null) {
-            String redTeams = teams[0].getTeamKey() + teams[0].getStatusString() + " " + teams[1].getTeamKey() + teams[1].getStatusString();
-            String redFinalTeam = (teams[2].getTeamKey() == 0 ? "" : teams[2].getTeamKey() + teams[2].getStatusString() + "");
-            String blueTeams = teams[3].getTeamKey() + teams[3].getStatusString() + " " + teams[4].getTeamKey() + teams[4].getStatusString();
-            String blueFinalTeam = (teams[5].getTeamKey() == 0 ? "" : teams[5].getTeamKey() + teams[5].getStatusString() + "");
+            String redTeams = teams[0].getTeamKey() + teams[0].getStationStatus() + " " + teams[1].getTeamKey() + teams[1].getStationStatus();
+            String redFinalTeam = (teams[2].getTeamKey() == 0 ? "" : teams[2].getTeamKey() + teams[2].getStationStatus() + "");
+            String blueTeams = teams[3].getTeamKey() + teams[3].getStationStatus() + " " + teams[4].getTeamKey() + teams[4].getStationStatus();
+            String blueFinalTeam = (teams[5].getTeamKey() == 0 ? "" : teams[5].getTeamKey() + teams[5].getStationStatus() + "");
             controller.labelRedTeams.setText(redTeams + " " + redFinalTeam);
             controller.labelBlueTeams.setText(blueTeams + " " + blueFinalTeam);
         }
@@ -443,7 +445,7 @@ public class MatchesController {
                         match.setBlueEndScore((detailJSON.getBlueEndRelic1()*10) + (detailJSON.getBlueEndRelic2()*20) + (detailJSON.getBlueEndRelic3()*40) + (detailJSON.getBlueEndRelicUp()*15) + (detailJSON.getBlueEndRobotBal()*20));
                         match.setRedScore(match.getRedAutoScore()+match.getRedTeleScore()+match.getRedEndScore()+match.getRedPenalty());
                         match.setBlueScore(match.getBlueAutoScore()+match.getBlueTeleScore()+match.getBlueEndScore()+match.getBluePenalty());
-                        calculateWL(match, matchStations.get(match));
+                        calculateWL(match, matchParticipants.get(match));
                         count++;
 
                         if (match.isDone() && !match.isUploaded()) {
@@ -485,7 +487,7 @@ public class MatchesController {
             controller.btnMatchUpload.setDisable(true);
             uploadQueue.clear();
             matchList.clear();
-            matchStations.clear();
+            matchParticipants.clear();
             matchDetails.clear();
             teamWinLoss.clear();
 
@@ -501,7 +503,7 @@ public class MatchesController {
                     MatchGeneralAndMatchParticipant mValues = getMatchGeneralFromFirstAPI(1, m.getMatchNumber(), 0, null, m, qualMatch);
 
                     MatchGeneral match = mValues.getMatchGeneral();
-                    MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
+                    MatchParticipantJSON[] MatchParticipants = mValues.getMatchParticipants();
 
                     match.setIsUploaded(getUploadedFromMatchKey(match.getMatchKey()));
                     if (match.isDone() && !match.isUploaded()) {
@@ -515,7 +517,7 @@ public class MatchesController {
 
                     matchDetails.put(match, getMatchDetails1819FirstAPI(("matches/" + m.getMatchNumber()), match.getMatchKey(), 1));
                     matchList.add(match);
-                    matchStations.put(match, MatchParticipants);
+                    matchParticipants.put(match, MatchParticipants);
 
 
 
@@ -534,9 +536,9 @@ public class MatchesController {
         int elimMatches = 0;
 
         //Clear SF1 Lists
-        sf1Sche.clear();
-        sf1Matches.clear();
-        sf1MatchDtl.clear();
+        sf1Matches = new ArrayList<>();
+        sf1Sche = new HashMap<>();
+        sf1MatchDtl = new HashMap<>();
 
         ElimMatchesArray matchesSF1 = null;
         //Try to connect to scoring system
@@ -566,13 +568,13 @@ public class MatchesController {
                     MatchGeneralAndMatchParticipant mValues = getMatchGeneralFromFirstAPI(2, sfMatchNum, elimMatches, m, null, qualMatch);
 
                     MatchGeneral match = mValues.getMatchGeneral();
-                    MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
+                    MatchParticipantJSON[] MatchParticipants = mValues.getMatchParticipants();
 
                     calculateWL(match, MatchParticipants);
 
-                    sf1MatchDtl.add(getMatchDetails1819FirstAPI(("elim/sf/1/" + (sfMatchNum-10)), match.getMatchKey(), 2));
                     sf1Matches.add(match);
-                    sf1Sche.add(MatchParticipants);
+                    sf1MatchDtl.put(match, getMatchDetails1819FirstAPI(("elim/sf/1/" + (sfMatchNum-10)), match.getMatchKey(), 2));
+                    sf1Sche.put(match, MatchParticipants);
 
                 } else {
                     controller.sendError("Unable to get score for " + m.getMatchNumber());
@@ -583,9 +585,9 @@ public class MatchesController {
         /* SF2 */
 
         //Clear Our Match Lists
-        sf2Sche.clear();
-        sf2Matches.clear();
-        sf2MatchDtl.clear();
+        sf2Matches = new ArrayList<>();
+        sf2Sche = new HashMap<>();
+        sf2MatchDtl = new HashMap<>();
 
         ElimMatchesArray matchesSF2 = null;
         if(allQualComplete) {
@@ -615,13 +617,13 @@ public class MatchesController {
                     MatchGeneralAndMatchParticipant mValues = getMatchGeneralFromFirstAPI(2, sfMatchNum, elimMatches, m, null, qualMatch);
 
                     MatchGeneral match = mValues.getMatchGeneral();
-                    MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
+                    MatchParticipantJSON[] MatchParticipants = mValues.getMatchParticipants();
 
                     calculateWL(match, MatchParticipants);
 
-                    sf2MatchDtl.add(getMatchDetails1819FirstAPI(("elim/sf/2/" + (sfMatchNum - 20)), match.getMatchKey(), 2));
                     sf2Matches.add(match);
-                    sf2Sche.add(MatchParticipants);
+                    sf2MatchDtl.put(match, getMatchDetails1819FirstAPI(("elim/sf/2/" + (sfMatchNum - 20)), match.getMatchKey(), 2));
+                    sf2Sche.put(match, MatchParticipants);
 
                 } else {
                     controller.sendError("Unable to get score for " + m.getMatchNumber());
@@ -631,9 +633,9 @@ public class MatchesController {
 
         /* Finals Matches */
         //Clear Our match lists
-        fSche.clear();
-        fMatches.clear();
-        fMatchDtl.clear();
+        fMatches = new ArrayList<>();
+        fSche = new HashMap<>();
+        fMatchDtl = new HashMap<>();
 
         ElimMatchesArray matchesF = null;
         if(matchesSF1 != null || matchesSF2 != null) { //If the SF matches are null, then we KNOW there wont be any Finals matches
@@ -660,13 +662,13 @@ public class MatchesController {
                     MatchGeneralAndMatchParticipant mValues = getMatchGeneralFromFirstAPI(3, fMatchNum, elimMatches, m, null, qualMatch);
 
                     MatchGeneral match = mValues.getMatchGeneral();
-                    MatchParticipant[] MatchParticipants = mValues.getMatchParticipants();
+                    MatchParticipantJSON[] MatchParticipants = mValues.getMatchParticipants();
 
                     calculateWL(match, MatchParticipants);
 
-                    fMatchDtl.add(getMatchDetails1819FirstAPI(("elim/finals/" + fMatchNum), match.getMatchKey(), 3));
                     fMatches.add(match);
-                    fSche.add(MatchParticipants);
+                    fMatchDtl.put(match, getMatchDetails1819FirstAPI(("elim/finals/" + fMatchNum), match.getMatchKey(), 3));
+                    fSche.put(match, MatchParticipants);
 
                 } else {
                     controller.sendError("Unable to get score for " + m.getMatchNumber());
@@ -699,7 +701,6 @@ public class MatchesController {
             this.controller.btnSetUrl.setDisable(true);
             this.controller.btnMatchScheduleUpload.setDisable(true);
         }
-        checkMatchDetails();
     }
 
     //This gets matches from the 1718 match file
@@ -709,7 +710,7 @@ public class MatchesController {
             try {
                 controller.btnMatchUpload.setDisable(true);
                 matchList.clear();
-                matchStations.clear();
+                matchParticipants.clear();
                 matchDetails.clear();
                 teamWinLoss.clear();
                 BufferedReader reader = new BufferedReader(new FileReader(matchFile));
@@ -814,10 +815,10 @@ public class MatchesController {
                     match.setRedScore(match.getRedAutoScore()+match.getRedTeleScore()+match.getRedEndScore()+match.getRedPenalty());
                     match.setBlueScore(match.getBlueAutoScore()+match.getBlueTeleScore()+match.getBlueEndScore()+match.getBluePenalty());
 
-                    calculateWL(match, MatchParticipants);
+                    //calculateWL(match, MatchParticipants);
 
                     matchList.add(match);
-                    matchStations.put(match, MatchParticipants);
+                    //matchParticipants.put(match, MatchParticipants);
                     matchDetails1718.put(match, detailJSON);
                 }
                 reader.close();
@@ -899,7 +900,7 @@ public class MatchesController {
             match.setMatchKey(Config.EVENT_ID + "-Q" + String.format("%03d", match.getCanonicalMatchNumber()) + "-1");
         }
 
-        MatchParticipant[] MatchParticipants = new MatchParticipant[6];
+        MatchParticipantJSON[] MatchParticipants = new MatchParticipantJSON[6];
 
         /** TEAM info **/
 
@@ -913,12 +914,12 @@ public class MatchesController {
             AllianceFIRST blueAlliance = getAllianceFirstFromTeams(eM.getBlueAlliance().getAllianceCaptain(), eM.getBlueAlliance().getAlliancePick1(), eM.getBlueAlliance().getAlliancePick2());
             int[] matchTeams = {eM.getRedAlliance().getAllianceCaptain(), eM.getRedAlliance().getAlliancePick1(), eM.getRedAlliance().getAlliancePick2(), eM.getBlueAlliance().getAllianceCaptain(), eM.getBlueAlliance().getAlliancePick1(), eM.getBlueAlliance().getAlliancePick2()};
             if(redAlliance != null && blueAlliance != null) {
-                MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, (redAlliance.getAllianceCaptain()));
-                MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, (redAlliance.getAlliancePick1()));
-                MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, (redAlliance.getAlliancePick2()));
-                MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, (blueAlliance.getAllianceCaptain()));
-                MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, (blueAlliance.getAlliancePick1()));
-                MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, (blueAlliance.getAlliancePick2()));
+                MatchParticipants[0] = new MatchParticipantJSON(match.getMatchKey(), 11, (redAlliance.getAllianceCaptain()));
+                MatchParticipants[1] = new MatchParticipantJSON(match.getMatchKey(), 12, (redAlliance.getAlliancePick1()));
+                MatchParticipants[2] = new MatchParticipantJSON(match.getMatchKey(), 13, (redAlliance.getAlliancePick2()));
+                MatchParticipants[3] = new MatchParticipantJSON(match.getMatchKey(), 21, (blueAlliance.getAllianceCaptain()));
+                MatchParticipants[4] = new MatchParticipantJSON(match.getMatchKey(), 22, (blueAlliance.getAlliancePick1()));
+                MatchParticipants[5] = new MatchParticipantJSON(match.getMatchKey(), 23, (blueAlliance.getAlliancePick2()));
                 //Because these are elims we can calc no shows base on which are -1
                 int i = 0;
                 for(int t : matchTeams) {
@@ -928,22 +929,22 @@ public class MatchesController {
                     i++;
                 }
             } else { //Something went wrong. We should never get here, but this is just a saftey backup.
-                MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, (eM.getRedAlliance().getAllianceCaptain() == -1) ? 0 : eM.getRedAlliance().getAllianceCaptain());
-                MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, (eM.getRedAlliance().getAlliancePick1() == -1) ? 0 : eM.getRedAlliance().getAlliancePick1());
-                MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, (eM.getRedAlliance().getAlliancePick2() == -1) ? 0 : eM.getRedAlliance().getAlliancePick2());
-                MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, (eM.getBlueAlliance().getAllianceCaptain() == -1) ? 0 : eM.getBlueAlliance().getAllianceCaptain());
-                MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, (eM.getBlueAlliance().getAlliancePick1() == -1) ? 0 : eM.getBlueAlliance().getAlliancePick1());
-                MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, (eM.getBlueAlliance().getAlliancePick2() == -1) ? 0 : eM.getBlueAlliance().getAlliancePick2());
+                MatchParticipants[0] = new MatchParticipantJSON(match.getMatchKey(), 11, (eM.getRedAlliance().getAllianceCaptain() == -1) ? 0 : eM.getRedAlliance().getAllianceCaptain());
+                MatchParticipants[1] = new MatchParticipantJSON(match.getMatchKey(), 12, (eM.getRedAlliance().getAlliancePick1() == -1) ? 0 : eM.getRedAlliance().getAlliancePick1());
+                MatchParticipants[2] = new MatchParticipantJSON(match.getMatchKey(), 13, (eM.getRedAlliance().getAlliancePick2() == -1) ? 0 : eM.getRedAlliance().getAlliancePick2());
+                MatchParticipants[3] = new MatchParticipantJSON(match.getMatchKey(), 21, (eM.getBlueAlliance().getAllianceCaptain() == -1) ? 0 : eM.getBlueAlliance().getAllianceCaptain());
+                MatchParticipants[4] = new MatchParticipantJSON(match.getMatchKey(), 22, (eM.getBlueAlliance().getAlliancePick1() == -1) ? 0 : eM.getBlueAlliance().getAlliancePick1());
+                MatchParticipants[5] = new MatchParticipantJSON(match.getMatchKey(), 23, (eM.getBlueAlliance().getAlliancePick2() == -1) ? 0 : eM.getBlueAlliance().getAlliancePick2());
             }
 
         } else if(qM != null) {
             surrogate = new boolean[]{qM.getRedAlliance().isTeam1Surrogate, qM.getRedAlliance().isTeam2Surrogate, false, qM.getBlueAlliance().isTeam1Surrogate, qM.getBlueAlliance().isTeam2Surrogate, false};
-            MatchParticipants[0] = new MatchParticipant(match.getMatchKey(), 11, qM.getRedAlliance().getTeam1());
-            MatchParticipants[1] = new MatchParticipant(match.getMatchKey(), 12, qM.getRedAlliance().getTeam2());
-            MatchParticipants[2] = new MatchParticipant(match.getMatchKey(), 13, 0);
-            MatchParticipants[3] = new MatchParticipant(match.getMatchKey(), 21, qM.getBlueAlliance().getTeam1());
-            MatchParticipants[4] = new MatchParticipant(match.getMatchKey(), 22, qM.getBlueAlliance().getTeam2());
-            MatchParticipants[5] = new MatchParticipant(match.getMatchKey(), 23, 0);
+            MatchParticipants[0] = new MatchParticipantJSON(match.getMatchKey(), 11, qM.getRedAlliance().getTeam1());
+            MatchParticipants[1] = new MatchParticipantJSON(match.getMatchKey(), 12, qM.getRedAlliance().getTeam2());
+            MatchParticipants[2] = new MatchParticipantJSON(match.getMatchKey(), 13, 0);
+            MatchParticipants[3] = new MatchParticipantJSON(match.getMatchKey(), 21, qM.getBlueAlliance().getTeam1());
+            MatchParticipants[4] = new MatchParticipantJSON(match.getMatchKey(), 22, qM.getBlueAlliance().getTeam2());
+            MatchParticipants[5] = new MatchParticipantJSON(match.getMatchKey(), 23, 0);
         }
 
         ///dq, no show, surrogates, and yellow cards, with that order of precedence
@@ -1001,24 +1002,24 @@ public class MatchesController {
 
     /***********Data Calculation************/
     //This calculates the WLT based on matches won
-    private void calculateWL(MatchGeneral match, MatchParticipant[] stations) {
+    private void calculateWL(MatchGeneral match, MatchParticipantJSON[] participants) {
         if (match.isDone() && match.getTournamentLevel() == 1) {
             boolean redWin = match.getRedScore() > match.getBlueScore();
             boolean tie = match.getRedScore() == match.getBlueScore();
             String resultStr = tie ? "TIE" : redWin ? "RED" : "BLUE";
-            for (MatchParticipant station : stations) {
-                if (station.getTeamKey() != 0 && station.getStationStatus() >= 1) {
+            for (MatchParticipantJSON participant : participants) {
+                if (participant.getTeamKey() != 0 && participant.getStationStatus() >= 1) {
                     int WINS = 0;
                     int LOSS = 1;
                     int TIES = 2;
-                    int[] result = teamWinLoss.get(station.getTeamKey());
+                    int[] result = teamWinLoss.get(participant.getTeamKey());
                     if (result != null) {
                         if (tie) {
                             result[TIES]++;
-                        } else if (redWin && station.getStation() < 20) {
+                        } else if (redWin && participant.getStation() < 20) {
                             // Red win and this team is on red
                             result[WINS]++;
-                        } else if (!redWin && station.getStation() > 20) {
+                        } else if (!redWin && participant.getStation() > 20) {
                             result[WINS]++;
                         } else {
                             result[LOSS]++;
@@ -1029,12 +1030,12 @@ public class MatchesController {
                             result[WINS] = 0;
                             result[LOSS] = 0;
                             result[TIES] = 1;
-                        } else if (redWin && station.getStation() < 20) {
+                        } else if (redWin && participant.getStation() < 20) {
                             // Red win and this team is on red
                             result[WINS] = 1;
                             result[LOSS] = 0;
                             result[TIES] = 0;
-                        } else if (!redWin && station.getStation() > 20) {
+                        } else if (!redWin && participant.getStation() > 20) {
                             result[WINS] = 1;
                             result[LOSS] = 0;
                             result[TIES] = 0;
@@ -1044,7 +1045,7 @@ public class MatchesController {
                             result[TIES] = 0;
                         }
                     }
-                    teamWinLoss.put(station.getTeamKey(), result);
+                    teamWinLoss.put(participant.getTeamKey(), result);
                 }
             }
         }
@@ -1107,6 +1108,7 @@ public class MatchesController {
 
     //This Orders the Elim Matches so that they are presented in the correct order
     private void fixTheElimMatches(){
+        //Sort Matches
         sf1Matches.sort(Comparator.comparing(MatchGeneral::getMatchName));
         sf2Matches.sort(Comparator.comparing(MatchGeneral::getMatchName));
         fMatches.sort(Comparator.comparing(MatchGeneral::getMatchName));
@@ -1119,181 +1121,94 @@ public class MatchesController {
             if(!sf1Matches.isEmpty()){
                 String matchKey =  Config.EVENT_ID + "-E" + String.format("%03d", elimMatch) + "-1";
 
-                int i = 0;
-                //Find the schedual station that goes with our match
-                for(MatchParticipant[] s : sf1Sche){
-                    if(s[0].getMatchKey().equalsIgnoreCase(sf1Matches.get(0).getMatchKey())){
-                       break;
-                    } else {
-                        i++;
-                    }
-                }
+                //Get First match in array
+                MatchGeneral currentMatch = sf1Matches.get(0);
+                //Find the schedule station that goes with our match
+                MatchParticipantJSON[] currentPars = sf1Sche.get(currentMatch);
+                //Find the match details station that goes with our match
+                MatchDetail1819JSON currentDtls = sf1MatchDtl.get(currentMatch);
 
-                int ii = 0;
-                for(MatchDetail1819JSON m : sf1MatchDtl){
-                    if(m.getMatchKey().equalsIgnoreCase(sf1Matches.get(0).getMatchKey())){
-                        break;
-                    } else {
-                        ii++;
-                    }
-                }
-
-                sf1Matches.get(0).setMatchKey(matchKey);
-                sf1Matches.get(0).setTournamentLevel(MatchGeneral.buildTOATournamentLevel(2, sf1Num));
-
-                sf1Sche.get(i)[0].setMatchKey(matchKey);
-                sf1Sche.get(i)[1].setMatchKey(matchKey);
-                sf1Sche.get(i)[2].setMatchKey(matchKey);
-                sf1Sche.get(i)[3].setMatchKey(matchKey);
-                sf1Sche.get(i)[4].setMatchKey(matchKey);
-                sf1Sche.get(i)[5].setMatchKey(matchKey);
-                sf1Sche.get(i)[0].setStationKey(matchKey + "-R1");
-                sf1Sche.get(i)[1].setStationKey(matchKey + "-R2");
-                sf1Sche.get(i)[2].setStationKey(matchKey + "-R3");
-                sf1Sche.get(i)[3].setStationKey(matchKey + "-B1");
-                sf1Sche.get(i)[4].setStationKey(matchKey + "-B2");
-                sf1Sche.get(i)[5].setStationKey(matchKey + "-B3");
-
-
-                sf1MatchDtl.get(ii).setMatchKey(matchKey);
-                sf1MatchDtl.get(ii).setMatchDtlKey(matchKey + "-DTL");
-
-                sf1Matches.get(0).setIsUploaded(getUploadedFromMatchKey(sf1Matches.get(0).getMatchKey()));
-                if (sf1Matches.get(0).isDone() && !sf1Matches.get(0).isUploaded()) {
-                    TOALogger.log(Level.INFO, "Added match " + sf1Matches.get(0).getMatchKey() + " to the upload queue.");
-                    uploadQueue.add(sf1Matches.get(0));
-                }
-
-                matchList.add(sf1Matches.get(0));
-                matchStations.put(sf1Matches.get(0), sf1Sche.get(i));
-                matchDetails.put(sf1Matches.get(0), sf1MatchDtl.get(i));
+                processSFMatch(matchKey, currentMatch, currentDtls, currentPars, sf1Num, 2);
 
                 sf1Num++;
                 elimMatch++;
+                //Remove Matches
                 sf1Matches.remove(0);
-                sf1Sche.remove(i);
-                sf1MatchDtl.remove(ii);
+                sf1Sche.remove(currentMatch);
+                sf1MatchDtl.remove(currentMatch);
             }
 
             if(!sf2Matches.isEmpty()){
                 String matchKey =  Config.EVENT_ID + "-E" + String.format("%03d", elimMatch) + "-1";
 
-                int i = 0;
-                //Find the schedual station that goes with our match
-                for(MatchParticipant[] s : sf2Sche){
-                    if(s[0].getMatchKey().equalsIgnoreCase(sf2Matches.get(0).getMatchKey())){
-                        break;
-                    } else {
-                        i++;
-                    }
-                }
+                //Get First match in array
+                MatchGeneral currentMatch = sf2Matches.get(0);
+                //Find the schedule station that goes with our match
+                MatchParticipantJSON[] currentPars = sf2Sche.get(currentMatch);
+                //Find the match details station that goes with our match
+                MatchDetail1819JSON currentDtls = sf2MatchDtl.get(currentMatch);
 
-                int ii = 0;
-                //Find The MatchDetails that goes with out match
-                for(MatchDetail1819JSON m : sf2MatchDtl){
-                    if(m.getMatchKey().equalsIgnoreCase(sf2Matches.get(0).getMatchKey())){
-                        break;
-                    } else {
-                        ii++;
-                    }
-                }
-
-                sf2Matches.get(0).setMatchKey(matchKey);
-                sf2Matches.get(0).setTournamentLevel(MatchGeneral.buildTOATournamentLevel(2, sf2Num));
-
-                sf2Sche.get(i)[0].setMatchKey(matchKey);
-                sf2Sche.get(i)[1].setMatchKey(matchKey);
-                sf2Sche.get(i)[2].setMatchKey(matchKey);
-                sf2Sche.get(i)[3].setMatchKey(matchKey);
-                sf2Sche.get(i)[4].setMatchKey(matchKey);
-                sf2Sche.get(i)[5].setMatchKey(matchKey);
-                sf2Sche.get(i)[0].setStationKey(matchKey + "-R1");
-                sf2Sche.get(i)[1].setStationKey(matchKey + "-R2");
-                sf2Sche.get(i)[2].setStationKey(matchKey + "-R3");
-                sf2Sche.get(i)[3].setStationKey(matchKey + "-B1");
-                sf2Sche.get(i)[4].setStationKey(matchKey + "-B2");
-                sf2Sche.get(i)[5].setStationKey(matchKey + "-B3");
-
-                sf2MatchDtl.get(ii).setMatchKey(matchKey);
-                sf2MatchDtl.get(ii).setMatchDtlKey(matchKey + "-DTL");
-
-                sf2Matches.get(0).setIsUploaded(getUploadedFromMatchKey(sf2Matches.get(0).getMatchKey()));
-                if (sf2Matches.get(0).isDone() && !sf2Matches.get(0).isUploaded()) {
-                    TOALogger.log(Level.INFO, "Added match " + sf2Matches.get(0).getMatchKey() + " to the upload queue.");
-                    uploadQueue.add(sf2Matches.get(0));
-                }
-
-                matchList.add(sf2Matches.get(0));
-                matchStations.put(sf2Matches.get(0), sf2Sche.get(i));
-                matchDetails.put(sf2Matches.get(0), sf2MatchDtl.get(ii));
+                processSFMatch(matchKey, currentMatch, currentDtls, currentPars, sf2Num, 2);
 
 
                 sf2Num++;
                 elimMatch++;
                 sf2Matches.remove(0);
-                sf2Sche.remove(i);
-                sf2MatchDtl.remove(ii);
+                sf2Sche.remove(currentMatch);
+                sf2MatchDtl.remove(currentMatch);
             }
             if(sf1Matches.isEmpty() && sf2Matches.isEmpty() && !fMatches.isEmpty()) {
                 String matchKey =  Config.EVENT_ID + "-E" + String.format("%03d", elimMatch) + "-1";
 
-                int i = 0;
-                //Find the schedual station that goes with our match
-                for(MatchParticipant[] s : fSche){
-                    if(s[0].getMatchKey().equalsIgnoreCase(fMatches.get(0).getMatchKey())){
-                        break;
-                    } else {
-                        i++;
-                    }
-                }
+                //Get First match in array
+                MatchGeneral currentMatch = fMatches.get(0);
+                //Find the schedule station that goes with our match
+                MatchParticipantJSON[] currentPars = fSche.get(currentMatch);
+                //Find the match details station that goes with our match
+                MatchDetail1819JSON currentDtls = fMatchDtl.get(currentMatch);
 
-                int ii = 0;
-                //Find The MatchDetails that goes with out match
-                for(MatchDetail1819JSON m : fMatchDtl){
-                    if(m.getMatchKey().equalsIgnoreCase(fMatches.get(0).getMatchKey())){
-                        break;
-                    } else {
-                        ii++;
-                    }
-                }
-
-                fMatches.get(0).setMatchKey(matchKey);
-                fMatches.get(0).setTournamentLevel(MatchGeneral.buildTOATournamentLevel(3, fNum));
-
-                fSche.get(i)[0].setMatchKey(matchKey);
-                fSche.get(i)[1].setMatchKey(matchKey);
-                fSche.get(i)[2].setMatchKey(matchKey);
-                fSche.get(i)[3].setMatchKey(matchKey);
-                fSche.get(i)[4].setMatchKey(matchKey);
-                fSche.get(i)[5].setMatchKey(matchKey);
-                fSche.get(i)[0].setStationKey(matchKey + "-R1");
-                fSche.get(i)[1].setStationKey(matchKey + "-R2");
-                fSche.get(i)[2].setStationKey(matchKey + "-R3");
-                fSche.get(i)[3].setStationKey(matchKey + "-B1");
-                fSche.get(i)[4].setStationKey(matchKey + "-B2");
-                fSche.get(i)[5].setStationKey(matchKey + "-B3");
-
-                fMatchDtl.get(ii).setMatchKey(matchKey);
-                fMatchDtl.get(ii).setMatchDtlKey(matchKey + "-DTL");
-
-                fMatches.get(0).setIsUploaded(getUploadedFromMatchKey(fMatches.get(0).getMatchKey()));
-                if (fMatches.get(0).isDone() && !fMatches.get(0).isUploaded()) {
-                    TOALogger.log(Level.INFO, "Added match " + fMatches.get(0).getMatchKey() + " to the upload queue.");
-                    uploadQueue.add(fMatches.get(0));
-                }
-
-                matchList.add(fMatches.get(0));
-                matchStations.put(fMatches.get(0), fSche.get(i));
-                matchDetails.put(fMatches.get(0), fMatchDtl.get(i));
+                processSFMatch(matchKey, currentMatch, currentDtls, currentPars, fNum, 3);
 
                 fNum++;
                 elimMatch++;
                 fMatches.remove(0);
-                fSche.remove(i);
-                fMatchDtl.remove(ii);
+                fSche.remove(currentMatch);
+                fMatchDtl.remove(currentMatch);
             }
             if(sf1Matches.isEmpty() && sf2Matches.isEmpty() && fMatches.isEmpty()) loop = false;
         }
+    }
+
+    private void processSFMatch(String matchKey, MatchGeneral currentMatch, MatchDetail1819JSON currentDtls, MatchParticipantJSON[] currentPars, int sfNum, int tournNum){
+        currentMatch.setMatchKey(matchKey);
+        currentMatch.setTournamentLevel(MatchGeneral.buildTOATournamentLevel(tournNum, sfNum));
+
+        currentPars[0].setMatchKey(matchKey);
+        currentPars[1].setMatchKey(matchKey);
+        currentPars[2].setMatchKey(matchKey);
+        currentPars[3].setMatchKey(matchKey);
+        currentPars[4].setMatchKey(matchKey);
+        currentPars[5].setMatchKey(matchKey);
+        currentPars[0].setMatchParticipantKey(matchKey + "-R1");
+        currentPars[1].setMatchParticipantKey(matchKey + "-R2");
+        currentPars[2].setMatchParticipantKey(matchKey + "-R3");
+        currentPars[3].setMatchParticipantKey(matchKey + "-B1");
+        currentPars[4].setMatchParticipantKey(matchKey + "-B2");
+        currentPars[5].setMatchParticipantKey(matchKey + "-B3");
+
+
+        currentDtls.setMatchKey(matchKey);
+        currentDtls.setMatchDtlKey(matchKey + "-DTL");
+
+        currentMatch.setIsUploaded(getUploadedFromMatchKey(currentMatch.getMatchKey()));
+        if (currentMatch.isDone() && !currentMatch.isUploaded()) {
+            TOALogger.log(Level.INFO, "Added match " + currentMatch.getMatchKey() + " to the upload queue.");
+            uploadQueue.add(currentMatch);
+        }
+
+        matchList.add(currentMatch);
+        matchParticipants.put(currentMatch, currentPars);
+        matchDetails.put(currentMatch, currentDtls);
     }
 
     //This converts MatchGeneral model to a MatchGeneralJSON model
@@ -1324,150 +1239,125 @@ public class MatchesController {
     /************Data Uploading*************/
     //This posts all matches that are in the compleatedMatches array
     private void postCompletedMatches() {
-        boolean haveParticipants = true;
-
         if (uploadQueue.size() > 0) {
+
+            //POST Endpoints if applicable
+            TOAEndpoint matchEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/matches");
+            matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+            TOARequestBody matchGeneralBody = new TOARequestBody();
+
+            TOAEndpoint detailEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/matches/details");
+            detailEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+            TOARequestBody detailBody = new TOARequestBody();
+
+            TOAEndpoint matchParEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/matches/participants");
+            matchParEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+            TOARequestBody matchParBody = new TOARequestBody();
+
+            //Matches to PUT at the end
+            ArrayList<MatchParticipantJSON[]> matchParsToPUT = new ArrayList<>();
 
             for (MatchGeneral completeMatch : uploadQueue) {
                 //Parse Data For Match General
                 this.controller.sendInfo("Attempting to upload Match " + completeMatch.getMatchKey());
-                String methodType = "POST";
-                String putRouteExtra = "";
-                for (MatchGeneralJSON match : uploadedMatches) {
-                    if (match.getMatchKey().equals(completeMatch.getMatchKey())) {
-                        methodType = "PUT";
-                        putRouteExtra = "/" + match.getMatchKey();
+                boolean generalPUT = false;
+
+                if (uploadedMatches != null) {
+                    for (MatchGeneralJSON match : uploadedMatches) {
+                        if (match.getMatchKey().equals(completeMatch.getMatchKey())) {
+                            generalPUT = true; //Match Already Uploaded
+                            break;
+                        }
                     }
                 }
-                TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches" + putRouteExtra);
-                matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
-                TOARequestBody requestBody = new TOARequestBody();
-                requestBody.addValue(matchGeneralToJSON(completeMatch, 1)); //TODO Add Play Number Logic
-                matchEndpoint.setBody(requestBody);
 
+
+                if (generalPUT) {
+                    putMatchGen(matchGeneralToJSON(completeMatch, 1));
+                } else {
+                    matchGeneralBody.addValue(matchGeneralToJSON(completeMatch, 1)); //TODO Add Play Number Logic
+                }
 
                 //Parse Data for Match Details
+                boolean detailsPUT = false;
 
-                methodType = "POST";
-                putRouteExtra = "";
-                if (completeMatch.isUploaded()) {
-                    methodType = "PUT";
-                } else {
+                if (uploadedDetails != null) {
                     for (MatchDetail1819JSON detail : uploadedDetails) {
                         if (detail.getMatchKey().equals(completeMatch.getMatchKey())) {
-                            methodType = "PUT";
+                            detailsPUT = true; //Details Already Uploaded
                         }
                     }
                 }
 
-                MatchDetail1819JSON detailJSON = null;
+                MatchDetail1819JSON detailJSON = matchDetails.get(completeMatch);
 
-                for (MatchDetail1819JSON matchDetails : this.matchDetails.values()) {
-                    if (matchDetails.getMatchKey().equals(completeMatch.getMatchKey())) {
-                        detailJSON = matchDetails;
-                        if(methodType.equals("PUT")){
-                            putRouteExtra = matchDetails.getMatchKey() +  "/";
-                        }
-                        break;
-                    }
+                if(detailsPUT){
+                    putMatchDtl(detailJSON);
+                }else{
+                    detailBody.addValue(detailJSON);
                 }
 
-                TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches/" + putRouteExtra + "details");
-                detailEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
-                TOARequestBody detailBody = new TOARequestBody();
-                detailBody.addValue(detailJSON);
+                //Parse Match Participants
+                MatchParticipantJSON[] completeMatchPars = matchParticipants.get(completeMatch);
+                //So the way the API works, if, for some reason, only 2 of the 4 match participants are uploaded, We Can't just POST 2 and PUT 2.
+                //We have to POST all 4 (Let 2 error out), then PUT 4 (There Won't ben any errors any more, because now there are 4)
+                //So out of laziness I'm just going to PUT and POST them
+                for(MatchParticipantJSON m : completeMatchPars){
+                    if(m.getTeamKey() > 0) {
+                        matchParBody.addValue(m);
+                    }
+                }
+                matchParsToPUT.add(completeMatchPars);
+
+
+                //Update Stuffs
+                matchList.get(completeMatch.getCanonicalMatchNumber()-1).setIsUploaded(true);
+            }
+
+            /* Execute Queries */
+
+            //Match General Data
+            if(!matchGeneralBody.getValues().isEmpty()){
+                matchEndpoint.setBody(matchGeneralBody);
+                matchEndpoint.execute(((response, success) -> {
+                    if (success) {
+                        TOALogger.log(Level.INFO, "Successfully uploaded general results to TOA. " + response);
+                    }
+                }));
+            }
+
+
+            //Match Details
+            if(!detailBody.getValues().isEmpty()){
                 detailEndpoint.setBody(detailBody);
-
-
-                //Parese Data for Match Participants
-                methodType = "POST";
-                putRouteExtra = "";
-
-                if(completeMatch.isUploaded()){
-                    methodType = "PUT";
-                } else {
-                    for (MatchParticipantJSON matchPar : uploadedMatchParticipants) {
-                        if (matchPar.getMatchKey().equals(completeMatch.getMatchKey())) {
-                            methodType = "PUT";
-                        }
+                detailEndpoint.execute(((response, success) -> {
+                    if (success) {
+                        controller.tableMatches.refresh();
+                        TOALogger.log(Level.INFO, "Successfully uploaded match details to TOA. " + response);
                     }
-                }
+                }));
+            }
 
-                MatchParticipant[] mPs = null;
-
-                for (MatchParticipant[] mp : this.matchStations.values()) {
-                    if (mp[0].getMatchKey().equals(completeMatch.getMatchKey())) {
-                        mPs = mp;
-                        if(methodType.equals("PUT")){
-                            putRouteExtra = mp[0].getMatchKey() +  "/";
-                        }
-                        break;
+            //Match Participants POST
+            if(!matchParBody.getValues().isEmpty()){
+                matchParEndpoint.setBody(matchParBody);
+                matchParEndpoint.execute(((response, success) -> {
+                    if (success) {
+                        controller.tableMatches.refresh();
+                        TOALogger.log(Level.INFO, "Successfully uploaded match participant details to TOA. " + response);
                     }
-                }
 
-                TOAEndpoint matchParEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches/" + putRouteExtra + "participants");
-                matchParEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
-                TOARequestBody matchParticipantBody = new TOARequestBody();
-                if(mPs != null) {
-                    for(MatchParticipant m : mPs){ //Todo: I don't know why these aren't stored in JSON by default, Fix at some point
-                        MatchParticipantJSON mPJson = new MatchParticipantJSON();
-                        mPJson.setMatchParticipantKey(m.getStationKey());
-                        mPJson.setMatchKey(m.getMatchKey());
-                        mPJson.setStation(m.getStation());
-                        mPJson.setStationStatus(m.getStationStatus());
-                        mPJson.setTeamKey(m.getTeamKey() + "");
-                        mPJson.setRefStatus(0);//TODO: Fix?
-                        if(Integer.parseInt(mPJson.getTeamKey()) > 0) {
-                            matchParticipantBody.addValue(mPJson);
-                        }
+                    //Match Paticipants PUT
+                    for (MatchParticipantJSON[] mPtp: matchParsToPUT) {
+                        putMatchPars(mPtp);
                     }
-                } else {
-                    //Dont Upload Match, because we don't have participants
-                    haveParticipants = false;
-                }
-
-                //Dont Upload Match, because we don't have participants
-                if(matchParticipantBody.getValues().isEmpty()) {
-                    haveParticipants = false;
-                }
-
-                matchParEndpoint.setBody(matchParticipantBody);
-
-                /* Execute Queries */
-                if(haveParticipants) {
-                    //Match General Data
-                    matchEndpoint.execute(((response, success) -> {
-                        if (success) {
-                            TOALogger.log(Level.INFO, "Successfully uploaded results to TOA. " + response);
-                        }
-                    }));
-                    //Match Participants
-                    matchParEndpoint.execute(((response, success) -> {
-                        if (success) {
-                            controller.sendInfo("Successfully uploaded match partipants results to TOA. " + response);
-                        } else {
-                            controller.sendError("Connection to TOA unsuccessful. " + response);
-                        }
-                    }));
-                    //Match Details
-                    detailEndpoint.execute(((response, success) -> {
-                        if (success) {
-                            uploadQueue.remove(completeMatch);
-                            matchList.get(completeMatch.getCanonicalMatchNumber()-1).setIsUploaded(true);
-                            controller.tableMatches.refresh();
-                            TOALogger.log(Level.INFO, "Successfully uploaded match detail results to TOA. " + response);
-                        }
-                    }));
-                } else {
-                    TOALogger.log(Level.INFO, "Didn't upload match " + detailJSON.getMatchKey() + " because there were no event participants.");
-                }
-
+                }));
             }
         }
     }
 
     //This posts the selected match
-    public void postSelectedMatch() {
+    public void postSelectedMatchAskUser() {
         if (selectedMatch != null) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Are you sure about this?");
@@ -1485,130 +1375,99 @@ public class MatchesController {
 
             Optional<ButtonType> result = alert.showAndWait();
             if (result.get() == okayButton) {
-                String methodType = "POST";
-                String putRouteExtra = "";
-                if(uploadedMatches != null){
-                    for (MatchGeneralJSON match : uploadedMatches) {
-                        if (match.getMatchKey().equals(selectedMatch.getMatchKey())) {
-                            methodType = "PUT";
-                            putRouteExtra = "/" + match.getMatchKey();
-                        }
-                    }
-                }
-
-                TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches" + putRouteExtra);
-                matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
-                TOARequestBody requestBody = new TOARequestBody();
-                requestBody.addValue(matchGeneralToJSON(selectedMatch, 1)); //TODO Add Play Number Logic
-                matchEndpoint.setBody(requestBody);
-                matchEndpoint.execute(((response, success) -> {
-                    if (success) {
-                        controller.sendInfo("Successfully uploaded results to TOA. " + response);
-                        checkMatchSchedule();
-                    } else {
-                        controller.sendError("Connection to TOA unsuccessful. " + response);
-                    }
-                }));
-
-                methodType = "POST";
-                putRouteExtra = "";
-                if(selectedMatch.isUploaded()){
-                    methodType = "PUT";
-                } else {
-                    for (MatchParticipantJSON matchPar : uploadedMatchParticipants) {
-                        if (matchPar.getMatchKey().equals(selectedMatch.getMatchKey())) {
-                            methodType = "PUT";
-                        }
-                    }
-                }
-
-                MatchParticipant[] mPs = null;
-
-                for (MatchParticipant[] mp : this.matchStations.values()) {
-                    if (mp[0].getMatchKey().equals(selectedMatch.getMatchKey())) {
-                        mPs = mp;
-                        if(methodType.equals("PUT")){
-                            putRouteExtra = mp[0].getMatchKey() + "/";
-                        }
-                        break;
-                    }
-                }
-
-                TOAEndpoint matchParEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches/" + putRouteExtra + "participants");
-                matchParEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
-                TOARequestBody matchParticipantBody = new TOARequestBody();
-                for(MatchParticipant m : mPs){
-                    MatchParticipantJSON mPJson = new MatchParticipantJSON();
-                    mPJson.setMatchParticipantKey(m.getStationKey());
-                    mPJson.setMatchKey(m.getMatchKey());
-                    mPJson.setStation(m.getStation());
-                    mPJson.setStationStatus(m.getStationStatus());
-                    mPJson.setTeamKey(m.getTeamKey() + "");
-                    mPJson.setRefStatus(0);//TODO: Fix?
-                    if(Integer.parseInt(mPJson.getTeamKey()) > 0) {
-                        matchParticipantBody.addValue(mPJson);
-                    }
-
-                }
-                matchParEndpoint.setBody(matchParticipantBody);
-                matchParEndpoint.execute(((response, success) -> {
-                    if (success) {
-                        controller.sendInfo("Successfully uploaded match partipants results to TOA. " + response);
-                        checkMatchParticipants();
-                    } else {
-                        controller.sendError("Connection to TOA unsuccessful. " + response);
-                    }
-                }));
-
-                methodType = "POST";
-                putRouteExtra = "";
-                if (selectedMatch.isUploaded()) {
-                    methodType = "PUT";
-                } else {
-                    for (MatchDetail1819JSON detail : uploadedDetails) {
-                        if (detail.getMatchKey().equals(selectedMatch.getMatchKey())) {
-                            methodType = "PUT";
-                        }
-                    }
-                }
-
-                MatchDetail1819JSON detailJSON = null;
-
-                for (MatchDetail1819JSON matchDetails : this.matchDetails.values()) {
-                    if (matchDetails.getMatchKey().equals(selectedMatch.getMatchKey())) {
-                        detailJSON = matchDetails;
-                        if(methodType.equals("PUT")){
-                            putRouteExtra = matchDetails.getMatchKey() + "/";
-                        }
-                        break;
-                    }
-                }
-
-                TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches/" + putRouteExtra + "details");
-                detailEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
-                TOARequestBody detailBody = new TOARequestBody();
-                detailBody.addValue(detailJSON);
-                detailEndpoint.setBody(detailBody);
-                detailEndpoint.execute(((response, success) -> {
-                    if (success) {
-                        for(int i = 0; i < matchList.size(); i++){
-
-                            if(matchList.get(i).getMatchName().equals(selectedMatch.getMatchName())){
-                                matchList.get(i).setIsUploaded(true);
-                            }
-
-                        }
-                        controller.tableMatches.refresh();
-                        controller.sendInfo("Successfully uploaded detail results to TOA. " + response);
-                        checkMatchDetails();
-                        controller.btnMatchBrowserView.setDisable(false);
-                    } else {
-                        controller.sendError("Connection to TOA unsuccessful. " + response);
-                    }
-                }));
+                postSelectMatch();
             }
 
         }
+    }
+
+    private void postSelectMatch() {
+        String methodType = "POST";
+        String putRouteExtra = "";
+
+        //Match General
+        if(selectedMatch.isUploaded()){
+            methodType = "PUT";
+            putRouteExtra = "/" + selectedMatch.getMatchKey();
+        }
+        if(uploadedMatches != null){
+            for (MatchGeneralJSON match : uploadedMatches) {
+                if (match.getMatchKey().equals(selectedMatch.getMatchKey())) {
+                    methodType = "PUT";
+                    putRouteExtra = "/" + selectedMatch.getMatchKey();
+                }
+            }
+        }
+
+        TOAEndpoint matchEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches" + putRouteExtra);
+        matchEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+        TOARequestBody requestBody = new TOARequestBody();
+        requestBody.addValue(matchGeneralToJSON(selectedMatch, 1)); //TODO Add Play Number Logic
+        matchEndpoint.setBody(requestBody);
+        matchEndpoint.execute(((response, success) -> {
+            if (success) {
+                controller.sendInfo("Successfully uploaded match score to TOA. " + response);
+                checkMatchSchedule();
+            } else {
+                controller.sendError("Connection to TOA unsuccessful. " + response);
+            }
+        }));
+
+        //Match Participants
+        MatchParticipantJSON[] mPs = matchParticipants.get(selectedMatch);
+
+        TOAEndpoint matchParEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/matches/participants");
+        matchParEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+        TOARequestBody matchParticipantBody = new TOARequestBody();
+        for(MatchParticipantJSON m : mPs){
+            if(m.getTeamKey() > 0) {
+                matchParticipantBody.addValue(m);
+            }
+        }
+        matchParEndpoint.setBody(matchParticipantBody);
+        matchParEndpoint.execute(((response, success) -> {
+            if (success) {
+                controller.sendInfo("Successfully uploaded match partipants results to TOA. " + response);
+                checkMatchParticipants();
+            } else {
+                putMatchPars(mPs);
+            }
+        }));
+
+        //Match Details
+        methodType = "POST";
+        putRouteExtra = "";
+        if(uploadedDetails != null && !uploadedDetails.isEmpty()){
+            for (MatchDetail1819JSON detail : uploadedDetails) {
+                if (detail.getMatchKey().equals(selectedMatch.getMatchKey())) {
+                    methodType = "PUT";
+                    putRouteExtra = selectedMatch.getMatchKey() + "/";
+                }
+            }
+        }
+
+        MatchDetail1819JSON detailJSON = matchDetails.get(selectedMatch);
+
+        TOAEndpoint detailEndpoint = new TOAEndpoint(methodType, "event/" + Config.EVENT_ID + "/matches/" + putRouteExtra + "details");
+        detailEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+        TOARequestBody detailBody = new TOARequestBody();
+        detailBody.addValue(detailJSON);
+        detailEndpoint.setBody(detailBody);
+        detailEndpoint.execute(((response, success) -> {
+            if (success) {
+                for(int i = 0; i < matchList.size(); i++){
+                    if(matchList.get(i).getMatchName().equals(selectedMatch.getMatchName())){
+                        matchList.get(i).setIsUploaded(true);
+                        break;
+                    }
+                }
+                controller.tableMatches.refresh();
+                controller.sendInfo("Successfully uploaded detail results to TOA. " + response);
+                controller.btnMatchBrowserView.setDisable(false);
+            } else {
+                controller.sendError("Connection to TOA unsuccessful. " + response);
+            }
+        }));
     }
 
     //This asks the user if they want to post the match schedule
@@ -1632,6 +1491,7 @@ public class MatchesController {
             //Upload the stuff
             postMatchScheduleTeams();
             postMatchScheduleMatches();
+            checkMatchSchedule();
 
             //Now that we know the schedule is generated, the teams list is final.
             //Lets purge and reupload it.  Thanks @CHEER4FTC, this is actually very important.
@@ -1657,29 +1517,32 @@ public class MatchesController {
         TOAEndpoint scheduleEndpoint = new TOAEndpoint("POST", "event/" + Config.EVENT_ID + "/matches/participants");
         scheduleEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
         TOARequestBody requestBody = new TOARequestBody();
-        for (MatchParticipant[] matchPars : matchStations.values()) {
+        for (int i = 0; i < matchParticipants.size(); i++) {
+
+            MatchParticipantJSON matchPars[] = (MatchParticipantJSON[]) matchParticipants.values().toArray()[i];
 
             boolean uploaded = false;
-            if(uploadedMatches != null){
-                for (MatchGeneralJSON match : uploadedMatches) {
+            if(uploadedMatchParticipants != null && matchPars != null){
+                for (MatchParticipantJSON match : uploadedMatchParticipants) {
                     if (match.getMatchKey().equals(matchPars[0].getMatchKey())) {
-                        // This match has been uploaded, so do NOT proceed.
+                        // This match participant has been uploaded, so do NOT proceed.
                         uploaded = true;
                         break;
                     }
                 }
             }
 
-            if (!uploaded) {
-                for (MatchParticipant matchPar : matchPars) {
+            if (!uploaded && matchPars!= null) {
+                for (MatchParticipantJSON matchPar : matchPars) {
+                    System.out.println(matchPar.getMatchKey());
                     if (matchPar.getTeamKey() != 0) {
                         MatchParticipantJSON matchParJSON = new MatchParticipantJSON();
-                        matchParJSON.setMatchParticipantKey(matchPar.getStationKey());
+                        matchParJSON.setMatchParticipantKey(matchPar.getMatchParticipantKey());
                         matchParJSON.setMatchKey(matchPar.getMatchKey());
                         matchParJSON.setStation(matchPar.getStation());
-                        matchParJSON.setTeamKey(matchPar.getTeamKey() + "");
+                        matchParJSON.setTeamKey(matchPar.getTeamKey());
                         matchParJSON.setStationStatus(matchPar.getStationStatus());
-                        if(!matchParJSON.getTeamKey().equalsIgnoreCase("-1")) {
+                        if(matchParJSON.getTeamKey() > 0) {
                             requestBody.addValue(matchParJSON);
                         }
 
@@ -1692,7 +1555,6 @@ public class MatchesController {
             if (success) {
                 controller.sendInfo("Successfully uploaded match schedule team list to TOA. " + response);
                 TOALogger.log(Level.INFO, "Match schedule team list successfully posted.");
-                this.checkMatchSchedule();
             } else {
                 controller.sendError("Connection to TOA unsuccessful. " + response);
                 TOALogger.log(Level.SEVERE, "Error posting match schedule team list. " + response);
@@ -1711,11 +1573,10 @@ public class MatchesController {
             MatchGeneral match = matchList.get(i);
 
             boolean matchParExists = false;
-            for (MatchParticipantJSON mPj : uploadedMatchParticipants) {
-                if (mPj.getMatchKey().equalsIgnoreCase(match.getMatchKey())) {
-                    matchParExists = true;
-                }
+            if (matchParticipants.get(match) != null) {
+                matchParExists = true;
             }
+
             if (matchParExists) {
                 boolean uploaded = false;
                 if (uploadedMatches != null) {
@@ -1753,6 +1614,53 @@ public class MatchesController {
             }
         }));
     }
+
+    private void putMatchGen(MatchGeneralJSON match){
+        TOAEndpoint generalEndpoint = new TOAEndpoint("PUT", "event/" + Config.EVENT_ID + "/matches/" + match.getMatchKey());
+        generalEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+        TOARequestBody generalBody = new TOARequestBody();
+        generalBody.addValue(match);
+        generalEndpoint.setBody(generalBody);
+        generalEndpoint.execute(((response, success) -> {
+            if (success) {
+                controller.tableMatches.refresh();
+                TOALogger.log(Level.INFO, "Successfully updated the match score for match " + match.getMatchKey() + " on TOA. " + response);
+            }
+        }));
+    }
+
+    private void putMatchDtl(MatchDetail1819JSON match){
+        TOAEndpoint detailEndpoint = new TOAEndpoint("PUT", "event/" + Config.EVENT_ID + "/matches/" + match.getMatchKey() + "/details");
+        detailEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+        TOARequestBody detailBody = new TOARequestBody();
+        detailBody.addValue(match);
+        detailEndpoint.setBody(detailBody);
+        detailEndpoint.execute(((response, success) -> {
+            if (success) {
+                controller.tableMatches.refresh();
+                TOALogger.log(Level.INFO, "Successfully uploaded match details " + match.getMatchKey() + "  to TOA. " + response);
+            }
+        }));
+    }
+
+    private void putMatchPars(MatchParticipantJSON[] matchPars){
+        TOAEndpoint matchParEndpoint = new TOAEndpoint("PUT", "event/" + Config.EVENT_ID + "/matches/" + matchPars[0].getMatchKey() + "/participants");
+        matchParEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
+        TOARequestBody matchParticipantBody = new TOARequestBody();
+        for(MatchParticipantJSON m : matchPars){
+            if(m.getTeamKey() > 0) {
+                matchParticipantBody.addValue(m);
+            }
+        }
+        matchParEndpoint.setBody(matchParticipantBody);
+        matchParEndpoint.execute(((response, success) -> {
+            if (success) {
+                controller.sendInfo("Successfully updated match participants and their statuses for match " + matchPars[0].getMatchKey() +  "to TOA. " + response);
+            } else {
+                controller.sendError("Connection to TOA unsuccessful. " + response);
+            }
+        }));
+    };
 
     /**********Dangerous Stuff***********/
     //This asks the user if they want to purge all match data
@@ -1792,21 +1700,27 @@ public class MatchesController {
                 this.controller.cb_matches.setTextFill(Color.RED);
                 this.controller.cb_matches.setSelected(false);
                 this.controller.btn_cb_matches.setDisable(false);
+
+                for(MatchGeneral match : matchList){
+                    match.setIsUploaded(false);
+                }
+                if(uploadedDetails != null){
+                    uploadedDetails.clear();
+                }
+                if(uploadedMatches != null){
+                    uploadedMatches.clear();
+                }
+                if(uploadedMatchParticipants != null){
+                    uploadedMatchParticipants.clear();
+                }
+                checkMatchSchedule();
+                checkMatchParticipants();
+                checkMatchDetails();
+                controller.tableMatches.refresh();
             }else{
                 TOALogger.log(Level.SEVERE, "Failed to delete matches from TOA.");
             }
         }));
-
-        for(MatchGeneral match : matchList){
-            match.setIsUploaded(false);
-        }
-        uploadedDetails.clear();
-        uploadedMatches.clear();
-        uploadedMatchParticipants.clear();
-        checkMatchSchedule();
-        checkMatchParticipants();
-        checkMatchDetails();
-        controller.tableMatches.refresh();
     }
 
 
@@ -1829,3 +1743,61 @@ public class MatchesController {
 
 }
 
+
+
+//Parese Data for Match Participants
+/* OLD COde from uploadCompleatedMatches
+
+
+            //Match Participants
+            // These should alread be uploaded!
+
+
+                if(completeMatch.isUploaded()){
+                    methodType = "PUT";
+                } else {
+                    for (MatchParticipantJSON matchPar : uploadedMatchParticipants) {
+                        if (matchPar.getMatchKey().equals(completeMatch.getMatchKey())) {
+                            methodType = "PUT";
+                        }
+                    }
+                }
+
+                MatchParticipant[] mPs = null;
+
+                for (MatchParticipant[] mp : this.matchParticipants.values()) {
+                    if (mp[0].getMatchKey().equals(completeMatch.getMatchKey())) {
+                        mPs = mp;
+                        if(methodType.equals("PUT")){
+                            putRouteExtra = mp[0].getMatchKey() +  "/";
+                        }
+                        break;
+                    }
+                }
+
+
+                if(mPs != null) {
+                    for(MatchParticipant m : mPs){ //Todo: I don't know why these aren't stored in JSON by default, Fix at some point
+                        MatchParticipantJSON mPJson = new MatchParticipantJSON();
+                        mPJson.setMatchParticipantKey(m.getStationKey());
+                        mPJson.setMatchKey(m.getMatchKey());
+                        mPJson.setStation(m.getStation());
+                        mPJson.setStationStatus(m.getStationStatus());
+                        mPJson.setTeamKey(m.getTeamKey() + "");
+                        mPJson.setRefStatus(0);//TODO: Fix?
+                        if(Integer.parseInt(mPJson.getTeamKey()) > 0) {
+                            matchParticipantBody.addValue(mPJson);
+                        }
+                    }
+                } else {
+                    //Dont Upload Match, because we don't have participants
+                    haveParticipants = false;
+                }
+
+                //Dont Upload Match, because we don't have participants
+                if(matchParticipantBody.getValues().isEmpty()) {
+                    haveParticipants = false;
+                }
+
+                matchParEndpoint.setBody(matchParticipantBody);
+*/

@@ -648,7 +648,7 @@ public class DataSyncController implements Initializable {
 
     @FXML
     public void postSelectedMatch() {
-        this.matchesController.postSelectedMatch();
+        this.matchesController.postSelectedMatchAskUser();
     }
 
     @FXML

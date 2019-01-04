@@ -1,5 +1,7 @@
 package org.theorangealliance.datasync.models;
 
+import org.theorangealliance.datasync.json.toa.MatchParticipantJSON;
+
 public class MatchGeneralAndMatchParticipant {
 
     public MatchGeneralAndMatchParticipant () {
@@ -9,7 +11,7 @@ public class MatchGeneralAndMatchParticipant {
 
     private MatchGeneral MatchGeneral;
 
-    private MatchParticipant[] MatchParticipants;
+    private MatchParticipantJSON[] MatchParticipants;
 
     public org.theorangealliance.datasync.models.MatchGeneral getMatchGeneral() {
         return MatchGeneral;
@@ -19,11 +21,11 @@ public class MatchGeneralAndMatchParticipant {
         MatchGeneral = matchGeneral;
     }
 
-    public MatchParticipant[] getMatchParticipants() {
+    public MatchParticipantJSON[] getMatchParticipants() {
         return MatchParticipants;
     }
 
-    public void setMatchParticipants(MatchParticipant[] matchParticipants) {
+    public void setMatchParticipants(MatchParticipantJSON[] matchParticipants) {
         MatchParticipants = matchParticipants;
     }
 }

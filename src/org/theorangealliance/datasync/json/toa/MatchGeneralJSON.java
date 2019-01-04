@@ -11,6 +11,50 @@ import java.util.Date;
  */
 public class MatchGeneralJSON {
 
+    public MatchGeneralJSON(String matchKey, String eventKey, int tournamentLevel, String scheduledTime, String matchName, int playNumber, int fieldNumber, String lastCommitTime, int redScore, int blueScore, int redPenalty, int bluePenalty, int redAutoScore, int blueAutoScore, int redTeleScore, int blueTeleScore, int redEndScore, int blueEndScore, String videoUrl) {
+        this.matchKey = matchKey;
+        this.eventKey = eventKey;
+        this.tournamentLevel = tournamentLevel;
+        this.scheduledTime = scheduledTime;
+        this.matchName = matchName;
+        this.playNumber = playNumber;
+        this.fieldNumber = fieldNumber;
+        this.lastCommitTime = lastCommitTime;
+        this.redScore = redScore;
+        this.blueScore = blueScore;
+        this.redPenalty = redPenalty;
+        this.bluePenalty = bluePenalty;
+        this.redAutoScore = redAutoScore;
+        this.blueAutoScore = blueAutoScore;
+        this.redTeleScore = redTeleScore;
+        this.blueTeleScore = blueTeleScore;
+        this.redEndScore = redEndScore;
+        this.blueEndScore = blueEndScore;
+        this.videoUrl = videoUrl;
+    }
+
+    public MatchGeneralJSON() {
+        this.matchKey = "";
+        this.eventKey = "";
+        this.tournamentLevel = 0;
+        this.scheduledTime = "";
+        this.matchName = "";
+        this.playNumber = 1;
+        this.fieldNumber = 0;
+        this.lastCommitTime = "";
+        this.redScore = 0;
+        this.blueScore = 0;
+        this.redPenalty = 0;
+        this.bluePenalty = 0;
+        this.redAutoScore = 0;
+        this.blueAutoScore = 0;
+        this.redTeleScore = 0;
+        this.blueTeleScore = 0;
+        this.redEndScore = 0;
+        this.blueEndScore = 0;
+        this.videoUrl = "";
+    }
+
     @SerializedName("match_key")
     private String matchKey;
 
