@@ -310,7 +310,6 @@ public class AwardsController {
             case "Connect Award":
                 return "CNT";
             case "Rockwell Collins Innovate Award":
-                return "INV";
             case "Collins Aerospace Innovate Award":
                 return "INV";
             case "Design Award":
