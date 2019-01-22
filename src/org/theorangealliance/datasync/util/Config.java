@@ -15,7 +15,7 @@ public class Config {
     public static String EVENT_NAME;
     public static String SCORING_DIR;
     public static boolean DUAL_DIVISION_EVENT = false;
-    public static String DIVISION_NAME;
+    public static int DIVISION_NUM;
 
     public static boolean BETA_TESTING = false;
 

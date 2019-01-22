@@ -37,8 +37,7 @@ public class AlliancesController {
                 for(AllianceFIRST a : alls.getAlliances()) {
                     int allianceNumber = a.getAllianceNumber();
                     int[] allianceNumbers = {a.getAllianceCaptain(), a.getAlliancePick1(), (a.getAlliancePick2() == -1) ? a.getAlliancePick2() : 0};
-                    //TODO: Fix Division info
-                    alliances[allianceNumber-1] = new Alliance(0, allianceNumber, allianceNumbers);
+                    alliances[allianceNumber-1] = new Alliance(Config.DIVISION_NUM, allianceNumber, allianceNumbers);
                 }
 
                 /* TODO - Make Upload Alliances so we can uncomment this

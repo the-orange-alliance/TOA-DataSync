@@ -958,7 +958,7 @@ public class MatchesController {
         match.setPlayNumber((qualMatch.isFinished()) ? 1 : 0);
         match.setIsDone(qualMatch.isFinished());
 
-        match.setScheduledTime(null); //TODO: update when avalible in FIRST API
+        match.setScheduledTime(null); //TODO: update Scheduled time when avalible in FIRST API
         match.setLastCommitTime(dateFromUnix(qualMatch.getLastCommitTime()));
         match.setRedPenalty(qualMatch.getBlueSpecifics().getPenaltyPoints());//These are backwards, so we have to do it this way
         match.setBluePenalty(qualMatch.getRedSpecifics().getPenaltyPoints());
@@ -1742,62 +1742,3 @@ public class MatchesController {
     }
 
 }
-
-
-
-//Parese Data for Match Participants
-/* OLD COde from uploadCompleatedMatches
-
-
-            //Match Participants
-            // These should alread be uploaded!
-
-
-                if(completeMatch.isUploaded()){
-                    methodType = "PUT";
-                } else {
-                    for (MatchParticipantJSON matchPar : uploadedMatchParticipants) {
-                        if (matchPar.getMatchKey().equals(completeMatch.getMatchKey())) {
-                            methodType = "PUT";
-                        }
-                    }
-                }
-
-                MatchParticipant[] mPs = null;
-
-                for (MatchParticipant[] mp : this.matchParticipants.values()) {
-                    if (mp[0].getMatchKey().equals(completeMatch.getMatchKey())) {
-                        mPs = mp;
-                        if(methodType.equals("PUT")){
-                            putRouteExtra = mp[0].getMatchKey() +  "/";
-                        }
-                        break;
-                    }
-                }
-
-
-                if(mPs != null) {
-                    for(MatchParticipant m : mPs){ //Todo: I don't know why these aren't stored in JSON by default, Fix at some point
-                        MatchParticipantJSON mPJson = new MatchParticipantJSON();
-                        mPJson.setMatchParticipantKey(m.getStationKey());
-                        mPJson.setMatchKey(m.getMatchKey());
-                        mPJson.setStation(m.getStation());
-                        mPJson.setStationStatus(m.getStationStatus());
-                        mPJson.setTeamKey(m.getTeamKey() + "");
-                        mPJson.setRefStatus(0);//TODO: Fix?
-                        if(Integer.parseInt(mPJson.getTeamKey()) > 0) {
-                            matchParticipantBody.addValue(mPJson);
-                        }
-                    }
-                } else {
-                    //Dont Upload Match, because we don't have participants
-                    haveParticipants = false;
-                }
-
-                //Dont Upload Match, because we don't have participants
-                if(matchParticipantBody.getValues().isEmpty()) {
-                    haveParticipants = false;
-                }
-
-                matchParEndpoint.setBody(matchParticipantBody);
-*/

@@ -161,10 +161,9 @@ public class TeamsController {
                 }catch(Exception e) {}
 
                 if(t != null) {
-                    //TODO: FIX DIVISION INFO
                     Team team = new Team(
                             convertTeamNumToTOA(t.getTeamNumber(), t.getTeamCountry()),
-                            0,
+                            Config.DIVISION_NUM,
                             getRegion(t.getTeamStateProv(), t.getTeamCountry()),
                             null,
                             t.getTeamNameShort(),

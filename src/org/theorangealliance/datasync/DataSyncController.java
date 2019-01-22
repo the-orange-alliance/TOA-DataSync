@@ -178,6 +178,9 @@ public class DataSyncController implements Initializable {
     @FXML public Button btnSyncStop;
     @FXML public CheckBox btnSyncMatches;
 
+    /* This is for our Dual Division Tab */
+    @FXML public Tab tabDD;
+
     /* Instances of our tab controllers. */
     public TeamsController teamsController;
     private MatchesController matchesController;
@@ -188,6 +191,8 @@ public class DataSyncController implements Initializable {
     private DashboardController dashboardController;
 
     public String[] arguments = DataSync.arguments;
+
+    private HashMap<String, Event> dualDivisionEvents = new HashMap<>();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -262,7 +267,7 @@ public class DataSyncController implements Initializable {
         }
         this.txtSetupDir.setText(firstIP);
         if(testToa && testFirst){//  TODO: Add in check for TOA connection successful
-            openScoringDialog();
+            getAllEventsInScoringSystem();
 
             int i = 0;
             for(String s : cbFirstEvents.getItems()){ //Select the event which was given in the flag
@@ -349,7 +354,7 @@ public class DataSyncController implements Initializable {
     }
 
     @FXML
-    public void openScoringDialog() {
+    public void getAllEventsInScoringSystem() {
         if (!rbNewScore.isSelected()) {
 
         } else {
@@ -368,7 +373,7 @@ public class DataSyncController implements Initializable {
                 if(events != null) {
                     cbFirstEvents.getItems().clear();
                     sendInfo("Successfully pulled events from FIRST scoring system.");
-
+                    dualDivisionEvents = new HashMap<>();
                     for (String eventName : events.getEventID()) {
                         Event event = null;
                         try{
@@ -378,9 +383,11 @@ public class DataSyncController implements Initializable {
                             cbFirstEvents.setDisable(true);
                             btnSetupTestDir.setDisable(true);
                         }
-                        if(event != null){
+                        if(event != null && event.getEventDivisionId() == 0){
                             cbFirstEvents.getItems().add(event.getEventCode() + " | " + event.getEventName());
                             cbFirstEvents.getSelectionModel().selectFirst();
+                        } else if(event.getEventDivisionId() != 0){
+                            dualDivisionEvents.put(event.getEventCode(), event);
                         }
                     }
 
@@ -518,18 +525,32 @@ public class DataSyncController implements Initializable {
                 if (success) {
                     sendInfo("Successfully pulled event info from FIRST scoring system.");
 
-                    //TODO: Fix Division Stuff When Scorekeeping App Is Updated!!!!
                     Event eventData = firstEventData.getGson().fromJson(response, Event.class);
-                    Config.DIVISION_NAME = eventData.getEventDivisionId() + "";
+
+                    Config.DIVISION_NUM = eventData.getEventDivisionId();
                     Config.FIRST_API_EVENT_ID = eventID[0].substring(0,eventID[0].length() - 1);
+
+                    boolean division1Exists = dualDivisionEvents.containsKey(eventData.getEventCode().substring(0, eventData.getEventCode().length() - 1) + "1");
+                    boolean division2Exists = dualDivisionEvents.containsKey(eventData.getEventCode().substring(0, eventData.getEventCode().length() - 1) + "2");
+
+                    if(division1Exists && division2Exists){
+                        // is Dual Division Event
+                        tabRankings.setDisable(true);
+                        sendInfo("DETECTED DUAL DIVISION EVENT");
+                        tabDD.setDisable(false);
+
+                    } else {
+                        //Not Dual Division Event
+                        tabRankings.setDisable(false);
+                        sendInfo("Found division id " + Config.DIVISION_NUM);
+                        tabDD.setDisable(true);
+                    }
 
                     labelSetupDir.setTextFill(Color.GREEN);
                     labelSetupDir.setText("Loaded Event Successfully");
 
-                    sendInfo("Found division id " + Config.DIVISION_NAME);
                     tabTeams.setDisable(false);
                     tabMatches.setDisable(false);
-                    tabRankings.setDisable(false);
                     tabSync.setDisable(false);
                     tabAllianceSelection.setDisable(false);
                     tabAwards.setDisable(false);
@@ -563,7 +584,7 @@ public class DataSyncController implements Initializable {
                     Config.EVENT_NAME = line;
                     while ((line = reader.readLine()) != null) {
                         if (line.split("\\|").length > 3) {
-                            Config.DIVISION_NAME = line.split("\\|")[1];
+                            //Config.DIVISION_NUM = line.split("\\|")[1];
                         }
                     }
                 } catch (Exception e) {
