@@ -178,9 +178,6 @@ public class DataSyncController implements Initializable {
     @FXML public Button btnSyncStop;
     @FXML public CheckBox btnSyncMatches;
 
-    /* This is for our Dual Division Tab */
-    @FXML public Tab tabDD;
-
     /* Instances of our tab controllers. */
     public TeamsController teamsController;
     private MatchesController matchesController;
@@ -383,10 +380,11 @@ public class DataSyncController implements Initializable {
                             cbFirstEvents.setDisable(true);
                             btnSetupTestDir.setDisable(true);
                         }
-                        if(event != null && event.getEventDivisionId() == 0){
+                        if(event != null){
                             cbFirstEvents.getItems().add(event.getEventCode() + " | " + event.getEventName());
                             cbFirstEvents.getSelectionModel().selectFirst();
-                        } else if(event.getEventDivisionId() != 0){
+                        }
+                        if(event.getEventDivisionId() != 0){
                             dualDivisionEvents.put(event.getEventCode(), event);
                         }
                     }
@@ -537,13 +535,10 @@ public class DataSyncController implements Initializable {
                         // is Dual Division Event
                         tabRankings.setDisable(true);
                         sendInfo("DETECTED DUAL DIVISION EVENT");
-                        tabDD.setDisable(false);
-
                     } else {
                         //Not Dual Division Event
                         tabRankings.setDisable(false);
                         sendInfo("Found division id " + Config.DIVISION_NUM);
-                        tabDD.setDisable(true);
                     }
 
                     labelSetupDir.setTextFill(Color.GREEN);

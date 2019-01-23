@@ -19,8 +19,8 @@ import java.util.logging.Level;
  */
 public class TOAEndpoint implements Runnable {
 
-//    private final String BASE_URL = "http://35.202.99.121/api/"; //Real API
-    private final String BASE_URL = "http://localhost:8008/api/"; //TEST API
+    private final String BASE_URL = "http://theorangealliance.org/api/"; //Real API
+//    private final String BASE_URL = "http://localhost:8008/api/"; //TEST API
     private String endpoint;
     private String requestType;
     private String apiKey;
