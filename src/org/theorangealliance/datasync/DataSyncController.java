@@ -531,7 +531,7 @@ public class DataSyncController implements Initializable {
                     boolean division1Exists = dualDivisionEvents.containsKey(eventData.getEventCode().substring(0, eventData.getEventCode().length() - 1) + "1");
                     boolean division2Exists = dualDivisionEvents.containsKey(eventData.getEventCode().substring(0, eventData.getEventCode().length() - 1) + "2");
 
-                    if(division1Exists && division2Exists){
+                    if(division1Exists && division2Exists && eventData.getEventDivisionId() == 0){
                         // is Dual Division Event
                         tabRankings.setDisable(true);
                         sendInfo("DETECTED DUAL DIVISION EVENT");
