@@ -5,14 +5,14 @@ import com.google.gson.annotations.SerializedName;
 public class AllianceFIRST {
 
     public AllianceFIRST() {
-        allianceNumber = 0;
+        allianceSeed = 0;
         allianceCaptain = 0;
         alliancePick1 = 0;
         alliancePick2 = 0;
     }
 
     @SerializedName("seed")
-    public int allianceNumber;
+    public int allianceSeed;
 
     @SerializedName("captain")
     public int allianceCaptain;
@@ -23,12 +23,12 @@ public class AllianceFIRST {
     @SerializedName("pick2")
     public int alliancePick2;
 
-    public int getAllianceNumber() {
-        return allianceNumber;
+    public int getAllianceSeed() {
+        return allianceSeed;
     }
 
-    public void setAllianceNumber(int allianceNumber) {
-        this.allianceNumber = allianceNumber;
+    public void setAllianceSeed(int allianceSeed) {
+        this.allianceSeed = allianceSeed;
     }
 
     public int getAllianceCaptain() {

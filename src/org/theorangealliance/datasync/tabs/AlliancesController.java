@@ -35,7 +35,7 @@ public class AlliancesController {
                 AllianceArray alls = firstAlliances.getGson().fromJson(response, AllianceArray.class);
 
                 for(AllianceFIRST a : alls.getAlliances()) {
-                    int allianceNumber = a.getAllianceNumber();
+                    int allianceNumber = a.getAllianceSeed();
                     int[] allianceNumbers = {a.getAllianceCaptain(), a.getAlliancePick1(), (a.getAlliancePick2() == -1) ? a.getAlliancePick2() : 0};
                     alliances[allianceNumber-1] = new Alliance(Config.DIVISION_NUM, allianceNumber, allianceNumbers);
                 }

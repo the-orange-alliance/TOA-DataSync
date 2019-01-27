@@ -910,8 +910,8 @@ public class MatchesController {
         boolean[] yellow =      {false, false, false, false, false, false};
         boolean[] dq =          {false, false, false, false, false, false};
         if(eM != null) {
-            AllianceFIRST redAlliance = getAllianceFirstFromTeams(eM.getRedAlliance().getAllianceCaptain(), eM.getRedAlliance().getAlliancePick1(), eM.getRedAlliance().getAlliancePick2());
-            AllianceFIRST blueAlliance = getAllianceFirstFromTeams(eM.getBlueAlliance().getAllianceCaptain(), eM.getBlueAlliance().getAlliancePick1(), eM.getBlueAlliance().getAlliancePick2());
+            AllianceFIRST redAlliance = getAllianceFirstFromTeams(eM.redAlliance.allianceSeed);
+            AllianceFIRST blueAlliance = getAllianceFirstFromTeams(eM.blueAlliance.allianceSeed);
             int[] matchTeams = {eM.getRedAlliance().getAllianceCaptain(), eM.getRedAlliance().getAlliancePick1(), eM.getRedAlliance().getAlliancePick2(), eM.getBlueAlliance().getAllianceCaptain(), eM.getBlueAlliance().getAlliancePick1(), eM.getBlueAlliance().getAlliancePick2()};
             if(redAlliance != null && blueAlliance != null) {
                 MatchParticipants[0] = new MatchParticipantJSON(match.getMatchKey(), 11, (redAlliance.getAllianceCaptain()));
@@ -921,13 +921,17 @@ public class MatchesController {
                 MatchParticipants[4] = new MatchParticipantJSON(match.getMatchKey(), 22, (blueAlliance.getAlliancePick1()));
                 MatchParticipants[5] = new MatchParticipantJSON(match.getMatchKey(), 23, (blueAlliance.getAlliancePick2()));
                 //Because these are elims we can calc no shows base on which are -1
+                //We need to make sure all of the participants aren't -1
                 int i = 0;
-                for(int t : matchTeams) {
-                    if(t < 1){
-                        noShow[i] = true;
+                if(!(matchTeams[0] == -1 && matchTeams[1] == -1 && matchTeams[2] == -1 && matchTeams[3] == -1 && matchTeams[4] == -1 && matchTeams[5] == -1)){
+                    for(int t : matchTeams) {
+                        if(t < 1){
+                            noShow[i] = true;
+                        }
+                        i++;
                     }
-                    i++;
                 }
+
             } else { //Something went wrong. We should never get here, but this is just a saftey backup.
                 MatchParticipants[0] = new MatchParticipantJSON(match.getMatchKey(), 11, (eM.getRedAlliance().getAllianceCaptain() == -1) ? 0 : eM.getRedAlliance().getAllianceCaptain());
                 MatchParticipants[1] = new MatchParticipantJSON(match.getMatchKey(), 12, (eM.getRedAlliance().getAlliancePick1() == -1) ? 0 : eM.getRedAlliance().getAlliancePick1());
@@ -979,7 +983,7 @@ public class MatchesController {
     }
 
     //This gets the Full Alliance from FIRST's API, because the elim matches don't have the full alliance if 1 team is gone.
-    private AllianceFIRST getAllianceFirstFromTeams(int t1, int t2, int t3) {
+    private AllianceFIRST getAllianceFirstFromTeams(int seed) {
         AllianceArray alls = null;
         try {
             alls =  FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + Config.FIRST_API_EVENT_ID + "/elim/alliances/"), AllianceArray.class);
@@ -987,15 +991,14 @@ public class MatchesController {
             controller.sendError("Couldn't Get Alliance for Elim Matches");
         }
 
+        HashMap<Integer, AllianceFIRST> alliances = new HashMap<>();
         if(alls != null) {
             for(AllianceFIRST a : alls.getAlliances()){
-                if(a.getAllianceCaptain() == t1 || a.getAlliancePick1() == t2 || (a.getAlliancePick2() == t3 && t3 > 0)) {
-                    if(a.getAlliancePick2() < 1){
-                        a.setAlliancePick2(0);
-                    }
-                    return a;
-                }
+                if(a.getAlliancePick2() < 1)a.setAlliancePick2(0);
+                alliances.put(a.allianceSeed, a);
             }
+            return alliances.get(seed);
+
         }
         return null;
     }
