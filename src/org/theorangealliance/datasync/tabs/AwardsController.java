@@ -302,6 +302,7 @@ public class AwardsController {
             case "Winning Alliance Award":
                 return "FIN";
             case "Finalist Alliance Award":
+            case "Finalist Alliance":
                 return "WIN";
             case "Inspire Award":
                 return "INS";
