@@ -326,6 +326,10 @@ public class AwardsController {
             case "Judges\u0027 Award":
             case "Judge\u0027s Award":
                 return "JUD";
+            case "Dean\u0027s List Semi-Finalist":
+                return "DNSSF";
+            case "Dean\u0027s List Winner":
+                return "DNSF";
             default:
                 return null;
         }
