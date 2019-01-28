@@ -214,7 +214,7 @@ public class AwardsController {
                         if(awardID != null) {
                             award.setAwardID(awardID + recipNum);
                             award.setAwardName(getAwardNameFromID(award.getAwardID()));
-                            award.setAwardKey(Config.EVENT_ID + "-" + awardID + recipNum);
+                            award.setAwardKey(Config.EVENT_ID + "-" + award.getAwardID());
                             award.setIsUploaded(false);
                             //Check If Award is uploaded
                             if(uploadedAwards != null && uploadedAwards.size() > 0) {
@@ -305,10 +305,11 @@ public class AwardsController {
     private String getAwardIDFromName(String name) {
         switch (name) {
             case "Winning Alliance Award":
-                return "FIN";
+            case "Winning Alliance":
+                return "WIN";
             case "Finalist Alliance Award":
             case "Finalist Alliance":
-                return "WIN";
+                return "FIN";
             case "Inspire Award":
                 return "INS";
             case "Think Award":
@@ -407,6 +408,8 @@ public class AwardsController {
         } else if (key.startsWith("FIN")) {
             return "Finalist Alliance Award Winners";
         } else if (key.startsWith("DNSSF")) {
+            return "Dean's List Semi-Finalists";
+        } else if (key.startsWith("DNSF")) {
             return "Dean's List Winner";
         }
         return null;
