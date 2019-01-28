@@ -167,6 +167,7 @@ public class AwardsController {
             detailEndpoint.setCredentials(Config.TOA_API_KEY, Config.EVENT_ID);
             TOARequestBody awardBody = new TOARequestBody();
             AwardTOA award = new AwardTOA(a.getAwardKey(), Config.EVENT_ID, a.getAwardID(), a.getTeamKey(), null, a.getAwardName());
+            award.setRecieverName(a.getReciepientId());
             awardBody.addValue(award);
             detailEndpoint.setBody(awardBody);
             detailEndpoint.execute(((response, success) -> {
@@ -207,7 +208,7 @@ public class AwardsController {
                 String recipients[] = {a.getFirstPlace(), a.getSecondPlace(), a.getThirdPlace()};
                 //Go Through each recipient and generate an awardID for them
                 for(String r : recipients) {
-                    if(!r.equals("-1") && !r.equals("") && !r.equals("(none)")) {
+                    if(r != null && !r.equals("-1") && !r.equals("") && !r.equals("(none)")) {
                         Award award = new Award();
                         String awardID = getAwardIDFromName(a.getAwardName());
                         if(awardID != null) {
@@ -223,8 +224,12 @@ public class AwardsController {
                                     }
                                 }
                             }
-
-                            award.setTeamKey(r + "");
+                            try {
+                                int d = Integer.parseInt(r);
+                                award.setTeamKey(d + "");
+                            } catch (NumberFormatException | NullPointerException nfe) {
+                                award.setReciepientId(r);
+                            }
                             awardList.add(award);
                             recipNum++;
                             this.controller.btnAwardsPost.setDisable(false);
@@ -326,7 +331,7 @@ public class AwardsController {
             case "Judges\u0027 Award":
             case "Judge\u0027s Award":
                 return "JUD";
-            case "Dean\u0027s List Semi-Finalist":
+            case "Dean\u0027s List Semi-Finalists":
                 return "DNSSF";
             case "Dean\u0027s List Winner":
                 return "DNSF";
@@ -401,6 +406,8 @@ public class AwardsController {
             return "Winning Alliance Award Winners";
         } else if (key.startsWith("FIN")) {
             return "Finalist Alliance Award Winners";
+        } else if (key.startsWith("DNSSF")) {
+            return "Dean's List Winner";
         }
         return null;
     }

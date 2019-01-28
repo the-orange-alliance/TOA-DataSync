@@ -10,12 +10,14 @@ public class Award {
     private SimpleStringProperty teamKey;
     private SimpleBooleanProperty isUploaded;
     private String awardID;
+    private String reciepientId;
 
     public Award(SimpleStringProperty awardKey, SimpleStringProperty awardName, SimpleStringProperty teamKey, SimpleBooleanProperty isUploaded) {
         this.awardKey = awardKey;
         this.awardName = awardName;
         this.teamKey = teamKey;
         this.isUploaded = isUploaded;
+        this.reciepientId = null;
     }
 
     public Award() {
@@ -23,6 +25,7 @@ public class Award {
         this.awardName = new SimpleStringProperty();
         this.teamKey = new SimpleStringProperty();
         this.isUploaded = new SimpleBooleanProperty();
+        this.reciepientId = null;
     }
 
     public String getAwardKey() {
@@ -79,6 +82,18 @@ public class Award {
 
     public void setAwardID(String awardID) {
         this.awardID = awardID;
+    }
+
+    public boolean isIsUploaded() {
+        return isUploaded.get();
+    }
+
+    public String getReciepientId() {
+        return reciepientId;
+    }
+
+    public void setReciepientId(String reciepientId) {
+        this.reciepientId = reciepientId;
     }
 }
 
