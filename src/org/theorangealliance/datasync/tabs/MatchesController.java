@@ -543,7 +543,7 @@ public class MatchesController {
         ElimMatchesArray matchesSF1 = null;
         //Try to connect to scoring system
         //If connnection is failed, JSON will not parse and then matchesSF1 will be null
-        if(allQualComplete) {
+        if(allQualComplete || (Config.DUAL_DIVISION_EVENT && Config.DIVISION_NUM == 0)) {
             try{
                 matchesSF1 = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + Config.FIRST_API_EVENT_ID + "/elim/sf/1"), ElimMatchesArray.class);
             } catch (Exception e) {
@@ -590,7 +590,7 @@ public class MatchesController {
         sf2MatchDtl = new HashMap<>();
 
         ElimMatchesArray matchesSF2 = null;
-        if(allQualComplete) {
+        if(allQualComplete || (Config.DUAL_DIVISION_EVENT && Config.DIVISION_NUM == 0)) {
             try {
                 matchesSF2 = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + Config.FIRST_API_EVENT_ID + "/elim/sf/2"), ElimMatchesArray.class);
             } catch (Exception e) {

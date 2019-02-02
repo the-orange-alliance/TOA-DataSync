@@ -535,10 +535,12 @@ public class DataSyncController implements Initializable  {
                     if(division1Exists && division2Exists && eventData.getEventDivisionId() == 0){
                         // is Dual Division Event
                         tabRankings.setDisable(true);
+                        Config.DUAL_DIVISION_EVENT = true;
                         sendInfo("DETECTED DUAL DIVISION EVENT");
                     } else {
                         //Not Dual Division Event
                         tabRankings.setDisable(false);
+                        Config.DUAL_DIVISION_EVENT = false;
                         sendInfo("Found division id " + Config.DIVISION_NUM);
                     }
 
