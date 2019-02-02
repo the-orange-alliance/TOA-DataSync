@@ -1,6 +1,7 @@
 package org.theorangealliance.datasync;
 
 import javafx.animation.KeyFrame;
+import javafx.stage.Stage;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -42,7 +43,7 @@ import java.util.logging.Level;
  * Updated For 2018 Scoring System by Soren Zaiser
  * Starting on Oct 23, 2018
  */
-public class DataSyncController implements Initializable {
+public class DataSyncController implements Initializable  {
 
     /* Save file extension */
     private static final String SAVE_FILE_EXTENSION = ".txt";
@@ -543,6 +544,8 @@ public class DataSyncController implements Initializable {
 
                     labelSetupDir.setTextFill(Color.GREEN);
                     labelSetupDir.setText("Loaded Event Successfully");
+
+                    DataSync.getMainStage().setTitle("TOA DataSync " + Config.VERSION + " | " + eventData.getEventName());
 
                     tabTeams.setDisable(false);
                     tabMatches.setDisable(false);
