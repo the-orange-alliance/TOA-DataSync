@@ -638,7 +638,7 @@ public class MatchesController {
         fMatchDtl = new HashMap<>();
 
         ElimMatchesArray matchesF = null;
-        if(matchesSF1 != null || matchesSF2 != null) { //If the SF matches are null, then we KNOW there wont be any Finals matches
+        if((matchesSF1 != null || matchesSF2 != null) || (Config.DUAL_DIVISION_EVENT && Config.DIVISION_NUM == 0)) { //If the SF matches are null, then we KNOW there wont be any Finals matches
             try {
                 matchesF = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + Config.FIRST_API_EVENT_ID + "/elim/finals/"), ElimMatchesArray.class);
             } catch (Exception e) {
