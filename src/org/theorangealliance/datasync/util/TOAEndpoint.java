@@ -16,6 +16,7 @@ import java.util.logging.Level;
 
 /**
  * Created by Kyle Flynn on 11/28/2017.
+ * Modified by Soren Zaiser for the new API in the fall of 2018
  */
 public class TOAEndpoint implements Runnable {
 
