@@ -649,22 +649,24 @@ public class MatchesController {
 
             for(ElimMatches m : matchesF.getElimMatches()) {
                 Match qualMatch = null;
+
+                //We Get A string that looks like "F-1" We Remove the "F-"
+                //In dual division events, the Finals matches start with "IF-"
+                int fMatchNum;
+                if (Config.DUAL_DIVISION_EVENT && Config.DIVISION_NUM == 0 && m.matchNumber.startsWith("IF-")) {
+                    fMatchNum = Integer.parseInt(m.matchNumber.substring(3));
+                } else {
+                    fMatchNum = Integer.parseInt(m.matchNumber.substring(2));
+                }
+
                 try {
-                    qualMatch = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + Config.FIRST_API_EVENT_ID + "/elim/finals/" + m.getMatchNumber().substring(2)), Match.class);
+                    qualMatch = FIRSTEndpointNonLambda.getGson().fromJson(FIRSTEndpointNonLambda.getResp("events/" + Config.FIRST_API_EVENT_ID + "/elim/finals/" + fMatchNum), Match.class);
                 } catch (Exception e) {
                     controller.sendError("Connection to FIRST Scoring system unsuccessful. " + e);
                 }
                 if(qualMatch != null) {
                     elimMatches++;
 
-                    //We Get A string that looks like "F-1" We Remove the "F-"
-                    //In dual division events, the Finals matches start with "IF-"
-                    int fMatchNum;
-                    if (Config.DUAL_DIVISION_EVENT && Config.DIVISION_NUM == 0 && m.matchNumber.startsWith("IF-")) {
-                        fMatchNum = Integer.parseInt(m.matchNumber.substring(3));
-                    } else {
-                        fMatchNum = Integer.parseInt(m.matchNumber.substring(2));
-                    }
                     MatchGeneralAndMatchParticipant mValues = getMatchGeneralFromFirstAPI(3, fMatchNum, elimMatches, m, null, qualMatch);
 
                     MatchGeneral match = mValues.getMatchGeneral();
