@@ -653,7 +653,7 @@ public class MatchesController {
                 //We Get A string that looks like "F-1" We Remove the "F-"
                 //In dual division events, the Finals matches start with "IF-"
                 int fMatchNum;
-                if (Config.DUAL_DIVISION_EVENT && Config.DIVISION_NUM == 0 && m.matchNumber.startsWith("IF-")) {
+                if (m.matchNumber.startsWith("IF-")) {
                     fMatchNum = Integer.parseInt(m.matchNumber.substring(3));
                 } else {
                     fMatchNum = Integer.parseInt(m.matchNumber.substring(2));

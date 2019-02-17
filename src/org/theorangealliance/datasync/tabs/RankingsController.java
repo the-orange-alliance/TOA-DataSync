@@ -116,7 +116,10 @@ public class RankingsController {
                         ranking.setLosses(results[1]);
                         ranking.setTies(results[2]);
                     }
-                    teamRankings.add(ranking);
+                    if(ranking.getRank() > -1) {
+                        teamRankings.add(ranking);
+                    }
+
                 }
                 this.controller.btnRankUpload.setDisable(false);
             } else {
