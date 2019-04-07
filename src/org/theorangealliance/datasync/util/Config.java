@@ -18,5 +18,6 @@ public class Config {
     public static int DIVISION_NUM;
 
     public static boolean BETA_TESTING = false;
+    public static boolean FORCE_DUAL_DIVISION = false;
 
 }
