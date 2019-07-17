@@ -408,9 +408,9 @@ public class AwardsController {
         } else if (key.startsWith("FIN")) {
             return "Finalist Alliance Award Winners";
         } else if (key.startsWith("DNSSF")) {
-            return "Dean's List Semi-Finalists";
+            return "Dean's List Finalist Award";
         } else if (key.startsWith("DNSF")) {
-            return "Dean's List Winner";
+            return "Dean's List Winner Award";
         }
         return null;
     }
