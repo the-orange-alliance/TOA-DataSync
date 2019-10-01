@@ -57,7 +57,7 @@ document.querySelector('#upload-awards').onclick = () => {
 
 document.querySelector('#settings-btn').onclick = () => {
   const dialog = document.querySelector('#settings-dialog').MDCDialog;
-  document.querySelector('#ds-version').innerText = process.env.npm_package_version || '0.0.0';
+  document.querySelector('#ds-version').innerText = remote.app.getVersion() || '0.0.0';
   document.querySelector('#sk-version').innerText = localStorage.getItem('SCOREKEEPER-VERSION') || '0.0.0';
   dialog.open()
 };
