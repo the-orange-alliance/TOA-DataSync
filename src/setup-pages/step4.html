@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>TOA DataSync</title>
+    <link href="../assets/css/styles.css" rel="stylesheet">
+    <link href="../../node_modules/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/material-components-web@2.2.0/material-components-web.min.css" rel="stylesheet">
+</head>
+<body onload="initFirebase(); getEventsFromFirebase()">
+    <header class="toa-toolbar"></header>
+    <div class="main-content">
+        <h3 class="mb-1">TOA Event Selection</h3>
+        <p id="subtitle">If your event is not listed, please <a>contact</a> a TOA Admin immediately.</p>
+
+        <div class="center-spin">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+
+        <div id="cards"></div>
+
+        <button class="mdc-fab mdc-fab--extended white-fab mt-4 float-right" disabled hidden>
+            <span class="mdc-fab__label">Done</span>
+            <span class="mdc-fab__icon mdi mdi-arrow-right"></span>
+        </button>
+    </div>
+
+    <div class="mdc-snackbar mdc-snackbar--leading">
+        <div class="mdc-snackbar__surface">
+            <div class="mdc-snackbar__label"></div>
+        </div>
+    </div>
+
+    <script src="../assets/material-components-web@2.2.0/material-components-web.min.js"></script>
+    <script src="../assets/js/setup.js"></script>
+    <script src="../assets/js/firebase.js"></script>
+</body>
+</html>

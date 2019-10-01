@@ -1,0 +1,44 @@
+{
+  "name": "the-orange-alliance-datasync",
+  "productName": "DataSync",
+  "version": "3.0.0",
+  "description": "A cross-platform desktop app to sync the Scorekeeper with The Orange Alliance in realtime.",
+  "main": "main.js",
+  "author": "The Orange Alliance <contact@theorangealliance.org>",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/orange-alliance/TOA-DataSync.git"
+  },
+  "bugs": {
+    "url": "https://github.com/orange-alliance/TOA-DataSync/issues"
+  },
+  "homepage": "https://github.com/orange-alliance/TOA-DataSync#readme",
+  "dependencies": {
+    "@mdi/font": "^3.6.95",
+    "axios": "^0.18.1",
+    "firebase": "^6.0.4",
+    "jszip": "^3.2.2"
+  },
+  "devDependencies": {
+    "electron": "^5.0.1",
+    "electron-builder": "^21.2.0"
+  },
+  "build": {
+    "appId": "org.theorangealliance.datasync",
+    "mac": {
+      "category": "public.app-category.education",
+      "icon": "AppIcon.icns"
+    },
+    "win": {
+      "icon": "AppIcon.ico"
+    },
+    "linux": {
+      "target": "deb"
+    }
+  }
+}

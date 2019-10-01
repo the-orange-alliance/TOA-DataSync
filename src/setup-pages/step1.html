@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>TOA DataSync</title>
+    <link href="../assets/css/styles.css" rel="stylesheet">
+    <link href="../../node_modules/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/material-components-web@2.2.0/material-components-web.min.css" rel="stylesheet">
+</head>
+<body>
+    <header class="toa-toolbar"></header>
+    <div class="main-content">
+        <h2>Welcome!</h2>
+        <p>Thank you for choosing The Orange Alliance!<br/>
+            You will need to remain connected to the Internet while the event is running.</p>
+
+        <div class="mdc-card mt-5" id="scorekeeper-config-card">
+            <div class="card__primary">
+                <h2 class="card__title mdc-typography mdc-typography--headline6">Scorekeeper Configuration</h2>
+                <h2 class="card__subtitle mdc-typography mdc-typography--subtitle2">Please start the FIRST Tech Challenge Live Scorekeeper Software.</h2>
+            </div>
+            <div class="card__seconxdary mdc-typography mdc-typography--body2">
+                <div class="mdc-text-field w-100" data-mdc-auto-init="MDCTextField" id="ip-address">
+                    <input class="mdc-text-field__input" value="localhost:80">
+                    <div class="mdc-line-ripple"></div>
+                    <label class="mdc-floating-label">IP Address</label>
+                </div>
+            </div>
+            <div class="mdc-card__action-buttons mt-2">
+                <button class="mdc-button mdc-card__action mdc-card__action--button" onclick="testScorekeeperConfig(this)">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mdc-snackbar mdc-snackbar--leading">
+        <div class="mdc-snackbar__surface">
+            <div class="mdc-snackbar__label"></div>
+        </div>
+    </div>
+
+    <script src="../assets/material-components-web@2.2.0/material-components-web.min.js"></script>
+    <script src="../assets/js/setup.js"></script>
+    <script src="../assets/js/firebase.js"></script>
+</body>
+</html>

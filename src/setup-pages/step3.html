@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>TOA DataSync</title>
+    <link href="../assets/css/styles.css" rel="stylesheet">
+    <link href="../../node_modules/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/material-components-web@2.2.0/material-components-web.min.css" rel="stylesheet">
+</head>
+<body onload="initFirebase()">
+    <header class="toa-toolbar"></header>
+    <div class="main-content">
+        <h3 class="mb-1">TOA Connection</h3>
+        <p>Please login with your myTOA Account.</p>
+
+        <div class="mt-5 login-content">
+            <div  class="mdc-card p-4">
+                <div class="card__secondary mdc-typography mdc-typography--body2">
+                    <div class="mdc-text-field mdc-text-field--fullwidth" data-mdc-auto-init="MDCTextField" id="email">
+                        <input class="mdc-text-field__input" type="email" placeholder="Email">
+                    </div>
+                    <div class="mt-4 mdc-text-field mdc-text-field--fullwidth" data-mdc-auto-init="MDCTextField" id="password">
+                        <input class="mdc-text-field__input" type="password" placeholder="Password">
+                    </div>
+                </div>
+                <button class="mt-5 mdc-button mdc-button--unelevated" onclick="login(this)">
+                    <span class="mdc-button__label">Login</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mdc-snackbar mdc-snackbar--leading">
+        <div class="mdc-snackbar__surface">
+            <div class="mdc-snackbar__label"></div>
+        </div>
+    </div>
+
+    <script src="../assets/material-components-web@2.2.0/material-components-web.min.js"></script>
+    <script src="../assets/js/setup.js"></script>
+    <script src="../assets/js/firebase.js"></script>
+</body>
+</html>
