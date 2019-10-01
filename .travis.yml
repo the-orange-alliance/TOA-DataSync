@@ -1,0 +1,44 @@
+language: node_js
+node_js: node
+install: npm install
+addons:
+  apt:
+    update: true
+    packages:
+    - fakeroot
+  homebrew:
+    update: true
+    packages:
+    - wine
+    - mono
+jobs:
+  include:
+  - os: linux
+    dist: trusty
+    before_script: npm install electron-installer-debian
+    script: npm run build:linux && npm run build:debian
+    env: BUILDPLAT=linux
+    after_failure: ls out/DataSync-linux-x64
+  - os: osx
+    before_script: npm install electron-installer-dmg
+    script: npm run build:macos
+    env: BUILDPLAT=macos
+    after_script: find . | grep dmg
+  - os: osx
+    script: travis_wait 450 npm run build:win32
+    env: BUILDPLAT=win32
+  - os: osx
+    script: travis_wait 450 npm run build:win64
+    env: BUILDPLAT=win64
+deploy:
+  provider: releases
+  api_key:
+    secure: dtrkOHIeoxzgpnp5sHtQDLgvfDMLCfe/Z+hZMwnWjDyXgBTIozPzFMoDqb7MVpvYeW9d41JP3km6EzkpWWGbU6CWnEQB/1ZpASUxxCit0Hm2IkX8ii7l/QFh526u6jguaFOcUNJLhBjCN8ceD8vJiU/hnmdQZGiF+Q+tEQTr5IZPXqdNGPy/kd/cD26ON0iRB8JCqRB+9EZNisZQmGJDu05NOHkQoQucf1uPauaneMhEgxcE6vsrNKPXZu48/5MXMxCOR99xyelpolYUabIn6xyRBtzSSQGNfLyGVRvyj4vSCIlDlaqz3bF1L1RRKggL4w1f5h/Y/TcbuEqayYfCkS+FQ5PR08LZO88xlTlEaJcmx/t49ZkbtcnTV0L4SWFtI1hy/wT+5E1Yy5Ct+N5wzapdA3QBiLFy/f+jVaAzsI2KapwQPMZdiBKjWICADBhAngMNfS+MPpo3YrIhKge/cd/+50HCk70HX8siHpdANX/2REBzUJGYf//aW4fRbtsdzVv61oHkH6Ok5EuXXCRKSl73JbpnEdKBkZW6a3ihzrbUtBthWHqg12RyUd5L7oWAHPYakYFWFdNuI/iRhMx3m4u/C+6otL75MJkOK1BQbuJNlZd2SHbJOF6uUr0to3rzy1XpBej8lPDCSqn1p4t4x/z8/r4JD/qbmrtpdB5v5Ko=
+  file:
+    - out/installers/*.exe
+    - out/installers/*.deb
+    - out/*.dmg
+  file_glob: true
+  on:
+    tags: true
+  skip_cleanup: true
