@@ -16,17 +16,14 @@ jobs:
   - os: linux
     dist: trusty
     before_script: npm install electron-installer-debian
-    script: npm run build:linux && npm run build:debian
+    script: npm run build
     env: BUILDPLAT=linux
     after_failure: ls out/DataSync-linux-x64
   - os: osx
     before_script: npm install electron-installer-dmg
-    script: npm run build:macos
+    script: npm run build
     env: BUILDPLAT=macos
     after_script: find . | grep dmg
-  - os: osx
-    script: travis_wait 450 npm run build:win32
-    env: BUILDPLAT=win32
   - os: osx
     script: travis_wait 450 npm run build:win64
     env: BUILDPLAT=win64
