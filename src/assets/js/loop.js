@@ -55,6 +55,7 @@ toaApi.interceptors.response.use(
   (error) => {
     const res = error.response.config;
     log(error.response.statusText, res.method.toUpperCase() + ' ' + (res.url.replace(res.baseURL, '')), JSON.parse(res.data));
+    return Promise.reject(error);
   }
 );
 
