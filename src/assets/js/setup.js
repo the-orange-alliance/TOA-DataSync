@@ -14,8 +14,8 @@ function getEventsFromFirebase() {
     if (user) {
       await user.getIdTokenResult(true).then(async (value) => {
         return await apis.cloud(value.token).get('/user', { headers: {
-            short: true
-          }}).then(me => {
+          short: true
+        }}).then(me => {
           if (me.data.level >= 6) {
             isAdmin = true;
           } else {
@@ -23,7 +23,12 @@ function getEventsFromFirebase() {
           }
         }).catch(async () => {
           return await apis.cloud(value.token).get('/getAllCurrentWriteEvents').then(data => {
-            adminEvents = data.data;
+            adminEvents = data.data.filter(event => event.season_key === '1920');
+            adminEvents.sort((a, b) => {
+              const date1 = new Date(a.start_date).getTime();
+              const date2 = new Date(b.start_date).getTime();
+              return date1 - date2;
+            });
           }).catch(function (error) {
             if (error) {
               console.error(error);
