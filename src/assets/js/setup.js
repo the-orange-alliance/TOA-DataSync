@@ -111,7 +111,7 @@ function selectedToaEvent(btn) {
       await user.getIdToken(true).then(async (token) => {
         for (const event of events) {
           const eventKey = event.toa_event_key;
-          await apis.cloud(token).get('/getAPIKey', { headers: { data: eventKey }}).then((data) => {
+          await apis.cloud(token).get('/getAPIKey', { headers: { data: eventKey }, body: { generate: true }}).then((data) => {
             const apiKey = data.data.key;
             console.log(data.data);
             return apis.toaFromApiKey(apiKey).get('/event/' + eventKey).then(() => {
