@@ -1,7 +1,5 @@
 const { shell, clipboard } = require('electron');
 const remote = require('electron').remote;
-const fs = require('fs');
-const JSZip = require('jszip');
 const logger = require('./logger');
 const apis = require('../../apis');
 const appbar = require('./appbar');
@@ -85,7 +83,7 @@ document.querySelector('#purge-data-btn').onclick = () => {
 };
 
 document.querySelector('#save-logs-btn').onclick = () => {
-  saveLogs();
+  logger.saveLogs();
 };
 
 document.querySelector('#dev-tools-btn').onclick = () => {
@@ -350,30 +348,6 @@ function setShouldUpload(bool) {
     document.querySelector('#start-sync-btn').hidden = false;
     document.querySelector('#stop-sync-btn').hidden = true;
   }
-}
-
-function saveLogs() {
-  const zip = new JSZip();
-  zip.file("local-storage.json", JSON.stringify(localStorage, null, 2));
-  zip.file("console.txt", logger.getLog());
-
-  const window = remote.getCurrentWindow();
-  const options = {
-    title: "Save DataSync Logs",
-    defaultPath : eventKey + " Logs.zip",
-    buttonLabel : "Save logs",
-    filters: [
-      { name: 'DataSync Logs', extensions: ['zip'] }
-    ]
-  };
-  remote.dialog.showSaveDialog(window, options, (path) => {
-    if (!path) return;
-    zip.generateNodeStream({ streamFiles:true })
-      .pipe(fs.createWriteStream(path))
-      .on('finish',  () => {
-        console.log("Logs written.");
-      });
-  });
 }
 
 function setScheduleAccess(hide) {
