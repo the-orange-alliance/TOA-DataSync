@@ -22,7 +22,7 @@ jobs:
         run: npm run build
       - name: ZIP Linux
         run: cd dist && zip -r toa-datasync.zip linux-unpacked
-        runs-on: ubuntu-18.04
+        if: matrix.os == ubuntu-18.04
       - name: Cleanup artifacts
         run: npx rimraf "dist/!(*.exe|*.deb|*.zip|*.AppImage|*.dmg)"
       - name: Upload artifacts
