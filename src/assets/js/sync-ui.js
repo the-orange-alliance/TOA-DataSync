@@ -239,6 +239,7 @@ function unlinkStream(streamKey, btn, dialog) {
   btn.textContent = 'Unlinking...';
   btn.disabled = true;
   toaApi.delete(`/streams/${streamKey}`).then(() => {
+    dialog.close();
     showSnackbar('The stream has been successfully unlinked.');
     btn.textContent = 'Delete';
     btn.disabled = false;

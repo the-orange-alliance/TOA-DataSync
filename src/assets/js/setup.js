@@ -1,6 +1,6 @@
 const apis = require('../apis');
 const appbar = require('../assets/js/appbar');
-const logger = require('./logger');
+const logger = require('../assets/js/logger');
 const scorekeeperApi = apis.scorekeeper;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
 
