@@ -27,8 +27,8 @@ jobs:
       - name: Build
         run: npm run build
       - name: ZIP Linux
+        if: matrix.os == 'ubuntu-18.04'
         run: cd dist && zip -r toa-datasync.zip linux-unpacked
-        if: ${{matrix.os}} == "ubuntu-18.04"
       - name: Cleanup artifacts
         run: npx rimraf "dist/!(*.exe|*.deb|*.zip|*.AppImage|*.dmg)"
       - name: Upload artifacts
