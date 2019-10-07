@@ -20,6 +20,8 @@ jobs:
         run: npm install
       - name: Build
         run: npm run build
+      - name: List dist
+        run: ls dist
       - name: Cleanup artifacts
         run: npx rimraf "dist/!(*.exe|*.deb|*.AppImage|*.dmg)"
       - name: Upload artifacts
