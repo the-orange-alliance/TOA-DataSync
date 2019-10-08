@@ -9,7 +9,7 @@ A cross-platform desktop app to sync the [Scorekeeper](https://github.com/FIRST-
 
 ## Development
 ```bash
-$ git clone git@github.com:orange-alliance/TOA-DataSync.git
+$ git clone https://github.com/orange-alliance/TOA-DataSync.git
 $ cd TOA-DataSync
 $ npm install
 $ npm start
