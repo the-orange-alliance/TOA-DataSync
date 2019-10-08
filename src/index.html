@@ -28,15 +28,15 @@
     const ipAddress = localStorage.getItem('SCOREKEEPER-IP');
     const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
     if (!ipAddress) {
-      location.href = './setup-pages/step1.html';
+      return location.href = './setup-pages/step1.html';
     } else if (ipAddress && !events) {
-      location.href = './setup-pages/step2.html';
+      return location.href = './setup-pages/step2.html';
     } else if (ipAddress && events && !user) {
-      location.href = './setup-pages/step3.html';
+      return location.href = './setup-pages/step3.html';
     } else if (ipAddress && events && user) {
       for (const event of events) {
         if (!event.toa_event_key || !event.toa_api_key) {
-          location.href = './setup-pages/step4.html';
+          return location.href = './setup-pages/step4.html';
         }
       }
 
@@ -58,7 +58,7 @@
         });
         win.loadURL(`file://${__dirname}/sync.html?i=${i}`)
       }
-      location.href = './sync.html?i=0';
+      return location.href = './sync.html?i=0';
     }
   });
 </script>
