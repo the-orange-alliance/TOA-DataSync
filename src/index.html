@@ -41,7 +41,7 @@
       }
 
       // SETUP DONE :)
-      for (let i = 0; i < events.slice(1).length; i++) {
+      for (let i = 1; i < events.length; i++) {
         const win = new BrowserWindow({
           frame: platform() === 'darwin',
           width: 500,
@@ -56,7 +56,7 @@
             nodeIntegration: true
           }
         });
-        win.loadURL(`file://${__dirname}/sync.html?i=${(i + 1)}`)
+        win.loadURL(`file://${__dirname}/sync.html?i=${i}`)
       }
       location.href = './sync.html?i=0';
     }

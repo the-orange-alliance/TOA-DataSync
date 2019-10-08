@@ -1,18 +1,23 @@
 const apis = require('../apis');
 const appbar = require('../assets/js/appbar');
-const toaApi = apis.toa;
+const logger = require('../assets/js/logger');
 const scorekeeperApi = apis.scorekeeper;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
 
 mdc.autoInit();
 appbar.init();
 
+function log(...args) {
+  console.log(...args);
+  logger.write(...args)
+}
+
 function getEventsFromFirebase() {
   let isAdmin = false;
   let adminEvents = [];
   firebase.auth().onAuthStateChanged(async user => {
     if (user) {
-      await user.getIdTokenResult(true).then(async (value) => {
+      await user.getIdTokenResult().then(async (value) => {
         return await apis.cloud(value.token).get('/user', { headers: {
           short: true
         }}).then(me => {
@@ -33,7 +38,7 @@ function getEventsFromFirebase() {
             if (error) {
               console.error(error);
               showSnackbar("An error has occurred, please restart the app and try again.");
-              console.log("Error in getting cloud");
+              log("Error in getting cloud");
             }
           })
         });
@@ -41,7 +46,7 @@ function getEventsFromFirebase() {
         if (error.code && error.message) {
           console.error(error);
           showSnackbar("An error has occurred, please restart the app and try again.");
-          console.log("Couldn't get token");
+          log("Couldn't get token");
         }
       });
       const content = document.querySelector('#cards');
@@ -96,6 +101,10 @@ function selectedToaEvent(btn) {
   btn.querySelector('.mdc-fab__label').textContent = 'Loading...';
   btn.disabled = true;
   btn.onclick = null;
+  const setInvalid = () => {
+    btn.querySelector('.mdc-fab__label').textContent = 'Retry';
+    onEventKeyChanged(); // Removes the disable
+  };
 
   const inputs = Array.from(document.querySelectorAll('[data-event-input]'));
   const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
@@ -103,46 +112,55 @@ function selectedToaEvent(btn) {
     events[i].toa_event_key = inputs[i][inputs[i].dataset.mdcAutoInit].value
   }
 
-  firebase.auth().onAuthStateChanged(async (user) => {
+  firebase.auth().onAuthStateChanged((user) => {
     if (user === null) {
       showSnackbar('An error has occurred. Please restart application and try again.');
     } else {
-      let isValid = true;
-      await user.getIdToken(true).then(async (token) => {
+      user.getIdToken().then(async (token) => {
         for (const event of events) {
           const eventKey = event.toa_event_key;
-          await apis.cloud(token).get('/getAPIKey', { headers: { data: eventKey }, body: { generate: true }}).then((data) => {
-            const apiKey = data.data.key;
-            console.log(data.data);
-            return apis.toaFromApiKey(apiKey).get('/event/' + eventKey).then(() => {
-              event.toa_api_key = apiKey;
-            }).catch((error) => {
-              console.log(error.response);
-              if (error.response.status === 403) {
-                showSnackbar('Your access for this event has expired.');
-              } else if (error.response.status === 404) {
-                showSnackbar('Event not found.');
-              } else {
-                showSnackbar(error.response.data['_message'] || 'Cannot access TOA servers. Please make sure you have an Internet connection')
-              }
-              isValid = false;
-            });
+          await getApiKey(token, eventKey).then((apiKey) => {
+            event.toa_api_key = apiKey;
+          }).catch((error) => {
+            log(error);
+            setInvalid();
+            if (error.response.status === 403) {
+              showSnackbar('Your access for this event has expired.');
+            } else if (error.response.status === 404) {
+              showSnackbar('Event not found.');
+            } else {
+              showSnackbar(error.response.data['_message'] || 'Cannot access TOA servers. Please make sure you have an Internet connection')
+            }
           })
         }
-      }).catch(() => {
-        showSnackbar('An Error has occurred. Please restart application and try again.');
-        isValid = false;
-      });
-      if (isValid) {
+        for (const event of events) {
+          if (!event.toa_event_key || !event.toa_api_key) {
+            showSnackbar('An error occurred while receiving an API Key.');
+          }
+        }
         btn.querySelector('.mdc-fab__label').textContent = 'Successful!';
         localStorage.setItem('CONFIG-EVENTS', JSON.stringify(events));
         location.href = '../index.html';
-      } else {
-        btn.querySelector('.mdc-fab__label').textContent = 'Retry';
-        onEventKeyChanged(); // Removes the disable
-      }
+      }).catch(() => {
+        showSnackbar('An Error has occurred. Please restart application and try again.');
+        setInvalid();
+      });
     }
   });
+}
+
+function getApiKey(token, eventKey) {
+  return new Promise((resolve, reject) => {
+    apis.cloud(token).get('/getAPIKey', { headers: { data: eventKey }, body: { generate: true }}).then((data) => {
+      const apiKey = data.data.key;
+      log(data.data);
+      return apis.toaFromApiKey(apiKey).get('/event/' + eventKey).then(() => {
+        resolve(apiKey);
+      }).catch((error) => {
+        reject(error);
+      });
+    })
+  })
 }
 
 function onEventKeyChanged() {
@@ -168,7 +186,7 @@ function testScorekeeperConfig(btn) {
   btn.disabled = true;
   apis.scorekeeperFromIp(ipAddress).get('/v1/version').then((data) => {
     const version = data.data.version;
-    console.log('Version ' + version);
+    log('Version ' + version);
     if (version < minScorekeeperVersion) {
       throw 'Your Scorekeeper version is too old, please use at least version ' + minScorekeeperVersion + '.';
     }
@@ -176,7 +194,7 @@ function testScorekeeperConfig(btn) {
     localStorage.setItem('SCOREKEEPER-VERSION', version);
     location.href = './step2.html';
   }).catch((data) => {
-    console.log(data);
+    log(data);
     btn.textContent = 'Retry';
     btn.disabled = false;
     showSnackbar(typeof data === 'string' ? data : 'Cannot access the scorekeeper.');
