@@ -1,7 +1,6 @@
-.idea/
-out/production/
-log.log
-log/log.log.lck
-*.txt
-out/artifacts/*
-!out/artifacts/TOA_DataSync_jar
+.idea
+.DS_Store
+node_modules
+package-lock.json
+out
+dist

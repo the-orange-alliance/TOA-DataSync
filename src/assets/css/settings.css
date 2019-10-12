@@ -1,0 +1,22 @@
+.settings-dialog {
+  width: 100vw;
+  height: 100vh;
+  max-width: unset!important;
+  max-height: unset!important;
+  background: #fafcfe!important;
+  border-radius: 0!important;
+  padding: 3rem 1rem 0;
+}
+
+.settings-dialog .mdc-list:not(.mdc-list--non-interactive) .mdc-list-item {
+  color: #000;
+  font-weight: 500;
+}
+
+.settings-dialog .mdc-list--avatar-list {
+  margin-right: 18px;
+}
+
+.settings-dialog .version {
+  font-weight: 500;
+}
