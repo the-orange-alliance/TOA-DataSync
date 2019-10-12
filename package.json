@@ -1,7 +1,7 @@
 {
   "name": "the-orange-alliance-datasync",
   "productName": "DataSync",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "A cross-platform desktop app to sync the Scorekeeper with The Orange Alliance in realtime.",
   "main": "main.js",
   "author": "The Orange Alliance <contact@theorangealliance.org>",
