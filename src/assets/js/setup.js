@@ -7,6 +7,17 @@ const minScorekeeperVersion = apis.minScorekeeperVersion;
 mdc.autoInit();
 appbar.init();
 
+const backStepBtn = document.querySelector('#back-step button');
+if (backStepBtn) {
+  backStepBtn.onclick = () => {
+    localStorage.clear();
+    if (typeof firebase !== 'undefined') {
+      firebase.auth().signOut();
+    }
+    location.href = './step1.html';
+  }
+}
+
 function log(...args) {
   console.log(...args);
   logger.write(...args)
