@@ -308,7 +308,7 @@ async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, t
     delete matchJSON.participants;
 
     // Update match details
-    uploadMatchDetails(details, matchKey, eventKey, true);
+    uploadMatchDetails(details, matchKey, eventKey);
 
   } else if (!oldMatch) {
     // Not Uploaded Yet, Nothing in the localStorage
@@ -317,7 +317,7 @@ async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, t
     await toaApi.post(`/event/${eventKey}/matches/participants`, JSON.stringify(participants)).catch(() => {});
 
     // Upload match details
-    await uploadMatchDetails(details, matchKey, eventKey, false).catch(() => {});
+    await uploadMatchDetails(details, matchKey, eventKey);
 
     // Upload Match Data
     await toaApi.post(`/event/${eventKey}/matches`, JSON.stringify([clearMatchJSON()])).then(() => {
@@ -385,7 +385,7 @@ async function retrieveRankings() {
   const rankings = (await scorekeeperApi.get(`/v1/events/${eventId}/rankings`)).rankingList;
 
   if ((localStorage.getItem(cacheKey) || []) === JSON.stringify(rankings)) {
-    return
+    return;
   } else {
     localStorage.setItem(cacheKey, JSON.stringify(rankings));
   }
@@ -405,9 +405,9 @@ async function retrieveRankings() {
         losses: wlt && wlt.loss ? wlt.loss : 0,
         ties: wlt && wlt.ties ? wlt.ties : 0,
         highest_qual_score: 0,
-        ranking_points: rank.rankingPoints,
+        ranking_points: parseFloat(rank.rankingPoints) || 0,
         qualifying_points: 0,
-        tie_breaker_points: rank.tieBreakerPoints && rank.tieBreakerPoints !== '--' ? rank.tieBreakerPoints : 0,
+        tie_breaker_points: rank.tieBreakerPoints && rank.tieBreakerPoints !== '--' ? parseFloat(rank.tieBreakerPoints) : 0,
         disqualified: 0,
         played: rank.matchesPlayed
       });

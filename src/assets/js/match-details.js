@@ -1,7 +1,7 @@
 const apis = require('../../apis');
 const toaApi = apis.toa;
 
-module.exports = async function uploadMatchDetails(details, matchKey, eventKey, isUpdate) {
+module.exports = async function uploadMatchDetails(details, matchKey, eventKey) {
   if (!details || details.resultPostedTime === -1) {
     return;
   }
@@ -13,11 +13,9 @@ module.exports = async function uploadMatchDetails(details, matchKey, eventKey, 
     data = getMatchDetails1920(details, matchKey);
   }
 
-  if (isUpdate) {
-    return await toaApi.put(`/event/${eventKey}/matches/${matchKey}/details`, JSON.stringify([data]));
-  } else {
-    return await toaApi.post(`/event/${eventKey}/matches/details`, JSON.stringify([data]));
-  }
+  return await toaApi.post(`/event/${eventKey}/matches/details`, JSON.stringify([data])).catch(() => {
+    return toaApi.put(`/event/${eventKey}/matches/${matchKey}/details`, JSON.stringify([data]));
+  });
 };
 
 function getMatchDetails1819(details, matchKey) {
