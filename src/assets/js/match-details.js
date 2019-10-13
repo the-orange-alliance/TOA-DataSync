@@ -74,15 +74,14 @@ function getMatchDetails1920(details, matchKey) {
   const getSkystones = (alliance) => {
     if (alliance.autoStones[0] === 'SKYSTONE' && alliance.autoStones[0] === 'SKYSTONE') {
       return 2;
-    } else if (alliance.autoStones[0] !== 'SKYSTONE' || alliance.autoStones[1] === 'SKYSTONE') {
+    } else if (alliance.autoStones[0] === 'SKYSTONE' || alliance.autoStones[1] === 'SKYSTONE') {
       return 1;
     } else {
       return 0;
     }
   };
   const getStones = (alliance) => {
-    const skystones = getSkystones(alliance);
-    return alliance.autoStones.filter(x => x && x !== 'NONE').length - skystones;
+    return alliance.autoStones.filter(x => x === 'STONE').length;
   };
 
   return {
