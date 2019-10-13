@@ -81,7 +81,9 @@ function getMatchDetails1920(details, matchKey) {
     }
   };
   const getStones = (alliance) => {
-    return alliance.autoStones.filter(x => x === 'STONE').length;
+    const skystones = getSkystones(alliance);
+    const stones = alliance.autoStones.filter(x => x && x !== 'NONE').length - skystones;
+    return Math.max(stones, 0); // Prevent negative numbers
   };
 
   return {
