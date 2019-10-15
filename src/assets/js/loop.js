@@ -42,7 +42,7 @@ scorekeeperApi.interceptors.response.use(
   },
   (error) => {
     const status = error && error.response && error.response.status ? error.response.status : 0;
-    if (status !== 500 || status !== 503) {
+    if (status !== 500 && status !== 503) {
       scorekeeperWorks = false;
       ui.setStatus('no-scorekeeper');
     }
