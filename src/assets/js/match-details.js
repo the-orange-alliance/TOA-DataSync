@@ -2,9 +2,7 @@ const apis = require('../../apis');
 const toaApi = apis.toa;
 
 module.exports = async function uploadMatchDetails(details, matchKey, eventKey) {
-  if (!details || details.resultPostedTime === -1) {
-    return;
-  }
+  if (!details) return;
 
   let data = {};
   if (matchKey.startsWith('1819')) {
@@ -90,10 +88,10 @@ function getMatchDetails1920(details, matchKey) {
     match_key: matchKey,
     match_detail_key: matchKey + '-DTL',
 
-    red_min_pen: details.red.minorPenalties,
-    red_maj_pen: details.red.majorPenalties,
-    blue_min_pen: details.blue.minorPenalties,
-    blue_maj_pen: details.blue.majorPenalties,
+    red_min_pen: details.blue.minorPenalties,
+    red_maj_pen: details.blue.majorPenalties,
+    blue_min_pen: details.red.minorPenalties,
+    blue_maj_pen: details.red.majorPenalties,
 
     red: {
       auto_stone_1: details.red.autoStones[0],

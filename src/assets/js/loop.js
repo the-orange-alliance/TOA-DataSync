@@ -45,6 +45,7 @@ scorekeeperApi.interceptors.response.use(
     if (status !== 500 && status !== 503) {
       scorekeeperWorks = false;
       ui.setStatus('no-scorekeeper');
+      return;
     }
     return Promise.reject(error);
   }
@@ -299,7 +300,9 @@ async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, t
 
    //Score Update (Last Commit Time != current commit time
   if (oldMatch && JSON.parse(oldMatch).last_commit_time !== matchJSON.last_commit_time) {
-    oldMatch = JSON.parse(oldMatch);
+
+    // Update match details
+    uploadMatchDetails(details, matchKey, eventKey);
 
     log('UPDATING match data from ' + matchKey);
     await toaApi.put(`/event/${eventKey}/matches/${matchKey}`, JSON.stringify([clearMatchJSON()]));
@@ -307,17 +310,15 @@ async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, t
     localStorage.setItem(`${eventId}-match-${shortMatchKey}`, JSON.stringify(matchJSON));
     delete matchJSON.participants;
 
-    // Update match details
-    uploadMatchDetails(details, matchKey, eventKey);
-
   } else if (!oldMatch) {
     // Not Uploaded Yet, Nothing in the localStorage
     log('UPLOADING match data and participants from ' + matchKey);
-    // Upload Participants
-    await toaApi.post(`/event/${eventKey}/matches/participants`, JSON.stringify(participants)).catch(() => {});
 
     // Upload match details
     await uploadMatchDetails(details, matchKey, eventKey);
+
+    // Upload Participants
+    await toaApi.post(`/event/${eventKey}/matches/participants`, JSON.stringify(participants)).catch(() => {});
 
     // Upload Match Data
     await toaApi.post(`/event/${eventKey}/matches`, JSON.stringify([clearMatchJSON()])).then(() => {
