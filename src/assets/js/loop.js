@@ -42,9 +42,10 @@ scorekeeperApi.interceptors.response.use(
   },
   (error) => {
     const status = error && error.response && error.response.status ? error.response.status : 0;
-    if (status !== 500) {
+    if (status !== 500 && status !== 503) {
       scorekeeperWorks = false;
       ui.setStatus('no-scorekeeper');
+      return;
     }
     return Promise.reject(error);
   }
@@ -299,7 +300,9 @@ async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, t
 
    //Score Update (Last Commit Time != current commit time
   if (oldMatch && JSON.parse(oldMatch).last_commit_time !== matchJSON.last_commit_time) {
-    oldMatch = JSON.parse(oldMatch);
+
+    // Update match details
+    uploadMatchDetails(details, matchKey, eventKey);
 
     log('UPDATING match data from ' + matchKey);
     await toaApi.put(`/event/${eventKey}/matches/${matchKey}`, JSON.stringify([clearMatchJSON()]));
@@ -307,17 +310,15 @@ async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, t
     localStorage.setItem(`${eventId}-match-${shortMatchKey}`, JSON.stringify(matchJSON));
     delete matchJSON.participants;
 
-    // Update match details
-    uploadMatchDetails(details, matchKey, eventKey, true);
-
   } else if (!oldMatch) {
     // Not Uploaded Yet, Nothing in the localStorage
     log('UPLOADING match data and participants from ' + matchKey);
-    // Upload Participants
-    await toaApi.post(`/event/${eventKey}/matches/participants`, JSON.stringify(participants)).catch(() => {});
 
     // Upload match details
-    await uploadMatchDetails(details, matchKey, eventKey, false).catch(() => {});
+    await uploadMatchDetails(details, matchKey, eventKey);
+
+    // Upload Participants
+    await toaApi.post(`/event/${eventKey}/matches/participants`, JSON.stringify(participants)).catch(() => {});
 
     // Upload Match Data
     await toaApi.post(`/event/${eventKey}/matches`, JSON.stringify([clearMatchJSON()])).then(() => {
@@ -385,7 +386,7 @@ async function retrieveRankings() {
   const rankings = (await scorekeeperApi.get(`/v1/events/${eventId}/rankings`)).rankingList;
 
   if ((localStorage.getItem(cacheKey) || []) === JSON.stringify(rankings)) {
-    return
+    return;
   } else {
     localStorage.setItem(cacheKey, JSON.stringify(rankings));
   }
@@ -405,9 +406,9 @@ async function retrieveRankings() {
         losses: wlt && wlt.loss ? wlt.loss : 0,
         ties: wlt && wlt.ties ? wlt.ties : 0,
         highest_qual_score: 0,
-        ranking_points: rank.rankingPoints,
+        ranking_points: parseFloat(rank.rankingPoints) || 0,
         qualifying_points: 0,
-        tie_breaker_points: rank.tieBreakerPoints && rank.tieBreakerPoints !== '--' ? rank.tieBreakerPoints : 0,
+        tie_breaker_points: rank.tieBreakerPoints && rank.tieBreakerPoints !== '--' ? parseFloat(rank.tieBreakerPoints) : 0,
         disqualified: 0,
         played: rank.matchesPlayed
       });

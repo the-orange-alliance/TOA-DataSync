@@ -1,10 +1,8 @@
 const apis = require('../../apis');
 const toaApi = apis.toa;
 
-module.exports = async function uploadMatchDetails(details, matchKey, eventKey, isUpdate) {
-  if (!details || details.resultPostedTime === -1) {
-    return;
-  }
+module.exports = async function uploadMatchDetails(details, matchKey, eventKey) {
+  if (!details) return;
 
   let data = {};
   if (matchKey.startsWith('1819')) {
@@ -13,11 +11,9 @@ module.exports = async function uploadMatchDetails(details, matchKey, eventKey, 
     data = getMatchDetails1920(details, matchKey);
   }
 
-  if (isUpdate) {
-    return await toaApi.put(`/event/${eventKey}/matches/${matchKey}/details`, JSON.stringify([data]));
-  } else {
-    return await toaApi.post(`/event/${eventKey}/matches/details`, JSON.stringify([data]));
-  }
+  return await toaApi.post(`/event/${eventKey}/matches/details`, JSON.stringify([data])).catch(() => {
+    return toaApi.put(`/event/${eventKey}/matches/${matchKey}/details`, JSON.stringify([data]));
+  });
 };
 
 function getMatchDetails1819(details, matchKey) {
@@ -76,7 +72,7 @@ function getMatchDetails1920(details, matchKey) {
   const getSkystones = (alliance) => {
     if (alliance.autoStones[0] === 'SKYSTONE' && alliance.autoStones[0] === 'SKYSTONE') {
       return 2;
-    } else if (alliance.autoStones[0] !== 'SKYSTONE' || alliance.autoStones[1] === 'SKYSTONE') {
+    } else if (alliance.autoStones[0] === 'SKYSTONE' || alliance.autoStones[1] === 'SKYSTONE') {
       return 1;
     } else {
       return 0;
@@ -84,17 +80,18 @@ function getMatchDetails1920(details, matchKey) {
   };
   const getStones = (alliance) => {
     const skystones = getSkystones(alliance);
-    return alliance.autoStones.filter(x => x && x !== 'NONE').length - skystones;
+    const stones = alliance.autoStones.filter(x => x && x !== 'NONE').length - skystones;
+    return Math.max(stones, 0); // Prevent negative numbers
   };
 
   return {
     match_key: matchKey,
     match_detail_key: matchKey + '-DTL',
 
-    red_min_pen: details.red.minorPenalties,
-    red_maj_pen: details.red.majorPenalties,
-    blue_min_pen: details.blue.minorPenalties,
-    blue_maj_pen: details.blue.majorPenalties,
+    red_min_pen: details.blue.minorPenalties,
+    red_maj_pen: details.blue.majorPenalties,
+    blue_min_pen: details.red.minorPenalties,
+    blue_maj_pen: details.red.majorPenalties,
 
     red: {
       auto_stone_1: details.red.autoStones[0],
