@@ -395,18 +395,17 @@ async function retrieveRankings() {
   for (const rank of rankings) {
     if (rank.ranking > 0) {
       const teamKey = rank.team.toString();
-      const wlt = JSON.parse(localStorage.getItem(`${eventId}-wlt-${teamKey}`) || '{}');
       result.push({
         rank_key: `${eventKey}-R${teamKey}`,
         event_key: eventKey,
         team_key: teamKey,
         rank: rank.ranking,
         rank_change: 0,
-        wins: wlt && wlt.wins ? wlt.wins : 0,
-        losses: wlt && wlt.loss ? wlt.loss : 0,
-        ties: wlt && wlt.ties ? wlt.ties : 0,
-        highest_qual_score: 0,
-        ranking_points: parseFloat(rank.rankingPoints) || 0,
+        wins: rank.wins,
+        losses: rank.losses,
+        ties: rank.ties,
+        highest_qual_score: rank.highestScore,
+        ranking_points: rank.rankingPoints && rank.rankingPoints !== '--' ? parseFloat(rank.rankingPoints) || 0 : 0,
         qualifying_points: 0,
         tie_breaker_points: rank.tieBreakerPoints && rank.tieBreakerPoints !== '--' ? parseFloat(rank.tieBreakerPoints) : 0,
         disqualified: 0,
