@@ -395,7 +395,6 @@ async function retrieveRankings() {
   for (const rank of rankings) {
     if (rank.ranking > 0) {
       const teamKey = rank.team.toString();
-      const wlt = JSON.parse(localStorage.getItem(`${eventId}-wlt-${teamKey}`) || '{}');
       result.push({
         rank_key: `${eventKey}-R${teamKey}`,
         event_key: eventKey,
