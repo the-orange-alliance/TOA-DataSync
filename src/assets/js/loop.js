@@ -405,7 +405,7 @@ async function retrieveRankings() {
         losses: rank.losses,
         ties: rank.ties,
         highest_qual_score: rank.highestScore,
-        ranking_points: rank.rankingPoints && rank.rankingPoints !== '--' ? rank.rankingPoints : 0,
+        ranking_points: rank.rankingPoints && rank.rankingPoints !== '--' ? parseFloat(rank.rankingPoints) || 0 : 0,
         qualifying_points: 0,
         tie_breaker_points: rank.tieBreakerPoints && rank.tieBreakerPoints !== '--' ? parseFloat(rank.tieBreakerPoints) : 0,
         disqualified: 0,
