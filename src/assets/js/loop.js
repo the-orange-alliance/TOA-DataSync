@@ -54,72 +54,53 @@ const host = localStorage.getItem('SCOREKEEPER-IP').replace('http://', '');
 const socket = new WebSocket(`ws://${host}/api/v2/stream/?code=${eventId}`);
 socket.on('message', async (data) => {
   const json = JSON.parse(data);
-  console.log(`[WS] ${json.updateType}`, json);
+  log(`[WS] ${json.updateType}`, json);
   const matchName = json.payload.shortName;
   if (json.updateType === "MATCH_COMMIT") {
     if (matchName.startsWith('Q')) {
       const match = (await scorekeeperApi.get(`/v1/events/${eventId}/matches/${json.payload.number}`)).matchBrief;
-      parseAndUploadMatch(match);
+      return parseAndUploadMatch(match);
     } else if (matchName.startsWith('SF') || matchName.startsWith('F')) {
       const alliances = (await scorekeeperApi.get(`/v1/events/${eventId}/elim/alliances`)).alliances;
       const elims = await fetchElimMathes();
-      const match = elims.find(m => m.match === matchName);
-      const index = elims.indexOf(match) + 1;
-      console.log(match, index);
-
-      if (matchName.startsWith('SF')) {
-        parseAndUploadMatch(match, index, matchName.substr(2,1), 30, alliances);
-      } else if (matchName.startsWith('F')) {
-        parseAndUploadMatch(match, index, 0, 4, alliances);
-      }
+      const index = elims.findIndex(m => m.match === matchName);
+      return parseAndUploadElimMatch(index, elims, alliances);
     }
   }
 });
 
 async function retrieveMatches() {
-  /////////////// Qualification Match Parsing ///////////////
   const isFinalDivision = index === 0 && JSON.parse(localStorage.getItem('CONFIG-EVENTS')).length > 1;
   const qualMatches = (await scorekeeperApi.get(`/v1/events/${eventId}/matches/`)).matches;
   const isQualsFinished = isFinalDivision || (qualMatches.length > 0 && qualMatches.every(m => m.finished));
 
+  ///// Qualification Match Parsing /////
   for (const match of qualMatches) {
     parseAndUploadMatch(match);
   }
 
+  ///// Elimination Match Parsing /////
   if (isQualsFinished) {
-    scorekeeperApi.get(`/v1/events/${eventId}/elim/alliances`).then(async (data) => {
-      const alliances = data.alliances;
-      const sf1Matches = await getElimDataFromSK(1, 'sf');
-      const sf2Matches = await getElimDataFromSK(2, 'sf');
-
-      let numberElimMatchesPlayed = 1;
-
-      // Note: shift() returns the first element of the array and then removes it
-
-      /////////////// Semifinals Match Parsing ///////////////
-      while (sf1Matches && sf1Matches.length > 0) {
-        parseAndUploadMatch(sf1Matches.shift(), numberElimMatchesPlayed++, 1, 30, alliances);
-      }
-      while (sf2Matches && sf2Matches.length > 0) {
-        parseAndUploadMatch(sf2Matches.shift(), numberElimMatchesPlayed++, 2, 30, alliances);
-      }
-
-      /////////////// Finals Match Parsing ///////////////
-      const finalsMatches = await getElimDataFromSK('', 'finals');
-      for (const finalsMatch of (finalsMatches || [])) {
-        parseAndUploadMatch(finalsMatch, numberElimMatchesPlayed++, 0, 4, alliances);
-      }
-    });
+    const alliances = (await scorekeeperApi.get(`/v1/events/${eventId}/elim/alliances`)).alliances;
+    const elims = await fetchElimMathes();
+    for (let i = 0; i < elims.length; i++) {
+      return parseAndUploadElimMatch(i, elims, alliances);
+    }
   }
 }
 
-function getElimDataFromSK(elimNumber, elimType) {
-  return scorekeeperApi.get(`/v1/events/${eventId}/elim/${elimType}/${elimNumber}`)
-    .then(data => data.matchList)
-    .catch(e => []);
+async function parseAndUploadElimMatch(index, elims, alliances) {
+  const match = elims[index];
+  const matchName = match.match;
+
+  if (matchName.startsWith('SF')) {
+    return parseAndUploadMatch(match, index + 1, matchName.substr(2,1), 30, alliances);
+  } else if (matchName.startsWith('F')) {
+    return parseAndUploadMatch(match, index + 1, 0, 4, alliances);
+  }
 }
 
-async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, tournLevel, alliances){
+async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, tournLevel, alliances) {
   const participants = [];
   const isQual = !tournLevel || tournLevel === 1;
   const elimMatchNumber = isQual ? -1 : match.match.toString().split('-')[1];
@@ -264,9 +245,14 @@ function generateMatchName(tournLevel, matchNumber, elimNumber){
 }
 
 async function fetchElimMathes() {
-  const sf1 = await getElimDataFromSK(1, 'sf');
-  const sf2 = await getElimDataFromSK(2, 'sf');
-  const finals = await getElimDataFromSK('', 'finals');
+  const getElimData = (elimType, elimNumber = '') =>
+    scorekeeperApi.get(`/v1/events/${eventId}/elim/${elimType}/${elimNumber}`)
+    .then(data => data.matchList)
+    .catch(e => []);
+
+  const sf1 = await getElimData('sf', 1);
+  const sf2 = await getElimData('sf',2);
+  const finals = await getElimData('finals');
   return [...sf1, ...sf2, ...finals];
 }
 
