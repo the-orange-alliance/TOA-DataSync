@@ -11,7 +11,7 @@ module.exports = async function uploadMatchDetails(details, matchKey, eventKey) 
     data = getMatchDetails1920(details, matchKey);
   }
 
-  return await toaApi.post(`/event/${eventKey}/matches/details`, JSON.stringify([data])).catch(() => {
+  return toaApi.post(`/event/${eventKey}/matches/details`, JSON.stringify([data])).catch(() => {
     return toaApi.put(`/event/${eventKey}/matches/${matchKey}/details`, JSON.stringify([data]));
   });
 };
