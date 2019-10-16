@@ -48,7 +48,6 @@ toaApi.interceptors.response.use(
 setInterval(retrieveTeams, 10 * 1000 * 60); // Every 10 minutes
 retrieveTeams();
 retrieveMatches(); // Upload old data
-retrieveRankings();
 
 const host = localStorage.getItem('SCOREKEEPER-IP').replace('http://', '');
 const socket = new WebSocket(`ws://${host}/api/v2/stream/?code=${eventId}`);
@@ -59,6 +58,7 @@ socket.on('message', async (data) => {
   if (json.updateType === "MATCH_COMMIT") {
     if (matchName.startsWith('Q')) {
       const match = (await scorekeeperApi.get(`/v1/events/${eventId}/matches/${json.payload.number}`)).matchBrief;
+      retrieveRankings();
       return parseAndUploadMatch(match);
     } else if (matchName.startsWith('SF') || matchName.startsWith('F')) {
       const alliances = (await scorekeeperApi.get(`/v1/events/${eventId}/elim/alliances`)).alliances;
@@ -78,6 +78,7 @@ async function retrieveMatches() {
   for (const match of qualMatches) {
     parseAndUploadMatch(match);
   }
+  retrieveRankings();
 
   ///// Elimination Match Parsing /////
   if (isQualsFinished) {
