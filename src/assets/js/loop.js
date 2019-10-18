@@ -1,7 +1,7 @@
 const ui = require('./sync-ui');
 const apis = require('../../apis');
 const logger = require('./logger');
-const WebSocket = require('ws');
+const ReconnectingWebSocket = require('reconnectingwebsocket');
 const toaApi = apis.toa;
 const scorekeeperApi = apis.scorekeeper;
 const uploadMatchDetails = require('./match-details');
@@ -20,16 +20,7 @@ function log(...args) {
 
 scorekeeperApi.interceptors.response.use(
   (response) => {
-    scorekeeperWorks = true;
     return response.config.returnRes ? response : response.data;
-  },
-  (error) => {
-    const status = error && error.response && error.response.status ? error.response.status : 0;
-    if (status !== 500) {
-      scorekeeperWorks = false;
-      ui.setStatus('no-scorekeeper');
-    }
-    return Promise.reject(error);
   }
 );
 
@@ -51,8 +42,11 @@ parseAndUpload();
 
 // Fast update matches
 const host = localStorage.getItem('SCOREKEEPER-IP').replace('http://', '');
-const socket = new WebSocket(`ws://${host}/api/v2/stream/?code=${eventId}`);
-socket.on('message', async (data) => {
+const socket = new ReconnectingWebSocket(`ws://${host}/api/v2/stream/?code=${eventId}`);
+socket.debug = true;
+socket.timeoutInterval = 20 * 1000;  // 20 seconds
+socket.maxReconnectInterval = 5 * 1000 * 60; // 5 minutes
+socket.onmessage = async (data) => {
   const json = JSON.parse(data);
   const matchName = json.payload.shortName;
   if (json.updateType === "MATCH_COMMIT") {
@@ -68,7 +62,9 @@ socket.on('message', async (data) => {
       return parseAndUploadElimMatch(index, elims, alliances);
     }
   }
-});
+};
+socket.onopen = () => ui.setStatus('ok');
+socket.onclose = () => ui.setStatus('no-scorekeeper');
 
 function parseAndUpload() {
   return Promise.all([retrieveMatches(), retrieveTeams()]).catch(() => log);

@@ -24,7 +24,7 @@
     "axios-retry": "^3.1.2",
     "firebase": "^6.0.4",
     "jszip": "^3.2.2",
-    "ws": "^7.1.2"
+    "reconnectingwebsocket": "^1.0.0"
   },
   "devDependencies": {
     "electron": "^5.0.1",
