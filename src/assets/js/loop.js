@@ -45,10 +45,10 @@ toaApi.interceptors.response.use(
 );
 
 // Start loop
-setInterval(retrieveTeams, 10 * 1000 * 60); // Every 10 minutes
-retrieveTeams();
-retrieveMatches(); // Upload old data
+setInterval(parseAndUpload, 10 * 1000 * 60); // Every 10 minutes
+parseAndUpload();
 
+// Fast update matches
 const host = localStorage.getItem('SCOREKEEPER-IP').replace('http://', '');
 const socket = new WebSocket(`ws://${host}/api/v2/stream/?code=${eventId}`);
 socket.on('message', async (data) => {
@@ -69,7 +69,12 @@ socket.on('message', async (data) => {
   }
 });
 
+function parseAndUpload() {
+  return Promise.all([retrieveMatches(), retrieveTeams()]).catch(() => log);
+}
+
 async function retrieveMatches() {
+  // TODO: check the 'Last-Modified' header
   const isFinalDivision = index === 0 && JSON.parse(localStorage.getItem('CONFIG-EVENTS')).length > 1;
   const qualMatches = (await scorekeeperApi.get(`/v1/events/${eventId}/matches/`)).matches;
   const isQualsFinished = isFinalDivision || (qualMatches.length > 0 && qualMatches.every(m => m.finished));
