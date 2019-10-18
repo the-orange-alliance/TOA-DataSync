@@ -9,6 +9,7 @@ const index = parseInt(new URLSearchParams(window.location.search).get('i'), 10)
 const configEvent = JSON.parse(localStorage.getItem('CONFIG-EVENTS'))[index];
 const eventId = configEvent.event_id;
 const eventKey = configEvent.toa_event_key;
+let lastModifiedQuals;
 let scorekeeperWorks = false;
 ui.setStatus('loading');
 
@@ -18,9 +19,9 @@ function log(...args) {
 }
 
 scorekeeperApi.interceptors.response.use(
-  response => {
+  (response) => {
     scorekeeperWorks = true;
-    return response.data
+    return response.config.returnRes ? response : response.data;
   },
   (error) => {
     const status = error && error.response && error.response.status ? error.response.status : 0;
@@ -33,7 +34,7 @@ scorekeeperApi.interceptors.response.use(
 );
 
 toaApi.interceptors.response.use(
-  response => response,
+  (response) => response,
   (error) => {
     const status = error && error.response && error.response.status ? error.response.status : 0;
     if (status !== 500) {
@@ -53,9 +54,9 @@ const host = localStorage.getItem('SCOREKEEPER-IP').replace('http://', '');
 const socket = new WebSocket(`ws://${host}/api/v2/stream/?code=${eventId}`);
 socket.on('message', async (data) => {
   const json = JSON.parse(data);
-  log(`[WS] ${json.updateType}`, json);
   const matchName = json.payload.shortName;
   if (json.updateType === "MATCH_COMMIT") {
+    log(`Fast uploading ${matchName}.`);
     if (matchName.startsWith('Q')) {
       const match = (await scorekeeperApi.get(`/v1/events/${eventId}/matches/${json.payload.number}/`)).matchBrief;
       retrieveRankings();
@@ -74,16 +75,25 @@ function parseAndUpload() {
 }
 
 async function retrieveMatches() {
-  // TODO: check the 'Last-Modified' header
+  const qualMatchesRes = await scorekeeperApi.get(`/v1/events/${eventId}/matches/`, {
+    returnRes: true
+  });
+  const qualMatches = qualMatchesRes.data.matches;
+  const modifiedTime = qualMatchesRes.headers['last-modified'];
+
   const isFinalDivision = index === 0 && JSON.parse(localStorage.getItem('CONFIG-EVENTS')).length > 1;
-  const qualMatches = (await scorekeeperApi.get(`/v1/events/${eventId}/matches/`)).matches;
   const isQualsFinished = isFinalDivision || (qualMatches.length > 0 && qualMatches.every(m => m.finished));
 
   ///// Qualification Match Parsing /////
-  for (const match of qualMatches) {
-    parseAndUploadMatch(match);
+  if (!lastModifiedQuals || lastModifiedQuals !== modifiedTime) {
+    for (const match of qualMatches) {
+      parseAndUploadMatch(match);
+    }
+    retrieveRankings();
+    lastModifiedQuals = qualMatchesRes.headers['last-modified'];
+  } else {
+    log('Qual matches have not been modified.')
   }
-  retrieveRankings();
 
   ///// Elimination Match Parsing /////
   if (isQualsFinished) {
