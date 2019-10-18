@@ -28,7 +28,7 @@
                 </div>
             </div>
             <div class="mdc-card__action-buttons mt-2">
-                <button class="mdc-button mdc-card__action mdc-card__action--button" onclick="testScorekeeperConfig(this)">Continue</button>
+                <button class="mdc-button mdc-card__action mdc-card__action--button" onclick="setup.testScorekeeperConfig(this)">Continue</button>
             </div>
         </div>
     </div>
@@ -40,7 +40,9 @@
     </div>
 
     <script src="../assets/material-components-web@2.2.0/material-components-web.min.js"></script>
-    <script src="../assets/js/menu.js"></script>
-    <script src="../assets/js/setup.js"></script>
+    <script>
+        require('../assets/js/menu.js');
+        const setup = require('../assets/js/setup.js');
+    </script>
 </body>
 </html>

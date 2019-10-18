@@ -4,6 +4,7 @@ const logger = require('./logger');
 const apis = require('../../apis');
 const appbar = require('./appbar');
 const awardsUploader = require('./awards');
+const { firebase } = require('./firebase');
 const toaApi = apis.toa;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
 const index = parseInt(new URLSearchParams(window.location.search).get('i'), 10);

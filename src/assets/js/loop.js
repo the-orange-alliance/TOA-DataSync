@@ -1,10 +1,10 @@
-const ui = require('./assets/js/sync-ui');
-const apis = require('./apis');
-const logger = require('./assets/js/logger');
+const ui = require('./sync-ui');
+const apis = require('../../apis');
+const logger = require('./logger');
 const WebSocket = require('ws');
 const toaApi = apis.toa;
 const scorekeeperApi = apis.scorekeeper;
-const uploadMatchDetails = require('./assets/js/match-details');
+const uploadMatchDetails = require('./match-details');
 const index = parseInt(new URLSearchParams(window.location.search).get('i'), 10);
 const configEvent = JSON.parse(localStorage.getItem('CONFIG-EVENTS'))[index];
 const eventId = configEvent.event_id;
@@ -311,3 +311,5 @@ function getStation(suffix) {
       throw Error(`Invalid station suffix: "${suffix}"`);
   }
 }
+
+module.exports = { ui };

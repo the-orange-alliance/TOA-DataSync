@@ -1,7 +1,6 @@
 const { remote } = require('electron');
 const { Menu, MenuItem } = remote;
-const path = require("path");
-const { saveLogs } = require(path.resolve('./src/assets/js/logger'));
+const { saveLogs } = require('./logger');
 
 const menu = new Menu();
 menu.append(new MenuItem({ label: 'TOA DataSync', sublabel: 'Version' + remote.app.getVersion(), enabled: false}));

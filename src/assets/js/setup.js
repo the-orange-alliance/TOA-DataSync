@@ -1,6 +1,7 @@
-const apis = require('../apis');
-const appbar = require('../assets/js/appbar');
-const logger = require('../assets/js/logger');
+const apis = require('../../apis');
+const appbar = require('./appbar');
+const logger = require('./logger');
+const { firebase } = require('./firebase');
 const scorekeeperApi = apis.scorekeeper;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
 
@@ -73,7 +74,7 @@ function getEventsFromFirebase() {
 
         if (isAdmin) {
           html += `<div class="mdc-text-field mdc-text-field--no-label" data-mdc-auto-init="MDCTextField" data-event-input>
-            <input type="text" class="mdc-text-field__input" placeholder="Event Key" oninput="onEventKeyChanged()">
+            <input type="text" class="mdc-text-field__input" placeholder="Event Key" oninput="setup.onEventKeyChanged()">
             <div class="mdc-line-ripple"></div>
           </div>`;
         } else {
@@ -261,7 +262,7 @@ function loadScorekeeperEvents() {
 
     for (const event of events) {
       document.getElementById('events-list').innerHTML +=
-        `<li class="mdc-list-item" onclick='selectEvent(${JSON.stringify(event)})'>
+        `<li class="mdc-list-item" onclick='setup.selectEvent(${JSON.stringify(event)})'>
           <span class="mdc-list-item__graphic mdi mdi-calendar-outline"></span>
           <span class="mdc-list-item__text">
             ${event.divisions.length > 0 ? event.name + ' - ' + ' Dual Division' : event.name}
@@ -288,3 +289,11 @@ function showSnackbar(text) {
   snackbar.labelText = text;
   snackbar.open();
 }
+
+module.exports = {
+  testScorekeeperConfig,
+  loadScorekeeperEvents,
+  selectEvent,
+  getEventsFromFirebase,
+  onEventKeyChanged
+};

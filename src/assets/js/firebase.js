@@ -1,12 +1,9 @@
 const firebase = require("firebase/app");
 require("firebase/auth");
+const firebaseConfig = require('../../env/env.firebase');
 
-
-function initFirebase(configLocation = __dirname + "../../env/env.firebase") {
-  const firebaseConfig = require(configLocation);
-  if (firebase.apps.length === 0) {
-    firebase.initializeApp(firebaseConfig);
-  }
+if (firebase.apps.length === 0) {
+  firebase.initializeApp(firebaseConfig);
 }
 
 function login(btn) {
@@ -37,4 +34,4 @@ function showSnackbar(text) {
   snackbar.open();
 }
 
-module.exports = { initFirebase, login };
+module.exports = { firebase, login };

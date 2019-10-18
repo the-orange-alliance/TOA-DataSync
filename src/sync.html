@@ -211,12 +211,9 @@
     </div>
 
     <script src="assets/material-components-web@2.2.0/material-components-web.min.js"></script>
-    <script src="assets/js/menu.js"></script>
-    <script src="assets/js/firebase.js"></script>
-    <script src="assets/js/loop.js"></script>
     <script>
-      require('firebase/auth');
-      initFirebase('./env/env.firebase');
+      require('./assets/js/menu.js');
+      const { ui } = require('./assets/js/loop.js');
     </script>
 </body>
 </html>
