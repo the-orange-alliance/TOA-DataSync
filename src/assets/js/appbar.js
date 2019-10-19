@@ -9,7 +9,6 @@ function init() {
   const window = require('electron').remote.getCurrentWindow();
 
 
-  // ${(location.href.indexOf("step1.html") > -1) ? '' : `<div class="button mdi mdi-logout" id="logout-button"></div>`}
   header.innerHTML = `<div id="window-controls">
         <div class="button" id="min-button" aria-label="minimize" title="Minimize" tabindex="-1">
           <svg aria-hidden="true" width="10" height="10">
@@ -23,14 +22,45 @@ function init() {
         </div>
     </div>` + header.innerHTML;
 
+  document.body.innerHTML += `<div class="mdc-dialog" id="close-dialog" data-mdc-auto-init="MDCDialog">
+      <div class="mdc-dialog__container">
+          <div class="mdc-dialog__surface">
+              <h2 class="mdc-dialog__title">Warning!</h2>
+              <div class="mdc-dialog__content">
+                Scores will stop uploading until you open the app again.
+                Are you sure you want to close?
+              </div>
+              <footer class="mdc-dialog__actions">
+                  <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="close-app">
+                      <span class="mdc-button__label">Stop uploading</span>
+                  </button>
+                  <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel">
+                      <span class="mdc-button__label">Keep it open</span>
+                  </button>
+              </footer>
+          </div>
+      </div>
+      <div class="mdc-dialog__scrim"></div>
+  </div>`;
+  mdc.autoInit();
+
   header.style.paddingLeft = '0px';
 
   const closeButton = document.getElementById('close-button');
   const minButton = document.getElementById('min-button');
-  const logoutButton = document.getElementById('logout-button');
 
   closeButton.addEventListener("click", event => {
-    window.close();
+    if (document.querySelector('.drag-toolbar')) {
+      const dialog = document.querySelector('#close-dialog').MDCDialog;
+      dialog.listen('MDCDialog:closed', async (data) => {
+        if (data.detail.action === 'close-app') {
+          window.close();
+        }
+      });
+      dialog.open();
+    } else {
+      window.close();
+    }
   });
 
   minButton.addEventListener("click", event => {
