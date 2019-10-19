@@ -4,12 +4,9 @@ const apis = require('../../apis');
 const appbar = require('./appbar');
 const awardsUploader = require('./awards');
 const { firebase } = require('./firebase');
+const { eventId, eventKey } = require('./config');
 const toaApi = apis.toa;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
-const index = parseInt(new URLSearchParams(window.location.search).get('i'), 10);
-const configEvent = JSON.parse(localStorage.getItem('CONFIG-EVENTS'))[index];
-const eventId = configEvent.event_id;
-const eventKey = configEvent.toa_event_key;
 const scorekeeperIp = localStorage.getItem('SCOREKEEPER-IP');
 let shouldUpload = true;
 let lastStatus = 'loading';
@@ -50,7 +47,7 @@ document.querySelector('#stop-sync-btn').onclick = () => {
 };
 
 document.querySelector('#upload-awards').onclick = () => {
-  awardsUploader();
+  awardsUploader(showSnackbar);
 };
 
 document.querySelector('#settings-btn').onclick = () => {

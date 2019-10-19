@@ -6,12 +6,8 @@ const dns = require('dns').promises;
 const toaApi = apis.toa;
 const scorekeeperApi = apis.scorekeeper;
 const uploadMatchDetails = require('./match-details');
-const index = parseInt(new URLSearchParams(window.location.search).get('i'), 10);
-const configEvent = JSON.parse(localStorage.getItem('CONFIG-EVENTS'))[index];
-const eventId = configEvent.event_id;
-const eventKey = configEvent.toa_event_key;
+const { eventId, eventKey, isFinalDivision } = require('./config');
 let lastModifiedQuals;
-let scorekeeperWorks = false;
 ui.setStatus('loading');
 
 function log(...args) {
@@ -94,7 +90,6 @@ async function retrieveMatches() {
   const qualMatches = qualMatchesRes.data.matches;
   const modifiedTime = qualMatchesRes.headers['last-modified'];
 
-  const isFinalDivision = index === 0 && JSON.parse(localStorage.getItem('CONFIG-EVENTS')).length > 1;
   const isQualsFinished = isFinalDivision || (qualMatches.length > 0 && qualMatches.every(m => m.finished));
 
   ///// Qualification Match Parsing /////

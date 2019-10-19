@@ -1,13 +1,20 @@
+const logger = require('./logger');
 const apis = require('../../apis');
 const toaApi = apis.toa;
 const scorekeeperApi = apis.scorekeeper;
-const eventId = localStorage.getItem('SCOREKEEPER-EVENT');
-const eventKey = localStorage.getItem('TOA-EVENT-KEY');
+const configEvent = JSON.parse(localStorage.getItem('CONFIG-EVENTS'))[0]; // Awards are stored in the Finals[0] Division
+const eventId = configEvent.event_id;
+const eventKey = configEvent.toa_event_key;
 
-function uploadAwards() {
+function log(...args) {
+  console.log(...args);
+  logger.write(...args)
+}
+
+function uploadAwards(showSnackbar) {
   const allAwards = [];
   scorekeeperApi.get(`/v2/events/${eventId}/awards/`).then((data) => {
-    const awards = data.data.awards;
+    const awards = data.awards;
     for (const award of awards) {
       const awardId = getAwardIDFromName(award.awardName);
       if (!awardId) {
@@ -16,7 +23,6 @@ function uploadAwards() {
 
       for (const winner of award.winners) {
         const awardKey = `${eventKey}-${awardId}${winner.series || 0}`; //1819-ISR-CMP0-WIN1
-
         let teamKey = winner.team && winner.team > 0 ? winner.team + '' : null;
         let receiverName = null;
         if (awardId === 'DNSF' || awardId === 'DNSSF') {
@@ -35,15 +41,21 @@ function uploadAwards() {
         }
       }
     }
-    console.log(allAwards);
     return toaApi.get('/event/' + eventKey + '/awards');
   }).then((oldAwards) =>{
     oldAwards = oldAwards.data.map((award) => award.awards_key);
     const toUpload = allAwards.filter((award) => !oldAwards.includes(award.awards_key));
-    console.log('Uploading awards...', toUpload);
-    return toaApi.post('/event/' + eventKey + '/awards', JSON.stringify(toUpload));
+    log('Uploading awards...', toUpload);
+    if (toUpload > 0) {
+      return toaApi.post('/event/' + eventKey + '/awards', JSON.stringify(toUpload));
+    } else if (oldAwards.length > 0) {
+      showSnackbar('Awards have already been uploaded.');
+    } else if (oldAwards.length === 0) {
+      showSnackbar('No available awards found.');
+    }
   }).catch((error) => {
-    ui.showSnackbar('There was an error in uploading the awards');
+    showSnackbar('There was an error in uploading the awards');
+    log(error);
   });
 }
 
