@@ -47,7 +47,7 @@ socket.debug = true;
 socket.timeoutInterval = 20 * 1000;  // 20 seconds
 socket.maxReconnectInterval = 5 * 1000 * 60; // 5 minutes
 socket.onmessage = async (data) => {
-  const json = JSON.parse(data);
+  const json = JSON.parse(data.data);
   const matchName = json.payload.shortName;
   if (json.updateType === "MATCH_COMMIT") {
     log(`Fast uploading ${matchName}.`);
