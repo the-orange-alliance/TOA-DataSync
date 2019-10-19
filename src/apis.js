@@ -1,3 +1,4 @@
+const remote = require('electron').remote;
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
 
@@ -28,7 +29,7 @@ const toaFromApiKey = (apiKey) => {
     headers: {
       'Content-Type': 'application/json',
       'X-TOA-Key': key,
-      'X-Application-Origin': 'TOA DataSync 4.0',
+      'X-Application-Origin': 'TOA DataSync ' + remote.app.getVersion(),
     },
     data: {}
   });
