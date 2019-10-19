@@ -39,7 +39,7 @@
       "arch": [
         "x64",
         "ia32"
-      ]
+      ],
       "icon": "AppIcon.ico"
     },
     "linux": {
