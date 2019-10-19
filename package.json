@@ -35,10 +35,14 @@
       "icon": "AppIcon.icns"
     },
     "win": {
-      "target": "portable",
-      "arch": [
-        "x64",
-        "ia32"
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
       ],
       "icon": "AppIcon.ico"
     },
