@@ -8,7 +8,6 @@ const { eventId, eventKey } = require('./config');
 const toaApi = apis.toa;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
 const scorekeeperIp = localStorage.getItem('SCOREKEEPER-IP');
-let shouldUpload = true;
 let lastStatus = 'loading';
 
 mdc.autoInit();
@@ -38,12 +37,14 @@ toaApi.get('/event/' + eventKey).then((data) => {
   setStatus('no-internet')
 });
 
-document.querySelector('#start-sync-btn').onclick = () => {
-  setShouldUpload(true);
-};
-
 document.querySelector('#stop-sync-btn').onclick = () => {
-  setShouldUpload(false);
+  const content = 'You are going to logout from your myTOA Account, and stop uploading data to The Orange Alliance.' +
+    '\nAre you sure?';
+  showConfirmationDialog('Stop Uploading Data and Logout', content).then(async () => {
+    const dialog = document.querySelector('#goodbye-dialog').MDCDialog;
+    dialog.listen('MDCDialog:closed', logout);
+      dialog.open();
+  });
 };
 
 document.querySelector('#upload-awards').onclick = () => {
@@ -61,7 +62,6 @@ document.querySelector('#purge-data-btn').onclick = () => {
   const content = 'You are going to purge all the event data, when you upload the data again, the users might receive' +
     ' another notifications of new data.\nAre you sure that you want to purge all the data?';
   showConfirmationDialog('Are you sure you want to purge all the data?', content).then(async () => {
-    setShouldUpload(false);
     showSnackbar('Okay, purging...');
 
     // Delete localStorage
@@ -93,17 +93,21 @@ document.querySelector('#dev-tools-btn').onclick = () => {
 
 document.querySelector('#logout-btn').onclick = () => {
   showConfirmationDialog('Are you sure you want to logout?').then(() => {
-    const divisions = JSON.parse(localStorage.getItem('CONFIG-EVENTS') || '[]');
-    localStorage.clear();
-    firebase.auth().signOut();
-    if (divisions.length > 1 || divisions.length === 0) {
-      remote.app.relaunch();
-      remote.app.exit(0);
-    } else {
-      location.href = './setup-pages/step1.html';
-    }
+    logout();
   });
 };
+
+function logout() {
+  const divisions = JSON.parse(localStorage.getItem('CONFIG-EVENTS') || '[]');
+  localStorage.clear();
+  firebase.auth().signOut();
+  if (divisions.length > 1 || divisions.length === 0) {
+    remote.app.relaunch();
+    remote.app.exit(0);
+  } else {
+    location.href = './setup-pages/step1.html';
+  }
+}
 
 function showConfirmationDialog(title, content) {
   const titleDiv = document.querySelector('#confirmation-dialog-title');
@@ -336,23 +340,6 @@ function showSnackbar(text) {
   snackbar.open();
 }
 
-function getShouldUpload() {
-  return shouldUpload;
-}
-
-function setShouldUpload(bool) {
-  shouldUpload = bool;
-  if (shouldUpload) {
-    setStatus('loading');
-    document.querySelector('#start-sync-btn').hidden = true;
-    document.querySelector('#stop-sync-btn').hidden = false;
-  } else {
-    setStatus('paused');
-    document.querySelector('#start-sync-btn').hidden = false;
-    document.querySelector('#stop-sync-btn').hidden = true;
-  }
-}
-
 function setScheduleAccess(hide) {
   document.querySelector('#schedule-access').hidden = hide;
 }
@@ -362,6 +349,6 @@ function openScorekeeperSchedule() {
 }
 
 module.exports = {
-  lastStatus, setStatus, getShouldUpload, setShouldUpload, showSnackbar, openExternalLink, createStream, unlinkStream,
+  lastStatus, setStatus, showSnackbar, openExternalLink, createStream, unlinkStream,
   updateIpAddress, openScorekeeperSchedule, setScheduleAccess
 };

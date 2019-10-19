@@ -307,3 +307,20 @@ label {
 #back-step button:hover {
   text-decoration: underline;
 }
+
+.mdc-dialog .mdc-dialog__surface {
+  border-radius: 8px!important;
+}
+
+#goodbye-dialog .mdc-dialog__surface {
+  border-radius: 16x!important;
+}
+
+#goodbye-dialog .mdc-card__media {
+  background: url('../imgs/lander.jpg') 0 -115px / cover;
+  opacity: 0.6;
+}
+
+#goodbye-dialog .mdc-card__media:before {
+  margin-top: 25%;
+}
