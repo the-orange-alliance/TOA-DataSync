@@ -178,15 +178,6 @@ async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, t
     blue_tele_score: hasDetails ? details.blue.teleop : -1,
     red_end_score: hasDetails ? details.red.end : -1,
     blue_end_score: hasDetails ? details.blue.end : -1,
-
-    last_commit_time: details && details.matchBrief.time > 0 ? details.matchBrief.time : -1 // local using only
-  };
-
-  const clearMatchJSON = () => {
-    const json = JSON.parse(JSON.stringify(matchJSON));
-    delete json.last_commit_time;
-    delete json.participants;
-    return json;
   };
 
   if (isQual) {
@@ -213,8 +204,8 @@ async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, t
 
   if (participants.length <= 0) return;
 
-  log('Uploading match data for ' + matchKey);
-  toaApi.put(`/event/${eventKey}/matches/${matchKey}`, JSON.stringify([clearMatchJSON()]));
+  log('Uploading match data for ' + matchKey, matchJSON);
+  toaApi.put(`/event/${eventKey}/matches/${matchKey}`, JSON.stringify([matchJSON]));
   toaApi.put(`/event/${eventKey}/matches/${matchKey}/participants`, JSON.stringify(participants));
   uploadMatchDetails(details, matchKey, eventKey, true);
 }
