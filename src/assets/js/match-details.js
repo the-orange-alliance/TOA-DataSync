@@ -68,7 +68,7 @@ function getMatchDetails1920(details, matchKey) {
     return level1 + level2;
   };
   const getSkystones = (alliance) => {
-    if (alliance.autoStones[0] === 'SKYSTONE' && alliance.autoStones[0] === 'SKYSTONE') {
+    if (alliance.autoStones[0] === 'SKYSTONE' && alliance.autoStones[1] === 'SKYSTONE') {
       return 2;
     } else if (alliance.autoStones[0] === 'SKYSTONE' || alliance.autoStones[1] === 'SKYSTONE') {
       return 1;
