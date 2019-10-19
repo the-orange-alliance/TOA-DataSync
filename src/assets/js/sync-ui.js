@@ -1,5 +1,4 @@
-const { shell, clipboard } = require('electron');
-const remote = require('electron').remote;
+const { clipboard, shell, remote } = require('electron');
 const logger = require('./logger');
 const apis = require('../../apis');
 const appbar = require('./appbar');
@@ -63,7 +62,7 @@ document.querySelector('#settings-btn').onclick = () => {
 
 document.querySelector('#purge-data-btn').onclick = () => {
   const content = 'You are going to purge all the event data, when you upload the data again, the users might receive' +
-    ' another notifications.\nAre you sure that you want to purge all the data?';
+    ' another notifications of new data.\nAre you sure that you want to purge all the data?';
   showConfirmationDialog('Are you sure you want to purge all the data?', content).then(async () => {
     setShouldUpload(false);
     showSnackbar('Okay, purging...');
@@ -289,6 +288,7 @@ function openExternalLink(url) {
 
 // loading, ok, no-scorekeeper, no-internet, paused
 function setStatus(status) {
+  const window = remote.getCurrentWindow();
   const header = document.querySelector('#status-header');
   const icon = document.querySelector('#status-icon');
   const title = document.querySelector('#status-text');
@@ -304,11 +304,13 @@ function setStatus(status) {
     title.innerText = 'Connecting';
     description.innerText = 'We are connecting to our servers...';
   } else if (status === 'ok') {
+    window.flashFrame(false);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-green';
     icon.className = iconBase + 'check-outline';
     title.innerText = 'All is good';
     description.innerText = 'Keep this window open or minimized and connected to the internet to continue upload.';
   } else if (status === 'no-scorekeeper') {
+    window.flashFrame(true);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-red';
     icon.className = iconBase + 'cancel';
     title.innerText = 'Cannot access the Scorekeeper server';
@@ -316,11 +318,13 @@ function setStatus(status) {
     description.innerHTML += `<br/>or <a class="link" id="update-ip">Change the Scorekeeper IP Address</a>.`;
     document.querySelector('#update-ip').onclick = showChangeIpDialog;
   } else if (status === 'no-internet') {
+    window.flashFrame(true);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-red';
     icon.className = iconBase + 'wifi-strength-off-outline';
     title.innerText = 'No internet connection';
     description.innerText = 'Please make sure this computer is connected to the internet.';
   } else if (status === 'paused') {
+    window.flashFrame(false);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-red';
     icon.className = iconBase + 'pause-circle-outline';
     title.innerText = 'The uploading is paused';

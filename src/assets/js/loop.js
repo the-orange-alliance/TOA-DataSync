@@ -2,6 +2,7 @@ const ui = require('./sync-ui');
 const apis = require('../../apis');
 const logger = require('./logger');
 const ReconnectingWebSocket = require('reconnectingwebsocket');
+const dns = require('dns').promises;
 const toaApi = apis.toa;
 const scorekeeperApi = apis.scorekeeper;
 const uploadMatchDetails = require('./match-details');
@@ -37,7 +38,7 @@ toaApi.interceptors.response.use(
 );
 
 // Start loop
-setInterval(parseAndUpload, 10 * 1000 * 60); // Every 10 minutes
+setInterval(parseAndUpload, 10 * 60 * 1000); // Every 10 minutes
 parseAndUpload();
 
 // Fast update matches
@@ -45,7 +46,7 @@ const host = localStorage.getItem('SCOREKEEPER-IP').replace('http://', '');
 const socket = new ReconnectingWebSocket(`ws://${host}/api/v2/stream/?code=${eventId}`);
 socket.debug = true;
 socket.timeoutInterval = 20 * 1000;  // 20 seconds
-socket.maxReconnectInterval = 5 * 1000 * 60; // 5 minutes
+socket.maxReconnectInterval = 5 * 60 * 1000; // 5 minutes
 socket.onmessage = async (data) => {
   const json = JSON.parse(data.data);
   const matchName = json.payload.shortName;
@@ -63,8 +64,24 @@ socket.onmessage = async (data) => {
     }
   }
 };
-socket.onopen = () => ui.setStatus('ok');
 socket.onclose = () => ui.setStatus('no-scorekeeper');
+
+// Health checking loop
+setInterval(healthCheck, 15 * 1000 ); // 30 seconds
+healthCheck();
+
+function healthCheck() {
+  const socketState = socket.readyState;
+  return dns.lookup('theorangealliance.org').then(() => {
+    if (socketState === 1) { // Open
+      ui.setStatus('ok');
+    } else if (socketState >= 2) { // Close
+      ui.setStatus('no-scorekeeper');
+    }
+  }).catch(() => {
+    ui.setStatus('no-internet');
+  });
+}
 
 function parseAndUpload() {
   return Promise.all([retrieveMatches(), retrieveTeams()]).catch(() => log);
