@@ -20,7 +20,7 @@ function log(...args) {
 
 scorekeeperApi.interceptors.response.use(
   (response) => {
-    return response.config.returnRes ? response : response.data;
+    return !response.config || response.config.returnRes ? response : response.data;
   }
 );
 
@@ -272,9 +272,9 @@ async function retrieveRankings() {
         losses: rank.losses,
         ties: rank.ties,
         highest_qual_score: rank.highestScore,
-        ranking_points: rank.rankingPoints && rank.rankingPoints !== '--' ? rank.rankingPoints : 0,
+        ranking_points: rank.rankingPoints && rank.rankingPoints !== '--' ? parseFloat(rank.rankingPoints) : 0,
         qualifying_points: 0,
-        tie_breaker_points: rank.tieBreakerPoints && rank.tieBreakerPoints !== '--' ? rank.tieBreakerPoints : 0,
+        tie_breaker_points: rank.tieBreakerPoints && rank.tieBreakerPoints !== '--' ? parseFloat(rank.tieBreakerPoints) : 0,
         disqualified: 0,
         played: rank.matchesPlayed
       });
