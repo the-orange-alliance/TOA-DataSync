@@ -95,15 +95,17 @@ document.querySelector('#dev-tools-btn').onclick = () => {
 
 document.querySelector('#logout-btn').onclick = () => {
   showConfirmationDialog('Are you sure you want to logout?').then(() => {
-    logout();
+    logout(false);
   });
 };
 
-function logout() {
+function logout(exit = true) {
   const divisions = JSON.parse(localStorage.getItem('CONFIG-EVENTS') || '[]');
   localStorage.clear();
   firebase.auth().signOut();
-  if (divisions.length > 1 || divisions.length === 0) {
+  if (exit) {
+    remote.app.exit(0);
+  } else if (divisions.length > 1 || divisions.length === 0) {
     remote.app.relaunch();
     remote.app.exit(0);
   } else {
