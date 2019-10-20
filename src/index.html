@@ -22,7 +22,23 @@
 
     const { firebase } = require('./assets/js/firebase.js');
     const { BrowserWindow } = require('electron').remote;
+    const electron =  require('electron');
     const { platform } = require('os');
+
+    const args = electron.remote.process.argv.slice(1);
+    const data = [];
+
+    if ( args.length > 0 ) {
+        args.forEach(arg => {
+            const values = arg.replace('-', '').split('=');
+            data[values[0]] = values[1];
+        });
+
+        if ( data.username && data.password ) {
+            firebase.auth().signInWithEmailAndPassword(data.username, data.password)
+        }
+    }
+
     firebase.auth().onAuthStateChanged((user) => {
         const ipAddress = localStorage.getItem('SCOREKEEPER-IP');
         const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
