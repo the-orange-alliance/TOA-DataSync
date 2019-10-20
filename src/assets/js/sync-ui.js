@@ -1,5 +1,6 @@
 const { clipboard, shell, remote } = require('electron');
 const window = remote.getCurrentWindow();
+const platform = require('os').platform();
 const logger = require('./logger');
 const apis = require('../../apis');
 const appbar = require('./appbar');
@@ -294,12 +295,15 @@ function openExternalLink(url) {
 // loading, ok, no-scorekeeper, no-internet, paused
 function setStatus(status) {
   const setFlash = (bool) => {
-    // TODO: Support macOS and linux
-    if (!bool && isFlashing) {
-      window.flashFrame(true); // Fix Electron's bug
-      setTimeout(() => window.flashFrame(false), 500);
-    } else {
-      window.flashFrame(bool);
+    if (platform === 'win32') {
+      if (!bool && isFlashing) {
+        window.flashFrame(true); // Fix Electron's bug
+        setTimeout(() => window.flashFrame(false), 500);
+      } else {
+        window.flashFrame(bool);
+      }
+    } else if (platform === 'darwin') {
+      remote.app.dock.setBadge(bool ? ' ' : null);
     }
     isFlashing = bool;
   };
