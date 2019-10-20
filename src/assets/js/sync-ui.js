@@ -1,4 +1,5 @@
 const { clipboard, shell, remote } = require('electron');
+const window = remote.getCurrentWindow();
 const logger = require('./logger');
 const apis = require('../../apis');
 const appbar = require('./appbar');
@@ -9,6 +10,7 @@ const toaApi = apis.toa;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
 const scorekeeperIp = localStorage.getItem('SCOREKEEPER-IP');
 let lastStatus = 'loading';
+let isFlashing = false;
 
 mdc.autoInit();
 appbar.init();
@@ -87,7 +89,7 @@ document.querySelector('#dev-tools-btn').onclick = () => {
   showConfirmationDialog('Warning!', 'This is a feature intended for developers. If someone <u>who is not a TOA developer</u> told you to copy and paste' +
     ' something here, it is a probably scam and will give them access to your myTOA account and/or your Scorekeeper Software, ' +
     'including change data of your events.\nAre you sure that you want to open the dev console?').then(() => {
-    remote.getCurrentWindow().openDevTools({mode: 'detach'});
+    window.openDevTools({mode: 'detach'});
   });
 };
 
@@ -289,7 +291,15 @@ function openExternalLink(url) {
 
 // loading, ok, no-scorekeeper, no-internet, paused
 function setStatus(status) {
-  const window = remote.getCurrentWindow();
+  const setFlash = (bool) => {
+    // TODO: Support macOS and linux
+    if (!bool && isFlashing) {
+      window.flashFrame(true); // Fix Electron's bug
+      setTimeout(() => window.flashFrame(false), 500);
+    } else {
+      window.flashFrame(bool);
+    }
+  };
   const header = document.querySelector('#status-header');
   const icon = document.querySelector('#status-icon');
   const title = document.querySelector('#status-text');
@@ -305,13 +315,13 @@ function setStatus(status) {
     title.innerText = 'Connecting';
     description.innerText = 'We are connecting to our servers...';
   } else if (status === 'ok') {
-    window.flashFrame(false);
+    setFlash(false);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-green';
     icon.className = iconBase + 'check-outline';
     title.innerText = 'All is good';
     description.innerText = 'Keep this window open or minimized and connected to the internet to continue upload.';
   } else if (status === 'no-scorekeeper') {
-    window.flashFrame(true);
+    setFlash(true);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-red';
     icon.className = iconBase + 'cancel';
     title.innerText = 'Cannot access the Scorekeeper server';
@@ -319,13 +329,13 @@ function setStatus(status) {
     description.innerHTML += `<br/>or <a class="link" id="update-ip">Change the Scorekeeper IP Address</a>.`;
     document.querySelector('#update-ip').onclick = showChangeIpDialog;
   } else if (status === 'no-internet') {
-    window.flashFrame(true);
+    setFlash(true);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-red';
     icon.className = iconBase + 'wifi-strength-off-outline';
     title.innerText = 'No internet connection';
     description.innerText = 'Please make sure this computer is connected to the internet.';
   } else if (status === 'paused') {
-    window.flashFrame(false);
+    setFlash(false);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-red';
     icon.className = iconBase + 'pause-circle-outline';
     title.innerText = 'The uploading is paused';
