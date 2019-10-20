@@ -202,7 +202,7 @@ async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, t
   log('Uploading match data for ' + matchKey, matchJSON);
   toaApi.put(`/event/${eventKey}/matches/${matchKey}`, JSON.stringify([matchJSON]));
   toaApi.put(`/event/${eventKey}/matches/${matchKey}/participants`, JSON.stringify(participants));
-  uploadMatchDetails(details, matchKey, eventKey, true);
+  uploadMatchDetails(details, matchKey, eventKey);
 }
 
 function generateMatchName(tournLevel, matchNumber, elimNumber){
@@ -256,7 +256,7 @@ async function retrieveRankings() {
   const rankings = (await scorekeeperApi.get(`/v1/events/${eventId}/rankings/`)).rankingList;
 
   if ((localStorage.getItem(cacheKey) || []) === JSON.stringify(rankings)) {
-    return
+    return;
   } else {
     localStorage.setItem(cacheKey, JSON.stringify(rankings));
   }

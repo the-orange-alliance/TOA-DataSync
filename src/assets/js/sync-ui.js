@@ -301,6 +301,7 @@ function setStatus(status) {
     } else {
       window.flashFrame(bool);
     }
+    isFlashing = bool;
   };
   const header = document.querySelector('#status-header');
   const icon = document.querySelector('#status-icon');

@@ -333,3 +333,8 @@ label {
 #goodbye-dialog .mdc-card__media:before {
   margin-top: 35%;
 }
+
+#goodbye-dialog .mdc-dialog__content {
+  font-size: 0.9rem;
+  line-height: 1.3rem;
+}
