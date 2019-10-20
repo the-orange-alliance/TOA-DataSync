@@ -1,3 +1,4 @@
+const shell = require('electron').shell;
 const apis = require('../../apis');
 const appbar = require('./appbar');
 const logger = require('./logger');
@@ -269,6 +270,14 @@ function loadScorekeeperEvents() {
           </span>
         </li>`;
     }
+    document.querySelector('#card-title').hidden = events.length === 0;
+    if (events.length === 0) {
+      document.querySelector('#events-list').innerHTML +=
+        `<div class="p-2 text-center">
+          <div class="mdc-typography--headline6">No events found</div>
+          <div class="mdc-typography--body1">Please <a href="#" onclick="setup.openExternalLink('http://localhost/setup/event')">create your Scorekeeper event</a> first.</div>
+        </div>`;
+    }
   }).catch(() => {
     location.href = './step1.html';
   });
@@ -290,10 +299,15 @@ function showSnackbar(text) {
   snackbar.open();
 }
 
+function openExternalLink(url) {
+  shell.openExternal(url);
+}
+
 module.exports = {
   testScorekeeperConfig,
   loadScorekeeperEvents,
   selectEvent,
   getEventsFromFirebase,
-  onEventKeyChanged
+  onEventKeyChanged,
+  openExternalLink
 };
