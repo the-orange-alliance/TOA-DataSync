@@ -313,14 +313,23 @@ label {
 }
 
 #goodbye-dialog .mdc-dialog__surface {
-  border-radius: 16x!important;
+  border-radius: 16px!important;
+  max-width: 80%;
+}
+
+#goodbye-dialog .mdc-dialog__scrim {
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 #goodbye-dialog .mdc-card__media {
-  background: url('../imgs/lander.jpg') 0 -115px / cover;
-  opacity: 0.6;
+  background:
+    linear-gradient(
+      rgba(0, 0, 0, 0.5),
+      rgba(0, 0, 0, 0.5)
+    ),
+    url('../imgs/lander.jpg') center / cover;
 }
 
 #goodbye-dialog .mdc-card__media:before {
-  margin-top: 25%;
+  margin-top: 35%;
 }

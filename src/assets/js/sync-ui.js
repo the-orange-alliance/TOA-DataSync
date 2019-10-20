@@ -45,7 +45,7 @@ document.querySelector('#stop-sync-btn').onclick = () => {
   showConfirmationDialog('Stop Uploading Data and Logout', content).then(async () => {
     const dialog = document.querySelector('#goodbye-dialog').MDCDialog;
     dialog.listen('MDCDialog:closed', logout);
-      dialog.open();
+    dialog.open();
   });
 };
 
