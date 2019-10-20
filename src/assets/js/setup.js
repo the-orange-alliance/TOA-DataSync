@@ -216,12 +216,11 @@ function testScorekeeperConfig(btn) {
 
 function loadScorekeeperEvents() {
   const ipAddress = localStorage.getItem('SCOREKEEPER-IP');
-  const eventName = localStorage.getItem('SETUP-EVENT-NAME');
   if (!ipAddress) {
     location.href = './step1.html';
     return;
   }
-  document.getElementById('subtitle').innerHTML += eventName ? ` for <i>${eventName}</i>.` : '.';
+  document.querySelector('#events-list').innerHTML = '';
   scorekeeperApi.get('/v1/events').then(async (data) => {
     const events = [];
     for (const eventId of data.data.eventCodes) {
@@ -273,9 +272,10 @@ function loadScorekeeperEvents() {
     document.querySelector('#card-title').hidden = events.length === 0;
     if (events.length === 0) {
       document.querySelector('#events-list').innerHTML +=
-        `<div class="p-2 text-center">
+        `<div class="pt-2 text-center">
           <div class="mdc-typography--headline6">No events found</div>
           <div class="mdc-typography--body1">Please <a href="#" onclick="setup.openExternalLink('http://localhost/setup/event')">create your Scorekeeper event</a> first.</div>
+          <button class="mdc-button mt-2" onclick="setup.loadScorekeeperEvents()">Retry</button>
         </div>`;
     }
   }).catch(() => {
