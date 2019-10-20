@@ -37,7 +37,15 @@
       "icon": "AppIcon.icns"
     },
     "win": {
-      "target": "portable",
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ],
       "icon": "AppIcon.ico"
     },
     "linux": {
