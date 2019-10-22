@@ -77,13 +77,7 @@
                     <div class="icon-circle">
                         <div class="mdi mdi-stop"></div>
                     </div>
-                    <div class="icon-text">Stop uploading</div>
-                </div>
-                <div class="icon-block icon-danger" id="start-sync-btn" tabindex="5" hidden>
-                    <div class="icon-circle">
-                        <div class="mdi mdi-play"></div>
-                    </div>
-                    <div class="icon-text">Start uploading</div>
+                    <div class="icon-text">End event</div>
                 </div>
             </div>
         </div>
@@ -204,6 +198,31 @@
         <div class="mdc-dialog__scrim"></div>
     </div>
 
+    <div class="mdc-dialog" id="goodbye-dialog" data-mdc-auto-init="MDCDialog">
+        <div class="mdc-dialog__container">
+            <div class="mdc-dialog__surface">
+                <div class="mdc-card__media"></div>
+                <div class="mdc-dialog__title text-center">
+                    Thanks for using the DataSync!
+                </div>
+                <div class="mdc-dialog__content">
+                    Thank you for helping us make data more accessible!<br/>
+                    We hope your event was successful.<br/>
+                    If you have any questions or comments about the DataSync, email <u>contact@theorangealliance.org</u>.
+                    <br/><br/>
+                    See you at the next event,<br/>
+                    The Orange Alliance team❤️
+                </div>
+                <footer class="mdc-dialog__actions">
+                    <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="yes">
+                        <span class="mdc-button__label">Close</span>
+                    </button>
+                </footer>
+            </div>
+        </div>
+        <div class="mdc-dialog__scrim"></div>
+    </div>
+
     <div class="mdc-snackbar mdc-snackbar--leading">
         <div class="mdc-snackbar__surface">
             <div class="mdc-snackbar__label"></div>
@@ -211,12 +230,9 @@
     </div>
 
     <script src="assets/material-components-web@2.2.0/material-components-web.min.js"></script>
-    <script src="assets/js/menu.js"></script>
-    <script src="assets/js/firebase.js"></script>
-    <script src="assets/js/loop.js"></script>
     <script>
-      require('firebase/auth');
-      initFirebase('./env/env.firebase');
+      require('./assets/js/menu.js');
+      const { ui } = require('./assets/js/loop.js');
     </script>
 </body>
 </html>

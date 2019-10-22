@@ -8,19 +8,19 @@
     <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/material-components-web@2.2.0/material-components-web.min.css" rel="stylesheet">
 </head>
-<body onload="loadScorekeeperEvents()">
+<body>
     <header class="toa-toolbar"></header>
     <div class="main-content">
         <h3 class="mb-1">Scoring Software</h3>
         <p id="subtitle">Please select your Scorekeeper event</p>
         <div class="mdc-card" id="scorekeeper-events-card">
-            <div class="card__primary">
+            <div class="card__primary" id="card-title">
                 <h2 class="card__title mdc-typography mdc-typography--headline6">Select Your Event</h2>
             </div>
             <ul class="mdc-list" id="events-list"></ul>
         </div>
 
-        <div id="back-step">
+        <div id="back-step" tabindex="-1">
             <button>Back to Step 1</button>
         </div>
     </div>
@@ -32,7 +32,11 @@
     </div>
 
     <script src="../assets/material-components-web@2.2.0/material-components-web.min.js"></script>
-    <script src="../assets/js/menu.js"></script>
-    <script src="../assets/js/setup.js"></script>
+    <script src="../assets/material-components-web@2.2.0/material-components-web.min.js"></script>
+    <script>
+        require('../assets/js/menu.js');
+        const setup = require('../assets/js/setup.js');
+        setup.loadScorekeeperEvents();
+    </script>
 </body>
 </html>

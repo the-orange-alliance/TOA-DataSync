@@ -1,6 +1,8 @@
-const apis = require('../apis');
-const appbar = require('../assets/js/appbar');
-const logger = require('../assets/js/logger');
+const shell = require('electron').shell;
+const apis = require('../../apis');
+const appbar = require('./appbar');
+const logger = require('./logger');
+const { firebase } = require('./firebase');
 const scorekeeperApi = apis.scorekeeper;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
 
@@ -73,7 +75,7 @@ function getEventsFromFirebase() {
 
         if (isAdmin) {
           html += `<div class="mdc-text-field mdc-text-field--no-label" data-mdc-auto-init="MDCTextField" data-event-input>
-            <input type="text" class="mdc-text-field__input" placeholder="Event Key" oninput="onEventKeyChanged()">
+            <input type="text" class="mdc-text-field__input" placeholder="Event Key" oninput="setup.onEventKeyChanged()">
             <div class="mdc-line-ripple"></div>
           </div>`;
         } else {
@@ -214,12 +216,11 @@ function testScorekeeperConfig(btn) {
 
 function loadScorekeeperEvents() {
   const ipAddress = localStorage.getItem('SCOREKEEPER-IP');
-  const eventName = localStorage.getItem('SETUP-EVENT-NAME');
   if (!ipAddress) {
     location.href = './step1.html';
     return;
   }
-  document.getElementById('subtitle').innerHTML += eventName ? ` for <i>${eventName}</i>.` : '.';
+  document.querySelector('#events-list').innerHTML = '';
   scorekeeperApi.get('/v1/events').then(async (data) => {
     const events = [];
     for (const eventId of data.data.eventCodes) {
@@ -261,12 +262,21 @@ function loadScorekeeperEvents() {
 
     for (const event of events) {
       document.getElementById('events-list').innerHTML +=
-        `<li class="mdc-list-item" onclick='selectEvent(${JSON.stringify(event)})'>
+        `<li class="mdc-list-item" onclick='setup.selectEvent(${JSON.stringify(event)})'>
           <span class="mdc-list-item__graphic mdi mdi-calendar-outline"></span>
           <span class="mdc-list-item__text">
             ${event.divisions.length > 0 ? event.name + ' - ' + ' Dual Division' : event.name}
           </span>
         </li>`;
+    }
+    document.querySelector('#card-title').hidden = events.length === 0;
+    if (events.length === 0) {
+      document.querySelector('#events-list').innerHTML +=
+        `<div class="pt-2 text-center">
+          <div class="mdc-typography--headline6">No events found</div>
+          <div class="mdc-typography--body1">Please <a href="#" onclick="setup.openExternalLink('http://localhost/setup/event')">create your Scorekeeper event</a> first.</div>
+          <button class="mdc-button mt-2" onclick="setup.loadScorekeeperEvents()">Retry</button>
+        </div>`;
     }
   }).catch(() => {
     location.href = './step1.html';
@@ -288,3 +298,16 @@ function showSnackbar(text) {
   snackbar.labelText = text;
   snackbar.open();
 }
+
+function openExternalLink(url) {
+  shell.openExternal(url);
+}
+
+module.exports = {
+  testScorekeeperConfig,
+  loadScorekeeperEvents,
+  selectEvent,
+  getEventsFromFirebase,
+  onEventKeyChanged,
+  openExternalLink
+};

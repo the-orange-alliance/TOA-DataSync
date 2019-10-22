@@ -11,9 +11,7 @@ module.exports = async function uploadMatchDetails(details, matchKey, eventKey) 
     data = getMatchDetails1920(details, matchKey);
   }
 
-  return await toaApi.post(`/event/${eventKey}/matches/details`, JSON.stringify([data])).catch(() => {
-    return toaApi.put(`/event/${eventKey}/matches/${matchKey}/details`, JSON.stringify([data]));
-  });
+  return toaApi.put(`/event/${eventKey}/matches/${matchKey}/details`, JSON.stringify([data]));
 };
 
 function getMatchDetails1819(details, matchKey) {
@@ -70,7 +68,7 @@ function getMatchDetails1920(details, matchKey) {
     return level1 + level2;
   };
   const getSkystones = (alliance) => {
-    if (alliance.autoStones[0] === 'SKYSTONE' && alliance.autoStones[0] === 'SKYSTONE') {
+    if (alliance.autoStones[0] === 'SKYSTONE' && alliance.autoStones[1] === 'SKYSTONE') {
       return 2;
     } else if (alliance.autoStones[0] === 'SKYSTONE' || alliance.autoStones[1] === 'SKYSTONE') {
       return 1;

@@ -1,18 +1,17 @@
-const { shell, clipboard } = require('electron');
-const remote = require('electron').remote;
+const { clipboard, shell, remote } = require('electron');
+const window = remote.getCurrentWindow();
+const platform = require('os').platform();
 const logger = require('./logger');
 const apis = require('../../apis');
 const appbar = require('./appbar');
 const awardsUploader = require('./awards');
+const { firebase } = require('./firebase');
+const { eventId, eventKey } = require('./config');
 const toaApi = apis.toa;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
-const index = parseInt(new URLSearchParams(window.location.search).get('i'), 10);
-const configEvent = JSON.parse(localStorage.getItem('CONFIG-EVENTS'))[index];
-const eventId = configEvent.event_id;
-const eventKey = configEvent.toa_event_key;
 const scorekeeperIp = localStorage.getItem('SCOREKEEPER-IP');
-let shouldUpload = true;
 let lastStatus = 'loading';
+let isFlashing = false;
 
 mdc.autoInit();
 appbar.init();
@@ -41,16 +40,18 @@ toaApi.get('/event/' + eventKey).then((data) => {
   setStatus('no-internet')
 });
 
-document.querySelector('#start-sync-btn').onclick = () => {
-  setShouldUpload(true);
-};
-
 document.querySelector('#stop-sync-btn').onclick = () => {
-  setShouldUpload(false);
+  const content = 'You are going to logout from your myTOA Account, and stop uploading data to The Orange Alliance.' +
+    '\nAre you sure?';
+  showConfirmationDialog('Stop Uploading Data and Logout', content).then(async () => {
+    const dialog = document.querySelector('#goodbye-dialog').MDCDialog;
+    dialog.listen('MDCDialog:closed', logout);
+    dialog.open();
+  });
 };
 
 document.querySelector('#upload-awards').onclick = () => {
-  awardsUploader();
+  awardsUploader(showSnackbar);
 };
 
 document.querySelector('#settings-btn').onclick = () => {
@@ -62,9 +63,8 @@ document.querySelector('#settings-btn').onclick = () => {
 
 document.querySelector('#purge-data-btn').onclick = () => {
   const content = 'You are going to purge all the event data, when you upload the data again, the users might receive' +
-    ' another notifications.\nAre you sure that you want to purge all the data?';
+    ' another notifications of new data.\nAre you sure that you want to purge all the data?';
   showConfirmationDialog('Are you sure you want to purge all the data?', content).then(async () => {
-    setShouldUpload(false);
     showSnackbar('Okay, purging...');
 
     // Delete localStorage
@@ -90,23 +90,29 @@ document.querySelector('#dev-tools-btn').onclick = () => {
   showConfirmationDialog('Warning!', 'This is a feature intended for developers. If someone <u>who is not a TOA developer</u> told you to copy and paste' +
     ' something here, it is a probably scam and will give them access to your myTOA account and/or your Scorekeeper Software, ' +
     'including change data of your events.\nAre you sure that you want to open the dev console?').then(() => {
-    remote.getCurrentWindow().openDevTools({mode: 'detach'});
+    window.openDevTools({mode: 'detach'});
   });
 };
 
 document.querySelector('#logout-btn').onclick = () => {
   showConfirmationDialog('Are you sure you want to logout?').then(() => {
-    const divisions = JSON.parse(localStorage.getItem('CONFIG-EVENTS') || '[]');
-    localStorage.clear();
-    firebase.auth().signOut();
-    if (divisions.length > 1 || divisions.length === 0) {
-      remote.app.relaunch();
-      remote.app.exit(0);
-    } else {
-      location.href = './setup-pages/step1.html';
-    }
+    logout(false);
   });
 };
+
+function logout(exit = true) {
+  const divisions = JSON.parse(localStorage.getItem('CONFIG-EVENTS') || '[]');
+  localStorage.clear();
+  firebase.auth().signOut();
+  if (exit) {
+    remote.app.exit(0);
+  } else if (divisions.length > 1 || divisions.length === 0) {
+    remote.app.relaunch();
+    remote.app.exit(0);
+  } else {
+    location.href = './setup-pages/step1.html';
+  }
+}
 
 function showConfirmationDialog(title, content) {
   const titleDiv = document.querySelector('#confirmation-dialog-title');
@@ -288,6 +294,19 @@ function openExternalLink(url) {
 
 // loading, ok, no-scorekeeper, no-internet, paused
 function setStatus(status) {
+  const setFlash = (bool) => {
+    if (platform === 'win32') {
+      if (!bool && isFlashing) {
+        window.flashFrame(true); // Fix Electron's bug
+        setTimeout(() => window.flashFrame(false), 500);
+      } else {
+        window.flashFrame(bool);
+      }
+    } else if (platform === 'darwin') {
+      remote.app.dock.setBadge(bool ? ' ' : null);
+    }
+    isFlashing = bool;
+  };
   const header = document.querySelector('#status-header');
   const icon = document.querySelector('#status-icon');
   const title = document.querySelector('#status-text');
@@ -303,11 +322,13 @@ function setStatus(status) {
     title.innerText = 'Connecting';
     description.innerText = 'We are connecting to our servers...';
   } else if (status === 'ok') {
+    setFlash(false);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-green';
     icon.className = iconBase + 'check-outline';
     title.innerText = 'All is good';
     description.innerText = 'Keep this window open or minimized and connected to the internet to continue upload.';
   } else if (status === 'no-scorekeeper') {
+    setFlash(true);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-red';
     icon.className = iconBase + 'cancel';
     title.innerText = 'Cannot access the Scorekeeper server';
@@ -315,11 +336,13 @@ function setStatus(status) {
     description.innerHTML += `<br/>or <a class="link" id="update-ip">Change the Scorekeeper IP Address</a>.`;
     document.querySelector('#update-ip').onclick = showChangeIpDialog;
   } else if (status === 'no-internet') {
+    setFlash(true);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-red';
     icon.className = iconBase + 'wifi-strength-off-outline';
     title.innerText = 'No internet connection';
     description.innerText = 'Please make sure this computer is connected to the internet.';
   } else if (status === 'paused') {
+    setFlash(false);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-red';
     icon.className = iconBase + 'pause-circle-outline';
     title.innerText = 'The uploading is paused';
@@ -334,23 +357,6 @@ function showSnackbar(text) {
   snackbar.open();
 }
 
-function getShouldUpload() {
-  return shouldUpload;
-}
-
-function setShouldUpload(bool) {
-  shouldUpload = bool;
-  if (shouldUpload) {
-    setStatus('loading');
-    document.querySelector('#start-sync-btn').hidden = true;
-    document.querySelector('#stop-sync-btn').hidden = false;
-  } else {
-    setStatus('paused');
-    document.querySelector('#start-sync-btn').hidden = false;
-    document.querySelector('#stop-sync-btn').hidden = true;
-  }
-}
-
 function setScheduleAccess(hide) {
   document.querySelector('#schedule-access').hidden = hide;
 }
@@ -360,6 +366,6 @@ function openScorekeeperSchedule() {
 }
 
 module.exports = {
-  lastStatus, setStatus, getShouldUpload, setShouldUpload, showSnackbar, openExternalLink, createStream, unlinkStream,
+  lastStatus, setStatus, showSnackbar, openExternalLink, createStream, unlinkStream,
   updateIpAddress, openScorekeeperSchedule, setScheduleAccess
 };

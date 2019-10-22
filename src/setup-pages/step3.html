@@ -8,7 +8,7 @@
     <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/material-components-web@2.2.0/material-components-web.min.css" rel="stylesheet">
 </head>
-<body onload="initFirebase()">
+<body>
     <header class="toa-toolbar"></header>
     <div class="main-content">
         <h3 class="mb-1">TOA Connection</h3>
@@ -24,12 +24,12 @@
                         <input class="mdc-text-field__input" type="password" placeholder="Password">
                     </div>
                 </div>
-                <button class="mt-5 mdc-button mdc-button--unelevated" onclick="login(this)">
+                <button class="mt-5 mdc-button mdc-button--unelevated" onclick="firebase.login(this)">
                     <span class="mdc-button__label">Login</span>
                 </button>
             </div>
         </div>
-        <div id="back-step">
+        <div id="back-step" tabindex="-1">
             <button>Back to Step 1</button>
         </div>
     </div>
@@ -41,8 +41,10 @@
     </div>
 
     <script src="../assets/material-components-web@2.2.0/material-components-web.min.js"></script>
-    <script src="../assets/js/menu.js"></script>
-    <script src="../assets/js/setup.js"></script>
-    <script src="../assets/js/firebase.js"></script>
+    <script>
+        require('../assets/js/menu.js');
+        const setup = require('../assets/js/setup.js');
+        const firebase = require('../assets/js/firebase.js');
+    </script>
 </body>
 </html>

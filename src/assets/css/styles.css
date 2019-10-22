@@ -255,7 +255,7 @@ label {
 */
 
 .login-content .mdc-button {
-  border-radius: 18px;
+  border-radius: 50px;
   background-color: #2295F3!important;
   color: white!important;
   font-weight: 500!important;
@@ -306,4 +306,35 @@ label {
 
 #back-step button:hover {
   text-decoration: underline;
+}
+
+.mdc-dialog .mdc-dialog__surface {
+  border-radius: 8px!important;
+}
+
+#goodbye-dialog .mdc-dialog__surface {
+  border-radius: 16px!important;
+  max-width: 80%;
+}
+
+#goodbye-dialog .mdc-dialog__scrim {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+#goodbye-dialog .mdc-card__media {
+  background:
+    linear-gradient(
+      rgba(0, 0, 0, 0.5),
+      rgba(0, 0, 0, 0.5)
+    ),
+    url('../imgs/lander.jpg') center / cover;
+}
+
+#goodbye-dialog .mdc-card__media:before {
+  margin-top: 35%;
+}
+
+#goodbye-dialog .mdc-dialog__content {
+  font-size: 0.9rem;
+  line-height: 1.3rem;
 }

@@ -1,34 +1,14 @@
-const ui = require('./assets/js/sync-ui');
-const apis = require('./apis');
-const logger = require('./assets/js/logger');
+const ui = require('./sync-ui');
+const apis = require('../../apis');
+const logger = require('./logger');
+const ReconnectingWebSocket = require('reconnectingwebsocket');
+const dns = require('dns').promises;
 const toaApi = apis.toa;
 const scorekeeperApi = apis.scorekeeper;
-const uploadMatchDetails = require('./assets/js/match-details');
-const index = parseInt(new URLSearchParams(window.location.search).get('i'), 10);
-const configEvent = JSON.parse(localStorage.getItem('CONFIG-EVENTS'))[index];
-const eventId = configEvent.event_id;
-const eventKey = configEvent.toa_event_key;
-let scorekeeperWorks = false;
-let eventStatus = localStorage.getItem(`${eventId}-eventStatus`) || 0;
+const uploadMatchDetails = require('./match-details');
+const { eventId, eventKey, isFinalDivision } = require('./config');
+let lastModifiedQuals;
 ui.setStatus('loading');
-
-setInterval(start, 30 * 1000);
-start();
-
-function updateEventStatus(newStatus) {
-  /*
-   * 0 - Setup
-   * 1 - Teams Entered
-   * 2 - Qual Matches in Progress
-   * 3 - SF Matches in Progress
-   * 4 - Finals Matches in Progress
-   * 5 - Awards Available
-   */
-  eventStatus = newStatus;
-  localStorage.setItem(`${eventId}-eventStatus`, eventStatus);
-  log('Event Status: ' + eventStatus);
-  // TODO Update UI to present new status
-}
 
 function log(...args) {
   console.log(...args);
@@ -36,183 +16,127 @@ function log(...args) {
 }
 
 scorekeeperApi.interceptors.response.use(
-  response => {
-    scorekeeperWorks = true;
-    return response.data
-  },
-  (error) => {
-    const status = error && error.response && error.response.status ? error.response.status : 0;
-    if (status !== 500 && status !== 503) {
-      scorekeeperWorks = false;
-      ui.setStatus('no-scorekeeper');
-      return;
-    }
-    return Promise.reject(error);
+  (response) => {
+    return !response.config || response.config.returnRes ? response : response.data;
   }
 );
 
 toaApi.interceptors.response.use(
-  response => response,
+  (response) => response,
   (error) => {
-    const res = error.response.config;
-    log(error.response.statusText, res.method.toUpperCase() + ' ' + (res.url.replace(res.baseURL, '')), JSON.parse(res.data));
+    const status = error && error.response && error.response.status ? error.response.status : 0;
+    if (status !== 500) {
+      const res = error.response.config;
+      log(error.response.statusText, res.method.toUpperCase() + ' ' + (res.url.replace(res.baseURL, '')), JSON.parse(res.data));
+    }
     return Promise.reject(error);
   }
 );
 
-async function start() {
-  if (ui.getShouldUpload()) {
-    // Check the connection to TOA servers
-    const dns = require('dns').promises;
-    dns.lookup('theorangealliance.org').then(() => {
-      if (scorekeeperWorks) {
-        ui.setStatus('ok');
-      }
-      Promise.all([
-        retrieveMatches(),
-        retrieveRankings(),
-        retrieveTeams()
-      ]);
-      return; // DO NOT return the Promise.all
-    }).catch(() => {
-      ui.setStatus('no-internet');
-    });
-  }
-}
+// Start loop
+setInterval(parseAndUpload, 10 * 60 * 1000); // Every 10 minutes
+parseAndUpload();
 
-function clearCache() {
-  log('Clearing cache...');
-  for (const key in localStorage) {
-    if (key.startsWith(`${eventId}-`)) {
-      localStorage.removeItem(key);
+// Fast update matches
+const host = localStorage.getItem('SCOREKEEPER-IP').replace('http://', '');
+const socket = new ReconnectingWebSocket(`ws://${host}/api/v2/stream/?code=${eventId}`);
+socket.debug = true;
+socket.timeoutInterval = 20 * 1000;  // 20 seconds
+socket.maxReconnectInterval = 5 * 60 * 1000; // 5 minutes
+socket.onmessage = async (data) => {
+  const json = JSON.parse(data.data);
+  const matchName = json.payload.shortName;
+  if (json.updateType === "MATCH_COMMIT") {
+    log(`Fast uploading ${matchName}.`);
+    if (matchName.startsWith('Q')) {
+      const match = (await scorekeeperApi.get(`/v1/events/${eventId}/matches/${json.payload.number}/`)).matchBrief;
+      retrieveRankings();
+      return parseAndUploadMatch(match);
+    } else if (matchName.startsWith('SF') || matchName.startsWith('F')) {
+      const alliances = (await scorekeeperApi.get(`/v1/events/${eventId}/elim/alliances/`)).alliances;
+      const elims = await fetchElimMathes();
+      const index = elims.findIndex(m => m.match === matchName);
+      return parseAndUploadElimMatch(index, elims, alliances);
     }
   }
-  console.log('Done!');
+};
+socket.onclose = () => ui.setStatus('no-scorekeeper');
+
+// Health checking loop
+setInterval(healthCheck, 15 * 1000 ); // 30 seconds
+healthCheck();
+
+function healthCheck() {
+  const socketState = socket.readyState;
+  return dns.lookup('theorangealliance.org').then(() => {
+    if (socketState === 1) { // Open
+      ui.setStatus('ok');
+    } else if (socketState >= 2) { // Close
+      ui.setStatus('no-scorekeeper');
+    }
+  }).catch(() => {
+    ui.setStatus('no-internet');
+  });
+}
+
+function parseAndUpload() {
+  return Promise.all([retrieveMatches(), retrieveTeams()]).catch(() => log);
 }
 
 async function retrieveMatches() {
-  // Cache Keys
-  const cacheKeyQual = `${eventId}-matches-qual`;
-  const cacheKeySF1 = `${eventId}-matches-SF1`;
-  const cacheKeySF2 = `${eventId}-matches-SF2`;
-  const cacheKeyFinal = `${eventId}-matches-finals`;
-
-  /////////////// Qualification Match Parsing ///////////////
-  // Contact Scorekeeping System for Qual Data
-  let data = await scorekeeperApi.get(`/v1/events/${eventId}/matches/`).catch(e => {
-    return  scorekeeperApi.get(`/v1/events/${eventId}/matches/`); // FIRST-Tech-Challenge/scorekeeper#367
+  const qualMatchesRes = await scorekeeperApi.get(`/v1/events/${eventId}/matches/`, {
+    returnRes: true
   });
+  const qualMatches = qualMatchesRes.data.matches;
+  const modifiedTime = qualMatchesRes.headers['last-modified'];
 
-  if (!data) {
-    eventStatus = 0;
-    return;
-  }
+  const isQualsFinished = isFinalDivision || (qualMatches.length > 0 && qualMatches.every(m => m.finished));
 
-  const qualMatches = data.matches;
-
-  if ((localStorage.getItem(cacheKeyQual) || []) !== JSON.stringify(qualMatches)) {
-    // return; // Match data is the same as we last checked, no need to continue
-  } else {
-    localStorage.setItem(cacheKeyQual, JSON.stringify(qualMatches)); // Match Data is new, update and continue parsing
-  }
-
-  const isFinalDivision = index === 0 && JSON.parse(localStorage.getItem('CONFIG-EVENTS')).length > 1;
-  let allQualMatchesFinished = isFinalDivision || qualMatches.length > 0;
-
-  for (const match of qualMatches) {
-
-    // Check if match is finished
-    if (!match.finished) {
-      allQualMatchesFinished = false; // If match is not finished, then not all qual matches are finished.
+  ///// Qualification Match Parsing /////
+  if (!lastModifiedQuals || lastModifiedQuals !== modifiedTime) {
+    for (const match of qualMatches) {
+      parseAndUploadMatch(match);
     }
-
-    parseAndUploadMatch(match);
-  }
-
-  /* Elims Are Madness
-   * At TOA we number Elims based in the order in which they are played. For instance:
-   * Elim 1 - SF1-1
-   * Elim 2 - SF2-1
-   * Elim 3 - SF1-2
-   * Elim 4 - SF2-2
-   * Elim 5 - SF2-3
-   * Elim 6 - F-1
-   * Elim 7 - F-2
-   *
-   * In order to do this PROPERLY, and not have to iterate through arrays later (like in the OLD datasync)
-   * We will Get both SF1 Data and SF2 at the same time
-   * Then, we will go through the first entry of the SF1 Array, then delete it from the array.
-   * Next, we will go through the first entry of the SF2 Array, then delete it from the array.
-   * Then, we will return to the SF1 Array and continue the pattern until both arrays are empty.
-   *
-   * Finally, we will check for Finals matches because we have no idea when all of the SF matches are finished.
-   *
-   * God, I hope this works
-   * *************/
-  let numberElimMatchesPlayed = 1;
-
-  if (allQualMatchesFinished) {
-    scorekeeperApi.get(`/v1/events/${eventId}/elim/alliances`).then(async (data) => {
-      const alliances = data.alliances;
-      const sf1Matches = await getElimDataFromSK(cacheKeySF1, 1, 'sf');
-      const sf2Matches = await getElimDataFromSK(cacheKeySF2, 2, 'sf');
-
-      // Note: shift() returns the first element of the array and then removes it
-
-      /////////////// Semifinals Match Parsing ///////////////
-      while (sf1Matches && sf1Matches.length > 0 ) {
-        // Parse [0] SF1 Object
-        parseAndUploadMatch(sf1Matches.shift(), numberElimMatchesPlayed++, 1, 30, alliances);
-      }
-      while (sf2Matches && sf2Matches.length > 0 ) {
-        // Parse [0] SF1 Object
-        parseAndUploadMatch(sf2Matches.shift(), numberElimMatchesPlayed++, 2, 30, alliances);
-      }
-
-      /////////////// Finals Match Parsing ///////////////
-      const finalsMatches = await getElimDataFromSK(cacheKeyFinal, '', 'finals');
-      for (const finalsMatch of (finalsMatches || [])) {
-        parseAndUploadMatch(finalsMatch, numberElimMatchesPlayed++, 0, 4, alliances);
-      }
-    });
-  }
-}
-
-async function getElimDataFromSK(cacheKey, elimNumber, elimType) {
-  const rawElimData = await scorekeeperApi.get(`/v1/events/${eventId}/elim/${elimType}/${elimNumber}`);
-  if (!rawElimData) {
-    return;
-  }
-
-  // Set Event Status
-  if (eventStatus < 3) {
-    updateEventStatus(3); // If event is less than 3, set it to 3. That way we prevent back-tracking from F and awards
-  }
-
-  const elimMatches = rawElimData.matchList;
-
-  if ((localStorage.getItem(cacheKey) || []) === JSON.stringify(elimMatches)) {
-    // return; // Match data is the same as we last checked, no need to continue
+    retrieveRankings();
+    lastModifiedQuals = qualMatchesRes.headers['last-modified'];
   } else {
-    localStorage.setItem(cacheKey, JSON.stringify(elimMatches)); // Match Data is new, update and continue parsing
+    log('Qual matches have not been modified.')
   }
-  return elimMatches
+
+  ///// Elimination Match Parsing /////
+  if (isQualsFinished) {
+    const alliances = (await scorekeeperApi.get(`/v1/events/${eventId}/elim/alliances/`)).alliances;
+    const elims = await fetchElimMathes();
+    for (let i = 0; i < elims.length; i++) {
+      return parseAndUploadElimMatch(i, elims, alliances);
+    }
+  }
 }
 
-async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, tournLevel, alliances){
+async function parseAndUploadElimMatch(index, elims, alliances) {
+  const match = elims[index];
+  const matchName = match.match;
+
+  if (matchName.startsWith('SF')) {
+    return parseAndUploadMatch(match, index + 1, matchName.substr(2,1), 30, alliances);
+  } else if (matchName.startsWith('F')) {
+    return parseAndUploadMatch(match, index + 1, 0, 4, alliances);
+  }
+}
+
+async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, tournLevel, alliances) {
   const participants = [];
   const isQual = !tournLevel || tournLevel === 1;
   const elimMatchNumber = isQual ? -1 : match.match.toString().split('-')[1];
   const matchNumber = isQual ? match.matchNumber.toString() : numberElimMatchesPlayed;
   let details;
   if (isQual) {
-    details = await scorekeeperApi.get(`/2020/v1/events/${eventId}/matches/${matchNumber}`);
-
+    details = await scorekeeperApi.get(`/2020/v1/events/${eventId}/matches/${matchNumber}/`);
     if (details && details.scheduledTime) {
       ui.setScheduleAccess(details.scheduledTime > 0);
     }
   } else {
-    details = await scorekeeperApi.get(`/2020/v1/events/${eventId}/elim/${(tournLevel === 30) ? `sf/${elimNumber}` : 'finals'}/${elimMatchNumber}`);
+    details = await scorekeeperApi.get(`/2020/v1/events/${eventId}/elim/${(tournLevel === 30) ? `sf/${elimNumber}` : 'finals'}/${elimMatchNumber}/`);
   }
   const hasDetails = details && details.matchBrief && details.matchBrief.matchState === 'COMMITTED';
 
@@ -249,15 +173,6 @@ async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, t
     blue_tele_score: hasDetails ? details.blue.teleop : -1,
     red_end_score: hasDetails ? details.red.end : -1,
     blue_end_score: hasDetails ? details.blue.end : -1,
-
-    last_commit_time: details && details.matchBrief.time > 0 ? details.matchBrief.time : -1 // local using only
-  };
-
-  const clearMatchJSON = () => {
-    const json = JSON.parse(JSON.stringify(matchJSON));
-    delete json.last_commit_time;
-    delete json.participants;
-    return json;
   };
 
   if (isQual) {
@@ -282,69 +197,12 @@ async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, t
     }
   }
 
-  if (participants.length <= 0) {
-    return;
-  }
+  if (participants.length <= 0) return;
 
-  const shortMatchKey = matchKey.split('-')[3];
-  let oldMatch = localStorage.getItem(`${eventId}-match-${shortMatchKey}`);
-
-  // Regenerated schedule
-  if (oldMatch && JSON.stringify(participants) !== JSON.stringify(JSON.parse(oldMatch).participants)) {
-    log('UPDATING the participants of ' + matchKey);
-    await toaApi.put(`/event/${eventKey}/matches/${matchKey}/participants`, JSON.stringify(participants));
-    matchJSON.participants = participants;
-    localStorage.setItem(`${eventId}-match-${shortMatchKey}`, JSON.stringify(matchJSON));
-    delete matchJSON.participants;
-  }
-
-   //Score Update (Last Commit Time != current commit time
-  if (oldMatch && JSON.parse(oldMatch).last_commit_time !== matchJSON.last_commit_time) {
-
-    // Update match details
-    uploadMatchDetails(details, matchKey, eventKey);
-
-    log('UPDATING match data from ' + matchKey);
-    await toaApi.put(`/event/${eventKey}/matches/${matchKey}`, JSON.stringify([clearMatchJSON()]));
-    matchJSON.participants = participants;
-    localStorage.setItem(`${eventId}-match-${shortMatchKey}`, JSON.stringify(matchJSON));
-    delete matchJSON.participants;
-
-  } else if (!oldMatch) {
-    // Not Uploaded Yet, Nothing in the localStorage
-    log('UPLOADING match data and participants from ' + matchKey);
-
-    // Upload match details
-    await uploadMatchDetails(details, matchKey, eventKey);
-
-    // Upload Participants
-    await toaApi.post(`/event/${eventKey}/matches/participants`, JSON.stringify(participants)).catch(() => {});
-
-    // Upload Match Data
-    await toaApi.post(`/event/${eventKey}/matches`, JSON.stringify([clearMatchJSON()])).then(() => {
-      calculateWLT(matchJSON, participants);
-      matchJSON.participants = participants;
-      localStorage.setItem(`${eventId}-match-${shortMatchKey}`, JSON.stringify(matchJSON));
-      delete matchJSON.participants;
-
-      // Update the event status
-      if (tournLevel && tournLevel === 4 && eventStatus < 4) {
-        updateEventStatus(4);
-      } else if (tournLevel && tournLevel === 30 && eventStatus < 3) {
-        updateEventStatus(3);
-      } else if (isQual && eventStatus < 2) {
-        updateEventStatus(2);
-      }
-    }).catch(async (data) => {
-      if (data.response.status === 500) {
-        // The match is already on TOA. This SHOULD never happen, but it's a good catch to have.
-        log('Match already on TOA. UPDATING localStorage for ' + matchKey);
-        const toaMatch = (await toaApi.get(`/match/${matchKey}`)).data[0];
-        toaMatch.participants = (await toaApi.get(`/match/${matchKey}/participants`)).data;
-        localStorage.setItem(`${eventId}-match-${shortMatchKey}`, JSON.stringify(toaMatch));
-      }
-    });
-  }
+  log('Uploading match data for ' + matchKey, matchJSON);
+  toaApi.put(`/event/${eventKey}/matches/${matchKey}`, JSON.stringify([matchJSON]));
+  toaApi.put(`/event/${eventKey}/matches/${matchKey}/participants`, JSON.stringify(participants));
+  uploadMatchDetails(details, matchKey, eventKey);
 }
 
 function generateMatchName(tournLevel, matchNumber, elimNumber){
@@ -357,14 +215,26 @@ function generateMatchName(tournLevel, matchNumber, elimNumber){
   }
 }
 
+async function fetchElimMathes() {
+  const getElimData = (elimType, elimNumber = '') =>
+    scorekeeperApi.get(`/v1/events/${eventId}/elim/${elimType}/${elimNumber}/`)
+    .then(data => data.matchList)
+    .catch(e => []);
+
+  const sf1 = await getElimData('sf', 1);
+  const sf2 = await getElimData('sf',2);
+  const finals = await getElimData('finals');
+  return [...sf1, ...sf2, ...finals];
+}
+
 async function retrieveTeams() {
   const cacheKey = `${eventId}-teams`;
   const result = [];
-  const teams = (await scorekeeperApi.get(`/v1/events/${eventId}/teams`)).teamNumbers;
-  if (`[${localStorage.getItem(cacheKey) || []}]` === JSON.stringify(teams)) {
-    return
+  const teams = (await scorekeeperApi.get(`/v1/events/${eventId}/teams/`)).teamNumbers;
+  if (JSON.stringify(teams) === localStorage.getItem(cacheKey)) {
+    return;
   } else {
-    localStorage.setItem(cacheKey, teams);
+    localStorage.setItem(cacheKey, JSON.stringify(teams));
   }
 
   for (let i = 0; i < teams.length; i++) {
@@ -383,7 +253,7 @@ async function retrieveTeams() {
 
 async function retrieveRankings() {
   const cacheKey = `${eventId}-rankings`;
-  const rankings = (await scorekeeperApi.get(`/v1/events/${eventId}/rankings`)).rankingList;
+  const rankings = (await scorekeeperApi.get(`/v1/events/${eventId}/rankings/`)).rankingList;
 
   if ((localStorage.getItem(cacheKey) || []) === JSON.stringify(rankings)) {
     return;
@@ -407,7 +277,7 @@ async function retrieveRankings() {
         highest_qual_score: rank.highestScore,
         ranking_points: rank.rankingPoints && rank.rankingPoints !== '--' ? parseFloat(rank.rankingPoints) || 0 : 0,
         qualifying_points: 0,
-        tie_breaker_points: rank.tieBreakerPoints && rank.tieBreakerPoints !== '--' ? parseFloat(rank.tieBreakerPoints) : 0,
+        tie_breaker_points: rank.tieBreakerPoints && rank.tieBreakerPoints !== '--' ? parseFloat(rank.tieBreakerPoints) || 0 : 0,
         disqualified: 0,
         played: rank.matchesPlayed
       });
@@ -451,69 +321,4 @@ function getStation(suffix) {
   }
 }
 
-async function deleteMatchesData() {
-  ui.setShouldUpload(false);
-  for (const key in localStorage) {
-    if (key.startsWith(`${eventId}-match-`) || key.startsWith(`${eventId}-wlt-`) || key === `${eventId}-matches`) {
-      localStorage.removeItem(key);
-    }
-  }
-
-  await toaApi.delete(`/event/${eventKey}/matches/all`);
-
-  log('Done');
-}
-
-function calculateWLT(match, participants) {
-  const redWin = match.red_score > match.blue_score;
-  const tie = match.red_score === match.blue_score;
-
-  if (match.tournament_level !== 1 || match.red_score === -1 || match.blue_score === -1) {
-    return;
-  }
-  for (const participant of participants) {
-    const cacheKey = `${eventId}-wlt-${participant.team_key}`;
-    if (participant.station_status >= 1) {
-      const WINS = 'wins';
-      const LOSS = 'loss';
-      const TIES = 'ties';
-      let result = localStorage.getItem(cacheKey);
-      if (result) {
-        result = JSON.parse(result);
-        if (tie) {
-          result[TIES]++;
-        } else if (redWin && participant.station < 20) {
-          // Red win and this team is on red
-          result[WINS]++;
-        } else if (!redWin && participant.station > 20) {
-          // Blue win and this team is on blue
-          result[WINS]++;
-        } else {
-          result[LOSS]++;
-        }
-      } else {
-        result = {};
-        if (tie) {
-          result[WINS] = 0;
-          result[LOSS] = 0;
-          result[TIES] = 1;
-        } else if (redWin && participant.station < 20) {
-          // Red win and this team is on red
-          result[WINS] = 1;
-          result[LOSS] = 0;
-          result[TIES] = 0;
-        } else if (!redWin && participant.station > 20) {
-          // Blue win and this team is on blue
-          result[WINS] = 1;
-          result[LOSS] = 0;
-          result[TIES] = 0;
-        } else {
-          result[WINS] = 0;
-          result[LOSS] = 1;
-          result[TIES] = 0;
-        }
-      }
-      localStorage.setItem(cacheKey, JSON.stringify(result));
-    }
-  }
-}
+module.exports = { ui };
