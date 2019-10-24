@@ -14,11 +14,6 @@ body {
   outline: none!important;
 }
 
-.mdc-top-app-bar {
-  position: fixed;
-  top: 0;
-}
-
 .mdc-top-app-bar-sync-green {
   background: #388e3c!important;
   --mdc-theme-on-primary: #fff;
@@ -45,7 +40,6 @@ body {
 }
 
 .main-content {
-  margin-top: 38px;
   padding: 20px;
 }
 
@@ -266,6 +260,7 @@ label {
   display: flex;
   justify-content: center;
 }
+
 .setup-page .main-content {
   width: 500px;
 }

@@ -20,7 +20,7 @@
         </div>
         <p class="px-3 mdc-typography--body2" id="status-description" style="color: var(--mdc-theme-on-primary, #000)"></p>
     </header>
-    <div class="main-content p-4" style="margin-top: 130px" id="content" hidden>
+    <div class="main-content p-4" id="content" hidden>
         <div class="mdc-card mb-3" style="background: #ffe9eb!important" id="schedule-access" hidden>
             <div style="padding: 0 16px;">
                 <p class="mt-2 mb-0">Please allow access to the schedule</p>
@@ -83,10 +83,12 @@
 
     <div class="mdc-dialog" id="settings-dialog" data-mdc-auto-init="MDCDialog">
         <div class="mdc-dialog__container">
-            <div class="mdc-dialog__surface settings-dialog">
-                <button class="mdc-fab mdc-fab--mini white-fab mb-4" data-mdc-dialog-action="no">
-                    <span class="mdc-fab__icon mdi mdi-arrow-left"></span>
-                </button>
+            <div class="mdc-dialog__surface settings-dialog mdc-dialog__content">
+                <div>
+                    <button class="mdc-fab mdc-fab--mini white-fab mb-4" data-mdc-dialog-action="no">
+                        <span class="mdc-fab__icon mdi mdi-arrow-left"></span>
+                    </button>
+                </div>
                 <div class="mdc-card">
                     <ul class="mdc-list">
                         <li class="mdc-list-item" id="streams-btn2">

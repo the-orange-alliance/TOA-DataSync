@@ -259,7 +259,7 @@ function updateIpAddress(btn) {
   }
   btn.textContent = 'Loading...';
   btn.disabled = true;
-  apis.scorekeeperFromIp(ipAddress).get('/v1/version').then((data) => {
+  apis.scorekeeperFromIp(ipAddress).get('/v1/version/').then((data) => {
     const version = data.data.version;
     console.log('Version ' + version);
     if (version < minScorekeeperVersion) {
@@ -287,10 +287,7 @@ function setStatus(status) {
   const icon = document.querySelector('#status-icon');
   const title = document.querySelector('#status-text');
   const description = document.querySelector('#status-description');
-  const content = document.querySelector('#content');
   const iconBase = 'mdc-top-app-bar__icon mdi mdi-';
-
-  content.style.marginTop = status === 'ok' || status === 'no-scorekeeper' ? '150px' : '130px';
 
   if (status === 'loading') {
     header.className = 'mdc-top-app-bar';
