@@ -18,11 +18,18 @@ exports.saveLogs = () => {
     eventKey = configEvent[index].toa_event_key
   }
 
+  const fileName = `${eventKey} Logs.zip`;
   const zip = new JSZip();
   zip.file('local-storage.json', JSON.stringify(localStorage, null, 2));
   zip.file('console.txt', log);
 
-  zip.generateAsync({type: 'blob'}).then((content) => {
-    saveAs(content, eventKey + ' Logs.zip');
+  zip.generateAsync({type: 'blob'}).then((blob) => {
+    // Save the file with a new name
+    const tag = document.createElement('a');
+    tag.download = fileName;
+    tag.href = blob;
+    document.body.appendChild(tag);
+    tag.click();
+    tag.remove();
   });
 };
