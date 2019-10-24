@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <title>TOA DataSync</title>
     <link href="../assets/css/styles.css" rel="stylesheet">
-    <link href="../../node_modules/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="../assets/mdi/css/materialdesignicons.min.css" rel="stylesheet">
     <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/material-components-web@2.2.0/material-components-web.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="setup-page" onload="setup.loadScorekeeperEvents()">
     <header class="toa-toolbar"></header>
     <div class="main-content">
         <h3 class="mb-1">Scoring Software</h3>
@@ -33,10 +33,5 @@
 
     <script src="../assets/material-components-web@2.2.0/material-components-web.min.js"></script>
     <script src="../assets/material-components-web@2.2.0/material-components-web.min.js"></script>
-    <script>
-        require('../assets/js/menu.js');
-        const setup = require('../assets/js/setup.js');
-        setup.loadScorekeeperEvents();
-    </script>
 </body>
 </html>

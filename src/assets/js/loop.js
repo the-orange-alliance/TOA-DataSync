@@ -2,7 +2,6 @@ const ui = require('./sync-ui');
 const apis = require('../../apis');
 const logger = require('./logger');
 const ReconnectingWebSocket = require('reconnectingwebsocket');
-const dns = require('dns').promises;
 const toaApi = apis.toa;
 const scorekeeperApi = apis.scorekeeper;
 const uploadMatchDetails = require('./match-details');
@@ -68,15 +67,14 @@ healthCheck();
 
 function healthCheck() {
   const socketState = socket.readyState;
-  return dns.lookup('theorangealliance.org').then(() => {
-    if (socketState === 1) { // Open
-      ui.setStatus('ok');
-    } else if (socketState >= 2) { // Close
-      ui.setStatus('no-scorekeeper');
-    }
-  }).catch(() => {
+  const isOnline = navigator.onLine;
+  if (!isOnline) {
     ui.setStatus('no-internet');
-  });
+  } else if (socketState >= 2) { // Close
+    ui.setStatus('no-scorekeeper');
+  } else if (socketState === 1) { // Open
+    ui.setStatus('ok');
+  }
 }
 
 function parseAndUpload() {

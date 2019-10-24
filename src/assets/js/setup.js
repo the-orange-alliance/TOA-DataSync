@@ -1,13 +1,10 @@
-const shell = require('electron').shell;
 const apis = require('../../apis');
-const appbar = require('./appbar');
 const logger = require('./logger');
-const { firebase } = require('./firebase');
+const { firebase, login } = require('./firebase');
 const scorekeeperApi = apis.scorekeeper;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
 
 mdc.autoInit();
-appbar.init();
 
 const backStepBtn = document.querySelector('#back-step button');
 if (backStepBtn) {
@@ -197,7 +194,7 @@ function testScorekeeperConfig(btn) {
   }
   btn.textContent = 'Loading...';
   btn.disabled = true;
-  apis.scorekeeperFromIp(ipAddress).get('/v1/version').then((data) => {
+  apis.scorekeeperFromIp(ipAddress).get('/v1/version/').then((data) => {
     const version = data.data.version;
     log('Version ' + version);
     if (version < minScorekeeperVersion) {
@@ -221,14 +218,14 @@ function loadScorekeeperEvents() {
     return;
   }
   document.querySelector('#events-list').innerHTML = '';
-  scorekeeperApi.get('/v1/events').then(async (data) => {
+  scorekeeperApi.get('/v1/events/').then(async (data) => {
     const events = [];
     for (const eventId of data.data.eventCodes) {
-      const event = (await scorekeeperApi.get('/v1/events/' + eventId)).data;
+      const event = (await scorekeeperApi.get('/v1/events/' + eventId + '/')).data;
       if (eventId.endsWith('_0') && event.finals) {
         const baseEventId = eventId.substring(0, eventId.length - 2);
-        const division1 = (await scorekeeperApi.get('/v1//events/' + baseEventId + '_1')).data;
-        const division2 = (await scorekeeperApi.get('/v1/events/' + baseEventId + '_2')).data;
+        const division1 = (await scorekeeperApi.get('/v1//events/' + baseEventId + '_1/')).data;
+        const division2 = (await scorekeeperApi.get('/v1/events/' + baseEventId + '_2/')).data;
 
         let data = {
           event_id: eventId,
@@ -300,7 +297,7 @@ function showSnackbar(text) {
 }
 
 function openExternalLink(url) {
-  shell.openExternal(url);
+  window.open(url, '_blank').focus();
 }
 
 module.exports = {
@@ -309,5 +306,6 @@ module.exports = {
   selectEvent,
   getEventsFromFirebase,
   onEventKeyChanged,
-  openExternalLink
+  openExternalLink,
+  login
 };

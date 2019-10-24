@@ -1,4 +1,3 @@
-const remote = require('electron').remote;
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
 
@@ -6,11 +5,8 @@ const minScorekeeperVersion = '1.1.1';
 
 const scorekeeperFromIp = (ip) => axios.create({
   baseURL: 'http://' + (ip || localStorage.getItem('SCOREKEEPER-IP')) + '/api',
-  timeout: 5000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  data: {}
+  method: 'GET',
+  timeout: 5000
 });
 
 const toaFromApiKey = (apiKey) => {
@@ -29,7 +25,7 @@ const toaFromApiKey = (apiKey) => {
     headers: {
       'Content-Type': 'application/json',
       'X-TOA-Key': key,
-      'X-Application-Origin': 'TOA DataSync ' + remote.app.getVersion(),
+      'X-Application-Origin': 'TOA DataSync ' + (dataSyncVersion || '0.0.0'),
     },
     data: {}
   });

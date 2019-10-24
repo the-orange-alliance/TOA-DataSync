@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <title>TOA DataSync</title>
     <link href="../assets/css/styles.css" rel="stylesheet">
-    <link href="../../node_modules/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="../assets/mdi/css/materialdesignicons.min.css" rel="stylesheet">
     <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/material-components-web@2.2.0/material-components-web.min.css" rel="stylesheet">
 </head>
-<body>
-    <header class="toa-toolbar"></header>
+<body class="setup-page">
     <div class="main-content">
         <h3 class="mb-1">TOA Connection</h3>
         <p>Please login with your myTOA Account.</p>
@@ -24,7 +23,7 @@
                         <input class="mdc-text-field__input" type="password" placeholder="Password">
                     </div>
                 </div>
-                <button class="mt-5 mdc-button mdc-button--unelevated" onclick="firebase.login(this)">
+                <button class="mt-5 mdc-button mdc-button--unelevated" onclick="setup.login(this)">
                     <span class="mdc-button__label">Login</span>
                 </button>
             </div>
@@ -41,10 +40,5 @@
     </div>
 
     <script src="../assets/material-components-web@2.2.0/material-components-web.min.js"></script>
-    <script>
-        require('../assets/js/menu.js');
-        const setup = require('../assets/js/setup.js');
-        const firebase = require('../assets/js/firebase.js');
-    </script>
 </body>
 </html>
