@@ -109,3 +109,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+.mdc-top-app-bar {
+  padding: 10px 20px;
+}

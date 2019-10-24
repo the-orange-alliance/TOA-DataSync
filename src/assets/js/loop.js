@@ -23,8 +23,7 @@ scorekeeperApi.interceptors.response.use(
 toaApi.interceptors.response.use(
   (response) => response,
   (error) => {
-    const status = error && error.response && error.response.status ? error.response.status : 0;
-    if (status !== 500) {
+    if (error && error.response && error.response.config) {
       const res = error.response.config;
       log(error.response.statusText, res.method.toUpperCase() + ' ' + (res.url.replace(res.baseURL, '')), JSON.parse(res.data));
     }
