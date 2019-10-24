@@ -1,4 +1,4 @@
-const index = parseInt(new URLSearchParams(window.location.search).get('i'), 10);
+const index = parseInt(new URLSearchParams(window.location.search).get('i') || '0', 10);
 const configEvent = JSON.parse(localStorage.getItem('CONFIG-EVENTS'))[index];
 const eventId = configEvent.event_id;
 const eventKey = configEvent.toa_event_key;

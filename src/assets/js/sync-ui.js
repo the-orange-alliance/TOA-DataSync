@@ -80,14 +80,6 @@ document.querySelector('#save-logs-btn').onclick = () => {
   logger.saveLogs();
 };
 
-document.querySelector('#dev-tools-btn').onclick = () => {
-  showConfirmationDialog('Warning!', 'This is a feature intended for developers. If someone <u>who is not a TOA developer</u> told you to copy and paste' +
-    ' something here, it is a probably scam and will give them access to your myTOA account and/or your Scorekeeper Software, ' +
-    'including change data of your events.\nAre you sure that you want to open the dev console?').then(() => {
-    // window.openDevTools({mode: 'detach'});
-  });
-};
-
 document.querySelector('#logout-btn').onclick = () => {
   showConfirmationDialog('Are you sure you want to logout?').then(() => {
     logout(false);

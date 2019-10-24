@@ -24,6 +24,7 @@
     "@mdi/font": "^3.6.95",
     "axios": "^0.18.1",
     "axios-retry": "^3.1.2",
+    "devtools-detect": "^3.0.0",
     "firebase": "^6.0.4",
     "jszip": "^3.2.2",
     "reconnectingwebsocket": "^1.0.0"

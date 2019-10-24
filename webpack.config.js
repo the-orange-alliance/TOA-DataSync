@@ -47,27 +47,27 @@ const config = {
     new HtmlWebpackPlugin({
       template: './src/sync.html',
       filename: 'sync.html',
-      chunks: ['sync']
+      chunks: ['index', 'sync']
     }),
     new HtmlWebpackPlugin({
       template: './src/setup-pages/step1.html',
       filename: './setup/step1.html',
-      chunks: ['setup']
+      chunks: ['index', 'setup']
     }),
     new HtmlWebpackPlugin({
       template: './src/setup-pages/step2.html',
       filename: './setup/step2.html',
-      chunks: ['setup']
+      chunks: ['index', 'setup']
     }),
     new HtmlWebpackPlugin({
       template: './src/setup-pages/step3.html',
       filename: './setup/step3.html',
-      chunks: ['setup']
+      chunks: ['index', 'setup']
     }),
     new HtmlWebpackPlugin({
       template: './src/setup-pages/step4.html',
       filename: './setup/step4.html',
-      chunks: ['setup']
+      chunks: ['index', 'setup']
     })
   ]
 };
