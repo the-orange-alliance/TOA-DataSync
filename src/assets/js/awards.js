@@ -1,9 +1,6 @@
+const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS') || '[]');
 const logger = require('./logger');
 const apis = require('../../apis');
-const configEvent = JSON.parse(localStorage.getItem('CONFIG-EVENTS'))[0]; // Awards are stored in the Finals[0] Division
-const eventId = configEvent.event_id;
-const eventKey = configEvent.toa_event_key;
-const toaApi = apis.toa(configEvent.toa_api_key);
 const scorekeeperApi = apis.scorekeeper;
 
 function log(...args) {
@@ -12,6 +9,12 @@ function log(...args) {
 }
 
 function uploadAwards(showSnackbar) {
+  if (events.length <= 0) return
+  const event = events[0]; // Awards are stored in the Finals[0] Division
+  const eventId = event.event_id;
+  const eventKey = event.toa_event_key;
+  const toaApi = apis.toa(event.toa_api_key);
+
   const allAwards = [];
   scorekeeperApi.get(`/v2/events/${eventId}/awards/`).then((data) => {
     const awards = data.awards;

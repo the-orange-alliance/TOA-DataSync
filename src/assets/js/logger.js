@@ -1,6 +1,5 @@
 const JSZip = require('jszip');
-const index = parseInt(new URLSearchParams(window.location.search).get('i'), 10);
-const configEvent = JSON.parse(localStorage.getItem('CONFIG-EVENTS') || '[]');
+const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS') || '[]');
 
 let log = '';
 
@@ -14,8 +13,8 @@ exports.getLog = () => log;
 
 exports.saveLogs = () => {
   let eventKey = 'Setup';
-  if (configEvent.length > 0 && !isNaN(index) && configEvent[index] && configEvent[index].toa_event_key) {
-    eventKey = configEvent[index].toa_event_key
+  if (events.length > 0 && events[0].toa_event_key) {
+    eventKey = events[0].toa_event_key
   }
 
   const fileName = `${eventKey} Logs.zip`;

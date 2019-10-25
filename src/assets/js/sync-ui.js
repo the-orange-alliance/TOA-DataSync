@@ -3,7 +3,7 @@ const apis = require('../../apis');
 const awardsUploader = require('./awards');
 const { firebase } = require('./firebase');
 const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
-const eventKey = events[0].toa_event_key;
+const eventKey = events.length > 0 ? events[0].toa_event_key : null;
 const toaApi = apis.toa;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
 const scorekeeperIp = localStorage.getItem('SCOREKEEPER-IP');
@@ -14,6 +14,7 @@ for (const event of events) {
 }
 
 mdc.autoInit();
+if (!eventKey) throw new Error('No event key');
 
 function log(...args) {
   console.log(...args);
