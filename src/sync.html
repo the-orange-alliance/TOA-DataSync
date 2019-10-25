@@ -27,7 +27,7 @@
                 <p class="mt-2 mb-0">Please allow access to the schedule</p>
                 <p class="mb-2 card-secondary-text">To provide the best experience for your audience,
                     allow us access to the schedule via unchecking "Keep Schedule Private" in the
-                    <a class="link" onclick="ui.openScorekeeperSchedule()">Scorekeeper schedule page</a>.</p>
+                    <a class="link" onclick="sync.openScorekeeperSchedule()">Scorekeeper schedule page</a>.</p>
             </div>
         </div>
 
@@ -144,7 +144,7 @@
                     <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="close">
                         <span class="mdc-button__label">Close</span>
                     </button>
-                    <button type="button" class="mdc-button" id="add-stream-btn" onclick="ui.createStream(this)" hidden>
+                    <button type="button" class="mdc-button" id="add-stream-btn" onclick="sync.createStream(this)" hidden>
                         <span class="mdc-button__label">Add</span>
                     </button>
                 </footer>
@@ -168,7 +168,7 @@
                     <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="close">
                         <span class="mdc-button__label">Close</span>
                     </button>
-                    <button type="button" class="mdc-button" onclick="ui.updateIpAddress(this)">
+                    <button type="button" class="mdc-button" onclick="sync.updateIpAddress(this)">
                         <span class="mdc-button__label">Update</span>
                     </button>
                 </footer>

@@ -143,7 +143,7 @@ function openStreamsDialog() {
       const stringType = type && type === 0 ? 'youtube' : type && type === 1 ? 'twitch' : 'video';
       content.innerHTML = `Currently linked a stream.
             <div class="w-100 my-2">
-                <div class="mdc-chip ${stringType}-chip" onclick="ui.openExternalLink('${stream.channel_url}')">
+                <div class="mdc-chip ${stringType}-chip" onclick="sync.openExternalLink('${stream.channel_url}')">
                     <i class="mdc-chip__icon mdc-chip__icon--leading mdi mdi-${stringType}"></i>
                     <div class="mdc-chip__text">${stream.channel_name || stream.url}</div>
                 </div>
