@@ -31,10 +31,7 @@ firebase.auth().onAuthStateChanged((user) => {
         newPath = '/setup/step4.html';
       }
     }
-
-    // SETUP DONE :)
-    // TODO: Fix Dual Divisions support
-
+    
     newPath = '/sync.html';
   }
 
@@ -43,9 +40,11 @@ firebase.auth().onAuthStateChanged((user) => {
   }
 });
 
-window.onbeforeunload = (e) => {
-  const text = 'You are going to stop uploading data to The Orange Alliance. Are you sure?';
-  e = e || window.event;
-  if (e) e.returnValue = text;
-  return text;
-};
+if (dataSyncMode !== 'development') {
+  window.onbeforeunload = (e) => {
+    const text = 'You are going to stop uploading data to The Orange Alliance. Are you sure?';
+    e = e || window.event;
+    if (e) e.returnValue = text;
+    return text;
+  };
+}

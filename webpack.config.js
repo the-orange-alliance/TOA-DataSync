@@ -32,7 +32,8 @@ const config = {
   },
   plugins: [
     new webpack.DefinePlugin({
-      dataSyncVersion: JSON.stringify(require('./package.json').version)
+      dataSyncVersion: JSON.stringify(require('./package.json').version),
+      dataSyncMode: JSON.stringify(process.env.NODE_ENV || 'development')
     }),
     new CopyPlugin([
       { from: './src/assets', to: './assets' },
