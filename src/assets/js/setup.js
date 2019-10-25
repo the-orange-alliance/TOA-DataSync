@@ -164,7 +164,7 @@ function getApiKey(token, eventKey) {
     apis.cloud(token).get('/getAPIKey', { headers: { data: eventKey }, body: { generate: true }}).then((data) => {
       const apiKey = data.data.key;
       log(data.data);
-      return apis.toaFromApiKey(apiKey).get('/event/' + eventKey).then(() => {
+      return apis.toa(apiKey).get('/event/' + eventKey).then(() => {
         resolve(apiKey);
       }).catch((error) => {
         reject(error);
