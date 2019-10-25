@@ -6,8 +6,8 @@ window.addEventListener('devtoolschange', event => {
     const warningStyle = 'font-family: sans-serif; font-size: 20px;';
     const warningText1 = 'This is a feature intended for developers. If someone ';
     const warningText2 = 'who is not a TOA developer';
-    const warningText3 = ' told you to copy and paste something here, it is a probably scam and will give them access' +
-      'to your myTOA account and/or your Scorekeeper Software.';
+    const warningText3 = ' told you to copy and paste something here, it is a probably scam and will give them ' +
+      'access to your myTOA account and/or your Scorekeeper Software.';
 
     console.log('%c Welcome to DataSync ', 'background: #F89808;color: black;font-size:40px;font-weight: bold;font-family: sans-serif');
     console.log(`%c${warningText1}%c${warningText2}%c${warningText3}`,

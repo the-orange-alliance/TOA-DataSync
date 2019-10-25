@@ -226,7 +226,7 @@ label {
 }
 
 .mdc-dialog .mdc-dialog__surface {
-  border-radius: 8px!important;
+  border-radius: 12px!important;
 }
 
 #goodbye-dialog .mdc-dialog__surface {

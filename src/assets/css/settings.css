@@ -6,6 +6,9 @@
   background: #fafcfe!important;
   border-radius: 0!important;
   padding: 1.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .settings-dialog .mdc-list:not(.mdc-list--non-interactive) .mdc-list-item {

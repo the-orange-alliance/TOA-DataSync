@@ -157,6 +157,7 @@ function openStreamsDialog() {
                 <label class="mdc-floating-label">URL</label>
             </div>`;
       addStreamButton.hidden = false;
+      mdc.autoInit();
     }
     loading.hidden = true;
     content.hidden = false;
@@ -166,7 +167,7 @@ function openStreamsDialog() {
   });
 
   dialog.open();
-  new Promise(resolve => setTimeout(resolve, 800)).then(() => {
+  new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
     mdc.autoInit();
   });
 }
