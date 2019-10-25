@@ -9,22 +9,13 @@ const scorekeeperFromIp = (ip) => axios.create({
   timeout: 5000
 });
 
-const toaFromApiKey = (apiKey) => {
-  let key = apiKey;
-  if (!key) {
-    try {
-      const index = parseInt(new URLSearchParams(window.location.search).get('i'), 10);
-      const configEvent = JSON.parse(localStorage.getItem('CONFIG-EVENTS'))[index];
-      key = configEvent.toa_api_key;
-    } catch (e) {}
-  }
-
+const toa = (apiKey) => {
   return axios.create({
     baseURL: 'https://theorangealliance.org/api',
     timeout: 10000,
     headers: {
       'Content-Type': 'application/json',
-      'X-TOA-Key': key,
+      'X-TOA-Key': apiKey,
       'X-Application-Origin': 'TOA DataSync ' + (dataSyncVersion || '0.0.0'),
     },
     data: {}
@@ -49,6 +40,4 @@ axiosRetry(scorekeeper, {
   }
 });
 
-const toa = toaFromApiKey();
-
-module.exports = { scorekeeper, toa, scorekeeperFromIp, toaFromApiKey, cloud, minScorekeeperVersion };
+module.exports = { scorekeeper, toa, scorekeeperFromIp, cloud, minScorekeeperVersion };

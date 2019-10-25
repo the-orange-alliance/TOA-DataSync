@@ -1,4 +1,4 @@
-const { firebase } = require('./assets/js/firebase.js');
+const { firebase } = require('./firebase.js');
 require('devtools-detect');
 
 window.addEventListener('devtoolschange', event => {

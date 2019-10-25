@@ -6,9 +6,9 @@ const path = require('path');
 const config = {
   target: 'web',
   entry: {
-    index: './src/index.js',
+    index: './src/assets/js/index.js',
     setup: './src/assets/js/setup.js',
-    sync: './src/assets/js/loop.js',
+    sync: './src/assets/js/sync.js',
   },
   output: {
     path: path.join(__dirname, 'dist'),

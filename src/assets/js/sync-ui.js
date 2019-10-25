@@ -2,11 +2,16 @@ const logger = require('./logger');
 const apis = require('../../apis');
 const awardsUploader = require('./awards');
 const { firebase } = require('./firebase');
-const { eventId, eventKey } = require('./config');
+const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
+const eventKey = events[0].toa_event_key;
 const toaApi = apis.toa;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
 const scorekeeperIp = localStorage.getItem('SCOREKEEPER-IP');
 let lastStatus = 'loading';
+let apiKeys = {};
+for (const event of events) {
+  apiKeys[event.toa_event_key] = event.toa_api_key;
+}
 
 mdc.autoInit();
 
@@ -15,14 +20,13 @@ function log(...args) {
   logger.write(...args)
 }
 
-toaApi.get('/event/' + eventKey).then((data) => {
+toaApi(apiKeys[eventKey]).get('/event/' + eventKey).then((data) => {
   const event = data.data[0];
-  document.querySelector('#event-name').innerText = event.division_name ? event.division_name + ' Division' : event.event_name;
+  document.querySelector('#event-name').innerText = event.event_name;
   document.querySelector('#view-event').onclick = () =>
     openExternalLink('https://theorangealliance.org/events/' + event.event_key);
 
-
-  const shortLink = 'toa.events/' + eventKey;
+  const shortLink = 'toa.events/' + events[0].toa_event_key;
   document.querySelector('#short-link').innerText = shortLink;
   document.querySelector('#copy-url').onclick = () => {
     navigator.clipboard.writeText('http://' + shortLink);
@@ -62,16 +66,21 @@ document.querySelector('#purge-data-btn').onclick = () => {
     showSnackbar('Okay, purging...');
 
     // Delete localStorage
-    for (const key in localStorage) {
-      if (key.startsWith(`${eventId}-`)) {
-        localStorage.removeItem(key);
+    for (const event of events) {
+      for (const key in localStorage) {
+        if (key.startsWith(`${event.event_id}-`)) {
+          localStorage.removeItem(key);
+        }
       }
     }
 
-    await toaApi.delete(`/event/${eventKey}/matches/all`);
-    await toaApi.delete(`/event/${eventKey}/rankings`);
-    await toaApi.delete(`/event/${eventKey}/awards`);
-    await toaApi.delete(`/event/${eventKey}/teams`);
+    for (const event of events) {
+      const eventKey = event.toa_event_key;
+      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/matches/all`);
+      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/rankings`);
+      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/awards`);
+      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/teams`);
+    }
     showSnackbar('The data has been successfully purged.');
   });
 };
@@ -125,7 +134,7 @@ function openStreamsDialog() {
   content.hidden = true;
   deleteStreamButton.hidden = true;
   addStreamButton.hidden = true;
-  toaApi.get(`/event/${eventKey}/streams`).then((data) => {
+  toaApi(apiKeys[eventKey]).get(`/event/${eventKey}/streams`).then((data) => {
     const streams = data.data.filter((stream) => stream.is_active);
     if (streams.length > 0) {
       const stream = streams[0];
@@ -168,7 +177,7 @@ document.querySelector('#streams-btn2').onclick = openStreamsDialog;
 function createStream(btn) {
   btn.textContent = 'Loading...';
   btn.disabled = true;
-  toaApi.get(`/event/${eventKey}`).then((data) => {
+  toaApi(apiKeys[eventKey]).get(`/event/${eventKey}`).then((data) => {
     return data.data[0];
   }).then((event) => {
     const streamName = event.division_name ? event.event_name + ' - ' + event.division_name + ' Division' : event.event_name;
@@ -208,7 +217,7 @@ function createStream(btn) {
         channel_url: channelLink
       };
       log('Uploading a stream...', toUpload);
-      return toaApi.post(`/event/${eventKey}/streams`, JSON.stringify([toUpload])).then(() => {
+      return toaApi(apiKeys[eventKey]).post(`/event/${eventKey}/streams`, JSON.stringify([toUpload])).then(() => {
         showSnackbar('The stream has been successfully uploaded.');
         document.querySelector('#streams-dialog').MDCDialog.close();
         btn.textContent = 'Add';
@@ -226,7 +235,7 @@ function createStream(btn) {
 function unlinkStream(streamKey, btn, dialog) {
   btn.textContent = 'Unlinking...';
   btn.disabled = true;
-  toaApi.delete(`/streams/${streamKey}`).then(() => {
+  toaApi(apiKeys[eventKey]).delete(`/streams/${streamKey}`).then(() => {
     dialog.close();
     showSnackbar('The stream has been successfully unlinked.');
     btn.textContent = 'Delete';
@@ -323,7 +332,9 @@ function setScheduleAccess(hide) {
 }
 
 function openScorekeeperSchedule() {
-  openExternalLink(`http://${scorekeeperIp}/event/${eventId}/dashboard/schedule/`);
+  for (const event of events) {
+    openExternalLink(`http://${scorekeeperIp}/event/${event.event_id}/dashboard/schedule/`);
+  }
 }
 
 module.exports = {

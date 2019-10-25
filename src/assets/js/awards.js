@@ -1,10 +1,10 @@
 const logger = require('./logger');
 const apis = require('../../apis');
-const toaApi = apis.toa;
-const scorekeeperApi = apis.scorekeeper;
 const configEvent = JSON.parse(localStorage.getItem('CONFIG-EVENTS'))[0]; // Awards are stored in the Finals[0] Division
 const eventId = configEvent.event_id;
 const eventKey = configEvent.toa_event_key;
+const toaApi = apis.toa(configEvent.toa_api_key);
+const scorekeeperApi = apis.scorekeeper;
 
 function log(...args) {
   console.log(...args);
