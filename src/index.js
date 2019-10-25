@@ -20,15 +20,15 @@ firebase.auth().onAuthStateChanged((user) => {
   const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
   let newPath = location.href;
   if (!ipAddress) {
-    newPath = '/setup-pages/step1.html';
+    newPath = '/setup/step1.html';
   } else if (ipAddress && !events) {
-    newPath = '/setup-pages/step2.html';
+    newPath = '/setup/step2.html';
   } else if (ipAddress && events && !user) {
-    newPath = '/setup-pages/step3.html';
+    newPath = '/setup/step3.html';
   } else if (ipAddress && events && user) {
     for (const event of events) {
       if (!event.toa_event_key || !event.toa_api_key) {
-        newPath = '/setup-pages/step4.html';
+        newPath = '/setup/step4.html';
       }
     }
 
