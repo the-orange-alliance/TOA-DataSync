@@ -42,3 +42,10 @@ firebase.auth().onAuthStateChanged((user) => {
     location.pathname = newPath;
   }
 });
+
+window.onbeforeunload = (e) => {
+  const text = 'You are going to stop uploading data to The Orange Alliance. Are you sure?';
+  e = e || window.event;
+  if (e) e.returnValue = text;
+  return text;
+};
