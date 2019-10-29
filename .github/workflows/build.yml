@@ -30,7 +30,8 @@ jobs:
         if: matrix.os == 'ubuntu-18.04'
         run: cd dist && zip -r toa-datasync.zip linux-unpacked
       - name: Cleanup artifacts
-        run: npx rimraf "dist/!(*.exe|*.deb|*.zip|*.AppImage|*.dmg)"
+        run: |
+          npx rimraf "dist/!(*.exe|*.deb|*.zip|*.AppImage|*.dmg)"
       - name: Upload artifacts
         uses: actions/upload-artifact@v1
         with:
