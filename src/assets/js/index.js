@@ -16,6 +16,7 @@ window.addEventListener('devtoolschange', event => {
 });
 
 firebase.auth().onAuthStateChanged((user) => {
+  return;
   const ipAddress = localStorage.getItem('SCOREKEEPER-IP');
   const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
   let newPath = location.href;

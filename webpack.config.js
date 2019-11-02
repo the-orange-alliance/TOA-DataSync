@@ -51,6 +51,11 @@ const config = {
       chunks: ['index', 'sync']
     }),
     new HtmlWebpackPlugin({
+      template: './src/setup.html',
+      filename: 'setup.html',
+      chunks: ['index', 'setup']
+    }),
+    new HtmlWebpackPlugin({
       template: './src/setup-pages/step1.html',
       filename: './setup/step1.html',
       chunks: ['index', 'setup']
