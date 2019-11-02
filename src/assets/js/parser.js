@@ -60,12 +60,13 @@ const parser = (event) => {
       }
     }
   };
-  socket.onclose = () => ui.setStatus('no-scorekeeper');
+  socket.onopen = healthCheck;
+  socket.onclose = healthCheck;
 
-  // Health checking loop
-  setInterval(healthCheck, 15 * 1000 ); // 30 seconds
+  // Health check
   healthCheck();
-
+  window.addEventListener('online', healthCheck);
+  window.addEventListener('offline', healthCheck);
   function healthCheck() {
     const socketState = socket.readyState;
     const isOnline = navigator.onLine;
