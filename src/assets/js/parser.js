@@ -136,6 +136,7 @@ const parser = (event) => {
         ui.setScheduleAccess(details.scheduledTime > 0);
       }
     } else {
+      elimNumber = parseInt(elimNumber);
       details = await scorekeeperApi.get(`/2020/v1/events/${eventId}/elim/${(tournLevel === 30) ? `sf/${elimNumber}` : 'finals'}/${elimMatchNumber}/`);
     }
     const hasDetails = details && details.matchBrief && details.matchBrief.matchState === 'COMMITTED';
@@ -157,7 +158,7 @@ const parser = (event) => {
     let matchJSON = {
       match_key: matchKey,
       event_key: eventKey,
-      tournament_level: tournLevel && tournLevel === 30 ? tournLevel + elimNumber : (isQual ? 1 : tournLevel),
+      tournament_level: tournLevel && tournLevel === 30 ? (tournLevel + elimNumber) : (isQual ? 1 : tournLevel),
       scheduled_time: details && details.scheduledTime > 0 ? getDateString(details.scheduledTime) : null,
       match_start_time: details && details.startTime > 0 ? getDateString(details.startTime) : null,
       match_name: isQual ? `Quals ${matchNumber}` : generateMatchName(tournLevel, elimMatchNumber, elimNumber),
