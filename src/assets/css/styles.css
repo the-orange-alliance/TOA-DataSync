@@ -294,9 +294,6 @@ label {
   color: rgba(0, 0, 0, 0.87);
   outline: none;
 }
-.toa-stepper-step__header::-webkit-details-marker {
-  display: none;
-}
 .toa-stepper-step__icon {
   display: inline-block;
   width: 24px;
@@ -319,8 +316,7 @@ label {
   padding-right: 48px;
   padding-left: 60px;
   overflow: hidden;
-  position: relative;
-  transition: height .4s ease-out;
+  display: none;
 }
 .toa-stepper-step__action {
   margin-top: 24px;
@@ -329,7 +325,6 @@ label {
 .toa-stepper-step:last-child .toa-stepper-step__body {
   padding-bottom: 1rem;
 }
-
 .toa-stepper-step--active .toa-stepper-step__icon {
   background-color: #3f51b5;
 }
@@ -338,6 +333,5 @@ label {
   font-weight: 500;
 }
 .toa-stepper-step--active .toa-stepper-step__body {
-  height: auto;
-  visibility: visible;
+  display: block;
 }

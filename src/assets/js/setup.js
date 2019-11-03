@@ -8,7 +8,12 @@ mdc.autoInit();
 
 const showStep = (id) => {
   for (let i = 1; i <= 4; i++) {
-    document.querySelector('#step' + i).hidden = i !== id;
+    const elm = document.querySelector('#step' + i);
+    if (i === id) {
+      elm.classList.add('toa-stepper-step--active');
+    } else {
+      elm.classList.remove('toa-stepper-step--active');
+    }
   }
 }
 const backStepBtn = document.querySelector('#back-step button');
