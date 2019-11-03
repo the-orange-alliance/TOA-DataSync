@@ -12,7 +12,7 @@ const scorekeeperFromIp = (ip) => axios.create({
 const toa = (apiKey) => {
   return axios.create({
     baseURL: 'https://theorangealliance.org/api',
-    timeout: 10000,
+    timeout: 30000,
     headers: {
       'Content-Type': 'application/json',
       'X-TOA-Key': apiKey,
