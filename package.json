@@ -3,7 +3,6 @@
   "productName": "DataSync",
   "version": "3.0.2",
   "description": "A cross-platform desktop app to sync the Scorekeeper with The Orange Alliance in realtime.",
-  "main": "main.js",
   "author": "The Orange Alliance <contact@theorangealliance.org>",
   "license": "MIT",
   "scripts": {
@@ -24,6 +23,7 @@
     "@mdi/font": "^3.6.95",
     "axios": "^0.18.1",
     "axios-retry": "^3.1.2",
+    "bowser": "^2.7.0",
     "devtools-detect": "^3.0.0",
     "firebase": "^6.0.4",
     "jszip": "^3.2.2",

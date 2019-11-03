@@ -16,22 +16,17 @@ window.addEventListener('devtoolschange', event => {
 });
 
 firebase.auth().onAuthStateChanged((user) => {
-  return;
   const ipAddress = localStorage.getItem('SCOREKEEPER-IP');
   const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
-  let newPath = location.href;
-  if (!ipAddress) {
-    newPath = '/setup/step1.html';
-  } else if (ipAddress && !events) {
-    newPath = '/setup/step2.html';
-  } else if (ipAddress && events && !user) {
-    newPath = '/setup/step3.html';
-  } else if (ipAddress && events && user) {
+  let newPath = location.pathname;
+  if (!ipAddress || !events || !user) {
+    newPath = '/setup.html';
+  } else {
     newPath = '/sync.html';
 
     for (const event of events) {
       if (!event.toa_event_key || !event.toa_api_key) {
-        newPath = '/setup/step4.html';
+        newPath = '/setup.html';
       }
     }
   }
