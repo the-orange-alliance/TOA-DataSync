@@ -108,7 +108,7 @@ const parser = (event) => {
       const alliances = (await scorekeeperApi.get(`/v1/events/${eventId}/elim/alliances/`)).alliances;
       const elims = await fetchElimMathes();
       for (let i = 0; i < elims.length; i++) {
-        return parseAndUploadElimMatch(i, elims, alliances);
+        parseAndUploadElimMatch(i, elims, alliances);
       }
     }
   }
@@ -206,8 +206,8 @@ const parser = (event) => {
   }
 
   async function fetchElimMathes() {
-    const getElimData = (elimType, elimNumber = '') =>
-      scorekeeperApi.get(`/v1/events/${eventId}/elim/${elimType}/${elimNumber}/`)
+    const getElimData = (elimType, elimNumber) =>
+      scorekeeperApi.get(`/v1/events/${eventId}/elim/${elimType}/${elimNumber ? elimNumber + '/' : ''}`)
       .then(data => data.matchList)
       .catch(e => []);
 
@@ -284,7 +284,7 @@ const parser = (event) => {
 function generateMatchName(tournLevel, matchNumber, elimNumber){
   if (tournLevel === 30) {
     return `Semis ${elimNumber} Match ${matchNumber}`
-  } else if (tournLevel === 40) {
+  } else if (tournLevel === 4) {
     return `Finals Match ${matchNumber}`
   } else {
     return null;
