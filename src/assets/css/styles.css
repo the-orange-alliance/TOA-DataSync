@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap');
 
+html, body {
+  height: 100%;
+}
+
 body {
   margin: 0;
   font-family: 'Roboto', sans-serif !important;
@@ -262,8 +266,28 @@ label {
 }
 
 .setup-page .main-content {
-  width: 600px;
-  margin-top: 40px;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.setup-side-left, .setup-side-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.setup-side-left {
+  background:
+    linear-gradient(
+      -20deg,
+      rgba(43, 88, 118, .9) 0%,
+      rgba(78, 67, 118, .9) 100%
+    ),
+    url('../imgs/skystone.png') center / cover;
+  color: white;
+  text-align: center;
 }
 
 .toa-stepper {

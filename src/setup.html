@@ -10,71 +10,74 @@
   <link href="assets/material-components-web@2.2.0/material-components-web.min.css" rel="stylesheet">
 </head>
 <body class="setup-page">
-<div class="main-content">
-  <h2>Welcome!</h2>
-  <p>Thank you for choosing The Orange Alliance!<br/>
-    You will need to remain connected to the Internet while the event is running.</p>
-
-  <div class="toa-stepper toa-stepper--vertical mdc-typography--body1 mdc-card px-2">
+<div class="main-content row">
+  <div class="col-12 col-md-4 setup-side-left p-5">
+    <h2>Welcome!</h2>
+    <p>Thank you for choosing <u style="font-weight: 500">The Orange Alliance</u>.<br/>
+      You will need to remain connected to the Internet while the event is running.</p>
+  </div>
+  <div class="col-12 col-md-8 setup-side-right">
+    <div class="toa-stepper toa-stepper--vertical mdc-typography--body1 mdc-card px-2">
       <div class="toa-stepper-step toa-stepper-step--active" id="step1">
-      <div class="toa-stepper-step__header">
-        <span class="toa-stepper-step__icon">1</span>
-        <span class="toa-stepper-step__label">Scorekeeper Configuration</span>
-      </div>
-      <div class="toa-stepper-step__body">
-        <div class="mb-2">Please start the FIRST Tech Challenge Live Scorekeeper Software.</div>
-        <div class="mdc-text-field w-100" data-mdc-auto-init="MDCTextField" id="ip-address">
-          <input class="mdc-text-field__input" value="localhost:80">
-          <div class="mdc-line-ripple"></div>
-          <label class="mdc-floating-label">IP Address</label>
+        <div class="toa-stepper-step__header">
+          <span class="toa-stepper-step__icon">1</span>
+          <span class="toa-stepper-step__label">Scorekeeper Configuration</span>
         </div>
-        <button class="toa-stepper-step__action mdc-button mdc-button--unelevated"
-                onclick="setup.testScorekeeperConfig(this)">Next</button>
-      </div>
-    </div>
-    <div class="toa-stepper-step" id="step2">
-      <div class="toa-stepper-step__header">
-        <span class="toa-stepper-step__icon">2</span>
-        <span class="toa-stepper-step__label">Scorekeeper Event</span>
-      </div>
-      <div class="toa-stepper-step__body">
-        <div class="mb-2" id="step2-description">Please select your Scorekeeper event.</div>
-        <ul class="mdc-list" id="events-list"></ul>
-      </div>
-    </div>
-    <div class="toa-stepper-step" id="step3">
-      <div class="toa-stepper-step__header">
-        <span class="toa-stepper-step__icon">3</span>
-        <span class="toa-stepper-step__label">TOA Connection</span>
-      </div>
-      <div class="toa-stepper-step__body">
-        <div class="mb-2">Please login with your myTOA Account.</div>
-        <form>
-          <div class="mdc-text-field w-100" data-mdc-auto-init="MDCTextField" id="email">
-            <input class="mdc-text-field__input" type="email">
+        <div class="toa-stepper-step__body">
+          <div class="mb-2">Please start the FIRST Tech Challenge Live Scorekeeper Software.</div>
+          <div class="mdc-text-field w-100" data-mdc-auto-init="MDCTextField" id="ip-address">
+            <input class="mdc-text-field__input" value="localhost:80">
             <div class="mdc-line-ripple"></div>
-            <label class="mdc-floating-label">Email</label>
+            <label class="mdc-floating-label">IP Address</label>
           </div>
-          <div class="mdc-text-field w-100 mt-2" data-mdc-auto-init="MDCTextField" id="password">
-            <input class="mdc-text-field__input" type="password">
-            <div class="mdc-line-ripple"></div>
-            <label class="mdc-floating-label">Password</label>
-          </div>
-        </form>
-        <button class="toa-stepper-step__action mdc-button mdc-button--unelevated"
-                onclick="setup.login(this)">Next</button>
+          <button class="toa-stepper-step__action mdc-button mdc-button--unelevated"
+                  onclick="setup.testScorekeeperConfig(this)">Next</button>
+        </div>
       </div>
-    </div>
-    <div class="toa-stepper-step" id="step4">
-      <div class="toa-stepper-step__header">
-        <span class="toa-stepper-step__icon">4</span>
-        <span class="toa-stepper-step__label">TOA Event</span>
+      <div class="toa-stepper-step" id="step2">
+        <div class="toa-stepper-step__header">
+          <span class="toa-stepper-step__icon">2</span>
+          <span class="toa-stepper-step__label">Scorekeeper Event</span>
+        </div>
+        <div class="toa-stepper-step__body">
+          <div class="mb-2" id="step2-description">Please select your Scorekeeper event.</div>
+          <ul class="mdc-list" id="events-list"></ul>
+        </div>
       </div>
-      <div class="toa-stepper-step__body">
-        <div class="mb-2">If your event is not listed, please <a>contact</a> a TOA Admin immediately.</div>
-        <div id="cards"></div>
-        <button class="toa-stepper-step__action mdc-button mdc-button--unelevated"
-                id="start-sync" disabled>Start Sync</button>
+      <div class="toa-stepper-step" id="step3">
+        <div class="toa-stepper-step__header">
+          <span class="toa-stepper-step__icon">3</span>
+          <span class="toa-stepper-step__label">TOA Connection</span>
+        </div>
+        <div class="toa-stepper-step__body">
+          <div class="mb-2">Please login with your myTOA Account.</div>
+          <form>
+            <div class="mdc-text-field w-100" data-mdc-auto-init="MDCTextField" id="email">
+              <input class="mdc-text-field__input" type="email">
+              <div class="mdc-line-ripple"></div>
+              <label class="mdc-floating-label">Email</label>
+            </div>
+            <div class="mdc-text-field w-100 mt-2" data-mdc-auto-init="MDCTextField" id="password">
+              <input class="mdc-text-field__input" type="password">
+              <div class="mdc-line-ripple"></div>
+              <label class="mdc-floating-label">Password</label>
+            </div>
+          </form>
+          <button class="toa-stepper-step__action mdc-button mdc-button--unelevated"
+                  onclick="setup.login(this)">Next</button>
+        </div>
+      </div>
+      <div class="toa-stepper-step" id="step4">
+        <div class="toa-stepper-step__header">
+          <span class="toa-stepper-step__icon">4</span>
+          <span class="toa-stepper-step__label">TOA Event</span>
+        </div>
+        <div class="toa-stepper-step__body">
+          <div class="mb-2">If your event is not listed, please <a>contact</a> a TOA Admin immediately.</div>
+          <div id="cards"></div>
+          <button class="toa-stepper-step__action mdc-button mdc-button--unelevated"
+                  id="start-sync" disabled>Start Sync</button>
+        </div>
       </div>
     </div>
   </div>
