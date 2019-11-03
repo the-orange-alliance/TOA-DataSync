@@ -54,26 +54,6 @@ const config = {
       template: './src/setup.html',
       filename: 'setup.html',
       chunks: ['index', 'setup']
-    }),
-    new HtmlWebpackPlugin({
-      template: './src/setup-pages/step1.html',
-      filename: './setup/step1.html',
-      chunks: ['index', 'setup']
-    }),
-    new HtmlWebpackPlugin({
-      template: './src/setup-pages/step2.html',
-      filename: './setup/step2.html',
-      chunks: ['index', 'setup']
-    }),
-    new HtmlWebpackPlugin({
-      template: './src/setup-pages/step3.html',
-      filename: './setup/step3.html',
-      chunks: ['index', 'setup']
-    }),
-    new HtmlWebpackPlugin({
-      template: './src/setup-pages/step4.html',
-      filename: './setup/step4.html',
-      chunks: ['index', 'setup']
     })
   ]
 };
