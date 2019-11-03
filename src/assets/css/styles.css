@@ -293,7 +293,6 @@ label {
   padding: 24px 48px 16px 24px;
   color: rgba(0, 0, 0, 0.87);
   outline: none;
-  cursor: pointer;
 }
 .toa-stepper-step__header::-webkit-details-marker {
   display: none;
