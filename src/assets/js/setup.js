@@ -16,16 +16,10 @@ const showStep = (id) => {
     }
   }
 }
-const backStepBtn = document.querySelector('#back-step button');
-if (backStepBtn) {
-  backStepBtn.onclick = () => {
-    localStorage.clear();
-    if (typeof firebase !== 'undefined') {
-      firebase.auth().signOut();
-    }
-    location.href = './step1.html';
-  }
-}
+
+document.querySelector('#sk-recommend-version').textContent = apis.recommendScorekeeperVersion;
+document.querySelector('#sk-download-link').href =
+  `https://github.com/FIRST-Tech-Challenge/scorekeeper/releases/tag/v${apis.scorekeeperReleaseTag}`;
 
 function log(...args) {
   console.log(...args);
