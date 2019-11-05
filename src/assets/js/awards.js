@@ -19,7 +19,7 @@ function uploadAwards(showSnackbar) {
   scorekeeperApi.get(`/v2/events/${eventId}/awards/`).then((data) => {
     const awards = data.awards;
     for (const award of awards) {
-      const awardId = getAwardIDFromName(award.awardName);
+      const awardId = getAwardIDFromName(award.name);
       if (!awardId) {
         continue;
       }
@@ -45,11 +45,11 @@ function uploadAwards(showSnackbar) {
       }
     }
     return toaApi.get('/event/' + eventKey + '/awards');
-  }).then((oldAwards) =>{
+  }).then((oldAwards) => {
     oldAwards = oldAwards.data.map((award) => award.awards_key);
     const toUpload = allAwards.filter((award) => !oldAwards.includes(award.awards_key));
     log('Uploading awards...', toUpload);
-    if (toUpload > 0) {
+    if (toUpload.length > 0) {
       return toaApi.post('/event/' + eventKey + '/awards', JSON.stringify(toUpload));
     } else if (oldAwards.length > 0) {
       showSnackbar('Awards have already been uploaded.');
