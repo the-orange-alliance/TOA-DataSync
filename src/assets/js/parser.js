@@ -17,8 +17,13 @@ const parser = (event) => {
   }
 
   scorekeeperApi.interceptors.response.use(
-    (response) => {
-      return !response.config || response.config.returnRes ? response : response.data;
+    (response) => !response.config || response.config.returnRes ? response : response.data,
+    (error) => {
+      if (error && error.response && error.response.config) {
+        const res = error.response.config;
+        log(error.response.statusText, res.method.toUpperCase() + ' ' + (res.url.replace(res.baseURL, '')), response.data);
+      }
+      return Promise.reject(error);
     }
   );
 
