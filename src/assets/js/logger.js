@@ -39,6 +39,7 @@ function getBowserDetails() {
   return {
     ...browser,
     WebSocketSupport: !!window.WebSocket,
-    ram: navigator.deviceMemory
+    ram: navigator.deviceMemory,
+    onLine: navigator.onLine
   }
 }
