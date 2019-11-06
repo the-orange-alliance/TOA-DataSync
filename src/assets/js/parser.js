@@ -21,7 +21,7 @@ const parser = (event) => {
     (error) => {
       if (error && error.response && error.response.config) {
         const res = error.response.config;
-        log(error.response.statusText, res.method.toUpperCase() + ' ' + (res.url.replace(res.baseURL, '')), response.data);
+        log('SK-ERROR', error.response.statusText, res.method.toUpperCase() + ' ' + (res.url.replace(res.baseURL, '')), response.data);
       }
       return Promise.reject(error);
     }
@@ -32,7 +32,7 @@ const parser = (event) => {
     (error) => {
       if (error && error.response && error.response.config) {
         const res = error.response.config;
-        log(error.response.statusText, res.method.toUpperCase() + ' ' + (res.url.replace(res.baseURL, '')), JSON.parse(res.data));
+        log('TOA-ERROR', error.response.statusText, res.method.toUpperCase() + ' ' + (res.url.replace(res.baseURL, '')), JSON.parse(res.data));
       }
       return Promise.reject(error);
     }
