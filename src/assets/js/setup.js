@@ -1,7 +1,6 @@
 const apis = require('../../apis');
 const logger = require('./logger');
 const { firebase } = require('./firebase');
-const scorekeeperApi = apis.scorekeeper;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
 
 mdc.autoInit();
@@ -241,6 +240,7 @@ function testScorekeeperConfig(btn) {
 }
 
 function loadScorekeeperEvents() {
+  const scorekeeperApi = apis.scorekeeperFromIp(localStorage.getItem('SCOREKEEPER-IP'));
   scorekeeperApi.get('/v1/events/').then(async (data) => {
     const events = [];
     for (const eventId of data.data.eventCodes) {
