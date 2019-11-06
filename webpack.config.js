@@ -59,6 +59,11 @@ const config = {
       template: './src/log.html',
       filename: 'log.html',
       chunks: []
+    }),
+    new HtmlWebpackPlugin({
+      template: './src/404.html',
+      filename: '404.html',
+      chunks: []
     })
   ]
 };

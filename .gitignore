@@ -5,3 +5,4 @@ package-lock.json
 out
 dist
 TOA-DataSync.iml
+.firebase
