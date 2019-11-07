@@ -83,7 +83,7 @@ function getEventsFromFirebase() {
             data-event-input data-event-id="${event.event_id}">
             <i class="mdc-select__dropdown-icon"></i>
             <div class="mdc-select__selected-text setup-event-select">Select an event...</div>
-            <div class="mdc-select__menu mdc-menu mdc-menu-surface" style="width: calc(100vw - 72px)">
+            <div class="mdc-select__menu mdc-menu mdc-menu-surface">
               <ul class="mdc-list">`;
           adminEvents.forEach((event) => {
             html += `<li class="mdc-list-item"  data-value="${event.event_key}"><span>${event.event_name}
@@ -102,6 +102,10 @@ function getEventsFromFirebase() {
       showStep(4);
       Array.from(document.querySelectorAll('[data-mdc-auto-init="MDCSelect"]')).forEach((input) => {
         input[input.dataset.mdcAutoInit].listen('MDCSelect:change', onEventKeyChanged);
+      });
+      const selectWidth =  document.querySelector('.mdc-select').clientWidth;
+      Array.from(document.querySelectorAll('.mdc-menu.mdc-select__menu')).forEach((input) => {
+        input.style.width = selectWidth + 'px';
       });
     } else {
       showSnackbar("An error has occurred, please log in again.");
