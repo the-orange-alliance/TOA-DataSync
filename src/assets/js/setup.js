@@ -244,7 +244,8 @@ function testScorekeeperConfig(btn) {
 }
 
 function loadScorekeeperEvents() {
-  const scorekeeperApi = apis.scorekeeperFromIp(localStorage.getItem('SCOREKEEPER-IP'));
+  const skHost = localStorage.getItem('SCOREKEEPER-IP');
+  const scorekeeperApi = apis.scorekeeperFromIp(skHost);
   scorekeeperApi.get('/v1/events/').then(async (data) => {
     const events = [];
     for (const eventId of data.data.eventCodes) {
@@ -298,7 +299,7 @@ function loadScorekeeperEvents() {
       document.querySelector('#events-list').innerHTML +=
         `<div class="pt-2 text-center">
           <div class="mdc-typography--subtitle1">No events found</div>
-          <div class="mdc-typography--body2">Please <a href="#" onclick="setup.openExternalLink('http://localhost/setup/event')">create your Scorekeeper event</a> first.</div>
+          <div class="mdc-typography--body2">Please <a href="#" onclick="setup.openExternalLink('http://${skHost}/setup/event')">create your Scorekeeper event</a> first.</div>
           <button class="mdc-button mt-2" onclick="setup.loadScorekeeperEvents()">Retry</button>
         </div>`;
     }
