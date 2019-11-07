@@ -9,11 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macOS-10.14, windows-2016, ubuntu-18.04]
-
+    runs-on: macOS-10.14
     steps:
       - uses: actions/checkout@v1
         with:
@@ -22,24 +18,19 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 10.x
-      - name: npm install
+      - name: Install Dependencies
         run: npm install
       - name: Build
         run: npm run build
-      - name: ZIP Linux
-        if: matrix.os == 'ubuntu-18.04'
-        run: cd dist && zip -r toa-datasync.zip linux-unpacked
-      - name: Cleanup artifacts
-        run: npx rimraf "dist/!(*.exe|*.deb|*.zip|*.AppImage|*.dmg)"
       - name: Upload artifacts
         uses: actions/upload-artifact@v1
         with:
-          name: ${{matrix.os}}
+          name: Build
           path: dist
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Deploy
+        if: github.event == 'push'
+        uses: w9jds/firebase-action@master
         with:
-          files: "dist/**"
+          args: deploy --only hosting:datasync
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

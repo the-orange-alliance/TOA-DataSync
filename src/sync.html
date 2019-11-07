@@ -2,33 +2,33 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>TOA DataSync</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DataSync</title>
+    <link rel="shortcut icon" href="assets/imgs/favicon.png">
     <link href="assets/css/sync-page.css" rel="stylesheet">
     <link href="assets/css/styles.css" rel="stylesheet">
     <link href="assets/css/settings.css" rel="stylesheet">
-    <link href="../node_modules/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="assets/mdi/css/materialdesignicons.min.css" rel="stylesheet">
     <link href="assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/material-components-web@2.2.0/material-components-web.min.css" rel="stylesheet">
 </head>
 <body class="sync-page">
     <header class="mdc-top-app-bar" id="status-header">
-        <div class="drag-toolbar"></div>
         <div class="mdc-top-app-bar__row px-3">
             <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
                 <span class="mdc-top-app-bar__icon mdi" id="status-icon"></span>
                 <span class="mdc-top-app-bar__title" id="status-text">DataSync</span>
             </section>
-            <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end"></section>
         </div>
         <p class="px-3 mdc-typography--body2" id="status-description" style="color: var(--mdc-theme-on-primary, #000)"></p>
     </header>
-    <div class="main-content p-4" style="margin-top: 130px" id="content" hidden>
+    <div class="main-content p-4" id="content" hidden>
         <div class="mdc-card mb-3" style="background: #ffe9eb!important" id="schedule-access" hidden>
             <div style="padding: 0 16px;">
                 <p class="mt-2 mb-0">Please allow access to the schedule</p>
                 <p class="mb-2 card-secondary-text">To provide the best experience for your audience,
                     allow us access to the schedule via unchecking "Keep Schedule Private" in the
-                    <a class="link" onclick="ui.openScorekeeperSchedule()">Scorekeeper schedule page</a>.</p>
+                    <a class="link" onclick="sync.openScorekeeperSchedule()">Scorekeeper schedule page</a>.</p>
             </div>
         </div>
 
@@ -85,43 +85,41 @@
 
     <div class="mdc-dialog" id="settings-dialog" data-mdc-auto-init="MDCDialog">
         <div class="mdc-dialog__container">
-            <div class="mdc-dialog__surface settings-dialog">
-                <button class="mdc-fab mdc-fab--mini white-fab mb-4" data-mdc-dialog-action="no">
-                    <span class="mdc-fab__icon mdi mdi-arrow-left"></span>
-                </button>
-                <div class="mdc-card">
-                    <ul class="mdc-list">
-                        <li class="mdc-list-item" id="streams-btn2">
-                            <span class="mdc-list--avatar-list mdi mdi-video-outline"></span>
-                            <span class="mdc-list-item__text">Streams</span>
-                        </li>
-                        <li class="mdc-list-item" id="purge-data-btn">
-                            <span class="mdc-list--avatar-list mdi mdi-trash-can-outline"></span>
-                            <span class="mdc-list-item__text">Purge Data</span>
-                        </li>
-                        <li class="mdc-list-item" id="save-logs-btn">
-                            <span class="mdc-list--avatar-list mdi mdi-file-document-outline"></span>
-                            <span class="mdc-list-item__text">Download logs</span>
-                        </li>
-                        <li class="mdc-list-item" id="dev-tools-btn">
-                            <span class="mdc-list--avatar-list mdi mdi-console"></span>
-                            <span class="mdc-list-item__text">Open Dev Tools</span>
-                        </li>
-                        <li class="mdc-list-item" id="logout-btn">
-                            <span class="mdc-list--avatar-list mdi mdi-logout"></span>
-                            <span class="mdc-list-item__text">Logout</span>
-                        </li>
-                    </ul>
-                </div>
-                <div class="mdc-card mt-4">
-                    <ul class="mdc-list mdc-list--non-interactive">
-                        <li class="mdc-list-item">
-                            <span class="mdc-list-item__text">DataSync Version: <span class="version" id="ds-version">0.5</span></span>
-                        </li>
-                        <li class="mdc-list-item">
-                            <span class="mdc-list-item__text">Scorekeeper: <span class="version" id="sk-version">0.5</span></span>
-                        </li>
-                    </ul>
+            <div class="mdc-dialog__surface settings-dialog mdc-dialog__content">
+                <div style="width: 100%; max-width: 500px">
+                    <button class="mdc-fab mdc-fab--mini white-fab mb-4" data-mdc-dialog-action="no">
+                        <span class="mdc-fab__icon mdi mdi-arrow-left"></span>
+                    </button>
+                    <div class="mdc-card">
+                        <ul class="mdc-list">
+                            <li class="mdc-list-item" id="streams-btn2">
+                                <span class="mdc-list--avatar-list mdi mdi-video-outline"></span>
+                                <span class="mdc-list-item__text">Streams</span>
+                            </li>
+                            <li class="mdc-list-item" id="purge-data-btn">
+                                <span class="mdc-list--avatar-list mdi mdi-trash-can-outline"></span>
+                                <span class="mdc-list-item__text">Purge Data</span>
+                            </li>
+                            <li class="mdc-list-item" id="save-logs-btn">
+                                <span class="mdc-list--avatar-list mdi mdi-file-document-outline"></span>
+                                <span class="mdc-list-item__text">Download logs</span>
+                            </li>
+                            <li class="mdc-list-item" id="logout-btn">
+                                <span class="mdc-list--avatar-list mdi mdi-logout"></span>
+                                <span class="mdc-list-item__text">Logout</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="mdc-card mt-4">
+                        <ul class="mdc-list mdc-list--non-interactive">
+                            <li class="mdc-list-item">
+                                <span class="mdc-list-item__text">DataSync Version: <span class="version" id="ds-version">0.5</span></span>
+                            </li>
+                            <li class="mdc-list-item">
+                                <span class="mdc-list-item__text">Scorekeeper: <span class="version" id="sk-version">0.5</span></span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -147,7 +145,7 @@
                     <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="close">
                         <span class="mdc-button__label">Close</span>
                     </button>
-                    <button type="button" class="mdc-button" id="add-stream-btn" onclick="ui.createStream(this)" hidden>
+                    <button type="button" class="mdc-button" id="add-stream-btn" onclick="sync.createStream(this)" hidden>
                         <span class="mdc-button__label">Add</span>
                     </button>
                 </footer>
@@ -171,7 +169,7 @@
                     <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="close">
                         <span class="mdc-button__label">Close</span>
                     </button>
-                    <button type="button" class="mdc-button" onclick="ui.updateIpAddress(this)">
+                    <button type="button" class="mdc-button" onclick="sync.updateIpAddress(this)">
                         <span class="mdc-button__label">Update</span>
                     </button>
                 </footer>
@@ -230,9 +228,5 @@
     </div>
 
     <script src="assets/material-components-web@2.2.0/material-components-web.min.js"></script>
-    <script>
-      require('./assets/js/menu.js');
-      const { ui } = require('./assets/js/loop.js');
-    </script>
 </body>
 </html>

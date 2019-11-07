@@ -1,35 +1,24 @@
-const remote = require('electron').remote;
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
 
-const minScorekeeperVersion = '1.1.1';
+const minScorekeeperVersion = '1.1.2';
+const recommendScorekeeperVersion = '1.1.2';
+const scorekeeperReleaseTag = '1.1.2';
 
 const scorekeeperFromIp = (ip) => axios.create({
   baseURL: 'http://' + (ip || localStorage.getItem('SCOREKEEPER-IP')) + '/api',
-  timeout: 5000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  data: {}
+  method: 'GET',
+  timeout: 5000
 });
 
-const toaFromApiKey = (apiKey) => {
-  let key = apiKey;
-  if (!key) {
-    try {
-      const index = parseInt(new URLSearchParams(window.location.search).get('i'), 10);
-      const configEvent = JSON.parse(localStorage.getItem('CONFIG-EVENTS'))[index];
-      key = configEvent.toa_api_key;
-    } catch (e) {}
-  }
-
+const toa = (apiKey) => {
   return axios.create({
     baseURL: 'https://theorangealliance.org/api',
-    timeout: 10000,
+    timeout: 30000,
     headers: {
       'Content-Type': 'application/json',
-      'X-TOA-Key': key,
-      'X-Application-Origin': 'TOA DataSync ' + remote.app.getVersion(),
+      'X-TOA-Key': apiKey,
+      'X-Application-Origin': 'TOA DataSync ' + (dataSyncVersion || '0.0.0'),
     },
     data: {}
   });
@@ -53,6 +42,6 @@ axiosRetry(scorekeeper, {
   }
 });
 
-const toa = toaFromApiKey();
-
-module.exports = { scorekeeper, toa, scorekeeperFromIp, toaFromApiKey, cloud, minScorekeeperVersion };
+module.exports = {
+  scorekeeper, toa, scorekeeperFromIp, cloud, minScorekeeperVersion, recommendScorekeeperVersion, scorekeeperReleaseTag
+};

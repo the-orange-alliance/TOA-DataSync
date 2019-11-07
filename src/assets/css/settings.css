@@ -1,11 +1,14 @@
-.settings-dialog {
+.sync-page .mdc-dialog .settings-dialog {
   width: 100vw;
   height: 100vh;
   max-width: unset!important;
   max-height: unset!important;
   background: #fafcfe!important;
   border-radius: 0!important;
-  padding: 3rem 1rem 0;
+  padding: 1.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .settings-dialog .mdc-list:not(.mdc-list--non-interactive) .mdc-list-item {

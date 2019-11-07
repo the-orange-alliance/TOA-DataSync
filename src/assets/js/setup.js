@@ -1,24 +1,24 @@
-const shell = require('electron').shell;
 const apis = require('../../apis');
-const appbar = require('./appbar');
 const logger = require('./logger');
 const { firebase } = require('./firebase');
-const scorekeeperApi = apis.scorekeeper;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
 
 mdc.autoInit();
-appbar.init();
 
-const backStepBtn = document.querySelector('#back-step button');
-if (backStepBtn) {
-  backStepBtn.onclick = () => {
-    localStorage.clear();
-    if (typeof firebase !== 'undefined') {
-      firebase.auth().signOut();
+const showStep = (id) => {
+  for (let i = 1; i <= 4; i++) {
+    const elm = document.querySelector('#step' + i);
+    if (i === id) {
+      elm.classList.add('toa-stepper-step--active');
+    } else {
+      elm.classList.remove('toa-stepper-step--active');
     }
-    location.href = './step1.html';
   }
 }
+
+document.querySelector('#sk-recommend-version').textContent = apis.recommendScorekeeperVersion;
+document.querySelector('#sk-download-link').href =
+  `https://github.com/FIRST-Tech-Challenge/scorekeeper/releases/tag/v${apis.scorekeeperReleaseTag}`;
 
 function log(...args) {
   console.log(...args);
@@ -47,24 +47,23 @@ function getEventsFromFirebase() {
               const date2 = new Date(b.start_date).getTime();
               return date1 - date2;
             });
-          }).catch(function (error) {
+          }).catch((error) => {
             if (error) {
               console.error(error);
-              showSnackbar("An error has occurred, please restart the app and try again.");
+              showSnackbar("An error has occurred, please reload the and try again.");
               log("Error in getting cloud");
             }
           })
         });
-      }).catch(function (error) {
+      }).catch((error) => {
         if (error.code && error.message) {
           console.error(error);
           showSnackbar("An error has occurred, please restart the app and try again.");
           log("Couldn't get token");
         }
       });
+
       const content = document.querySelector('#cards');
-      const loading = document.querySelector('.center-spin');
-      const fab = document.querySelector('.mdc-fab');
       const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
       events.forEach((event) => {
         let html = '';
@@ -75,7 +74,8 @@ function getEventsFromFirebase() {
 
         if (isAdmin) {
           html += `<div class="mdc-text-field mdc-text-field--no-label" data-mdc-auto-init="MDCTextField" data-event-input>
-            <input type="text" class="mdc-text-field__input" placeholder="Event Key" oninput="setup.onEventKeyChanged()">
+            <input type="text" class="mdc-text-field__input"
+             style="text-transform: uppercase" placeholder="Event Key" oninput="setup.onEventKeyChanged()">
             <div class="mdc-line-ripple"></div>
           </div>`;
         } else {
@@ -98,9 +98,8 @@ function getEventsFromFirebase() {
         html += '</div>';
         content.innerHTML += html;
       });
-      fab.hidden = false;
-      loading.hidden = true;
       mdc.autoInit();
+      showStep(4);
       Array.from(document.querySelectorAll('[data-mdc-auto-init="MDCSelect"]')).forEach((input) => {
         input[input.dataset.mdcAutoInit].listen('MDCSelect:change', onEventKeyChanged);
       });
@@ -110,24 +109,49 @@ function getEventsFromFirebase() {
   });
 }
 
+function login(btn) {
+  const email = document.getElementById('email').MDCTextField.value.toString();
+  const password = document.getElementById('password').MDCTextField.value.toString();
+  if (!email || !password) {
+    showSnackbar('You must enter a email and password.');
+    return;
+  }
+  btn.textContent = 'Logging you in...';
+  btn.disabled = true;
+  firebase.auth().signInWithEmailAndPassword(email, password).then((user) => {
+    btn.textContent = 'Successful!';
+    setTimeout(() => {
+      btn.textContent = 'Please wait...';
+    }, 2000)
+    getEventsFromFirebase(); // We'll call showStep  the events load
+  }).catch((error) => {
+    if (error.code && error.message) {
+      showSnackbar('Invalid username/password combo.');
+      btn.textContent = 'Next';
+      btn.disabled = false;
+      // document.getElementById('password').MDCTextField.value = "";
+    }
+  });
+}
+
 function selectedToaEvent(btn) {
-  btn.querySelector('.mdc-fab__label').textContent = 'Loading...';
+  btn.textContent = 'Loading...';
   btn.disabled = true;
   btn.onclick = null;
   const setInvalid = () => {
-    btn.querySelector('.mdc-fab__label').textContent = 'Retry';
+    btn.textContent = 'Start Sync';
     onEventKeyChanged(); // Removes the disable
   };
 
   const inputs = Array.from(document.querySelectorAll('[data-event-input]'));
   const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
   for (let i = 0; i < events.length; i++) {
-    events[i].toa_event_key = inputs[i][inputs[i].dataset.mdcAutoInit].value
+    events[i].toa_event_key = inputs[i][inputs[i].dataset.mdcAutoInit].value.toUpperCase();
   }
 
   firebase.auth().onAuthStateChanged((user) => {
     if (user === null) {
-      showSnackbar('An error has occurred. Please restart application and try again.');
+      showSnackbar('An error has occurred. Please reload the page and try again.');
     } else {
       user.getIdToken().then(async (token) => {
         for (const event of events) {
@@ -142,7 +166,7 @@ function selectedToaEvent(btn) {
             } else if (error.response.status === 404) {
               showSnackbar('Event not found.');
             } else {
-              showSnackbar(error.response.data['_message'] || 'Cannot access TOA servers. Please make sure you have an Internet connection')
+              showSnackbar(error.response.data['_message'] || 'Cannot access TOA servers. Please make sure you have an Internet connection.')
             }
           })
         }
@@ -151,11 +175,11 @@ function selectedToaEvent(btn) {
             showSnackbar('An error occurred while receiving an API Key.');
           }
         }
-        btn.querySelector('.mdc-fab__label').textContent = 'Successful!';
+        btn.textContent = 'Successful!';
         localStorage.setItem('CONFIG-EVENTS', JSON.stringify(events));
-        location.href = '../index.html';
+        location.href = './index.html';
       }).catch(() => {
-        showSnackbar('An Error has occurred. Please restart application and try again.');
+        showSnackbar('An Error has occurred. Please reload the page and try again.');
         setInvalid();
       });
     }
@@ -167,7 +191,7 @@ function getApiKey(token, eventKey) {
     apis.cloud(token).get('/getAPIKey', { headers: { data: eventKey }, body: { generate: true }}).then((data) => {
       const apiKey = data.data.key;
       log(data.data);
-      return apis.toaFromApiKey(apiKey).get('/event/' + eventKey).then(() => {
+      return apis.toa(apiKey).get('/event/' + eventKey).then(() => {
         resolve(apiKey);
       }).catch((error) => {
         reject(error);
@@ -185,9 +209,9 @@ function onEventKeyChanged() {
       isValid = false;
     }
   }
-  const fab = document.querySelector('.mdc-fab');
-  fab.disabled = !isValid;
-  fab.onclick = isValid ? () => selectedToaEvent(fab) : null;
+  const btn = document.querySelector('#start-sync');
+  btn.disabled = !isValid;
+  btn.onclick = isValid ? () => selectedToaEvent(btn) : null;
 }
 
 function testScorekeeperConfig(btn) {
@@ -197,7 +221,7 @@ function testScorekeeperConfig(btn) {
   }
   btn.textContent = 'Loading...';
   btn.disabled = true;
-  apis.scorekeeperFromIp(ipAddress).get('/v1/version').then((data) => {
+  apis.scorekeeperFromIp(ipAddress).get('/v1/version/').then((data) => {
     const version = data.data.version;
     log('Version ' + version);
     if (version < minScorekeeperVersion) {
@@ -205,7 +229,8 @@ function testScorekeeperConfig(btn) {
     }
     localStorage.setItem('SCOREKEEPER-IP', ipAddress);
     localStorage.setItem('SCOREKEEPER-VERSION', version);
-    location.href = './step2.html';
+    showStep(2);
+    loadScorekeeperEvents();
   }).catch((data) => {
     log(data);
     btn.textContent = 'Retry';
@@ -215,20 +240,15 @@ function testScorekeeperConfig(btn) {
 }
 
 function loadScorekeeperEvents() {
-  const ipAddress = localStorage.getItem('SCOREKEEPER-IP');
-  if (!ipAddress) {
-    location.href = './step1.html';
-    return;
-  }
-  document.querySelector('#events-list').innerHTML = '';
-  scorekeeperApi.get('/v1/events').then(async (data) => {
+  const scorekeeperApi = apis.scorekeeperFromIp(localStorage.getItem('SCOREKEEPER-IP'));
+  scorekeeperApi.get('/v1/events/').then(async (data) => {
     const events = [];
     for (const eventId of data.data.eventCodes) {
-      const event = (await scorekeeperApi.get('/v1/events/' + eventId)).data;
+      const event = (await scorekeeperApi.get('/v1/events/' + eventId + '/')).data;
       if (eventId.endsWith('_0') && event.finals) {
         const baseEventId = eventId.substring(0, eventId.length - 2);
-        const division1 = (await scorekeeperApi.get('/v1//events/' + baseEventId + '_1')).data;
-        const division2 = (await scorekeeperApi.get('/v1/events/' + baseEventId + '_2')).data;
+        const division1 = (await scorekeeperApi.get('/v1//events/' + baseEventId + '_1/')).data;
+        const division2 = (await scorekeeperApi.get('/v1/events/' + baseEventId + '_2/')).data;
 
         let data = {
           event_id: eventId,
@@ -259,7 +279,7 @@ function loadScorekeeperEvents() {
         });
       }
     }
-
+    document.querySelector('#events-list').innerHTML = ''
     for (const event of events) {
       document.getElementById('events-list').innerHTML +=
         `<li class="mdc-list-item" onclick='setup.selectEvent(${JSON.stringify(event)})'>
@@ -269,18 +289,16 @@ function loadScorekeeperEvents() {
           </span>
         </li>`;
     }
-    document.querySelector('#card-title').hidden = events.length === 0;
+    document.querySelector('#step2-description').hidden = events.length === 0;
     if (events.length === 0) {
       document.querySelector('#events-list').innerHTML +=
         `<div class="pt-2 text-center">
-          <div class="mdc-typography--headline6">No events found</div>
-          <div class="mdc-typography--body1">Please <a href="#" onclick="setup.openExternalLink('http://localhost/setup/event')">create your Scorekeeper event</a> first.</div>
+          <div class="mdc-typography--subtitle1">No events found</div>
+          <div class="mdc-typography--body2">Please <a href="#" onclick="setup.openExternalLink('http://localhost/setup/event')">create your Scorekeeper event</a> first.</div>
           <button class="mdc-button mt-2" onclick="setup.loadScorekeeperEvents()">Retry</button>
         </div>`;
     }
-  }).catch(() => {
-    location.href = './step1.html';
-  });
+  }).catch(console.error);
 }
 
 function selectEvent(event) {
@@ -290,7 +308,7 @@ function selectEvent(event) {
     delete event.divisions;
     localStorage.setItem('CONFIG-EVENTS', JSON.stringify([event]));
   }
-  location.href = './step3.html';
+  showStep(3);
 }
 
 function showSnackbar(text) {
@@ -300,7 +318,7 @@ function showSnackbar(text) {
 }
 
 function openExternalLink(url) {
-  shell.openExternal(url);
+  window.open(url, '_blank').focus();
 }
 
 module.exports = {
@@ -309,5 +327,6 @@ module.exports = {
   selectEvent,
   getEventsFromFirebase,
   onEventKeyChanged,
-  openExternalLink
+  openExternalLink,
+  login
 };

@@ -2,7 +2,12 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>TOA DataSync</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:site_name" content="The Orange Alliance" />
+    <meta property="og:title" content="DataSync">
+    <meta property="og:description" content="Sync the your event with The Orange Alliance in realtime."/>
+    <title>DataSync</title>
+    <link rel="shortcut icon" href="assets/imgs/favicon.png">
     <link href="assets/css/styles.css" rel="stylesheet">
     <link href="assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/material-components-web@2.2.0/material-components-web.min.css" rel="stylesheet">
@@ -17,65 +22,6 @@
 </div>
 
 <script src="assets/material-components-web@2.2.0/material-components-web.min.js"></script>
-<script>
-    require('./assets/js/menu.js');
 
-    const { firebase } = require('./assets/js/firebase.js');
-    const { BrowserWindow } = require('electron').remote;
-    const electron =  require('electron');
-    const { platform } = require('os');
-
-    const args = electron.remote.process.argv.slice(1);
-    const data = [];
-
-    if ( args.length > 0 ) {
-        args.forEach(arg => {
-            const values = arg.replace('-', '').split('=');
-            data[values[0]] = values[1];
-        });
-
-        if ( data.username && data.password ) {
-            firebase.auth().signInWithEmailAndPassword(data.username, data.password)
-        }
-    }
-
-    firebase.auth().onAuthStateChanged((user) => {
-        const ipAddress = localStorage.getItem('SCOREKEEPER-IP');
-        const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
-        if (!ipAddress) {
-            return location.href = './setup-pages/step1.html';
-        } else if (ipAddress && !events) {
-            return location.href = './setup-pages/step2.html';
-        } else if (ipAddress && events && !user) {
-            return location.href = './setup-pages/step3.html';
-        } else if (ipAddress && events && user) {
-            for (const event of events) {
-                if (!event.toa_event_key || !event.toa_api_key) {
-                    return location.href = './setup-pages/step4.html';
-                }
-            }
-
-            // SETUP DONE :)
-            for (let i = 1; i < events.length; i++) {
-                const win = new BrowserWindow({
-                    frame: platform() === 'darwin',
-                    width: 500,
-                    height: 640,
-                    x: i % 2 === 0 ? 0 : screen.width - 500,
-                    y: (screen.height - 640) / 2,
-                    resizable: false,
-                    titleBarStyle : 'hiddenInset',
-                    maximizable: false,
-                    fullscreenable: false,
-                    webPreferences: {
-                        nodeIntegration: true
-                    }
-                });
-                win.loadURL(`file://${__dirname}/sync.html?i=${i}`)
-            }
-            return location.href = './sync.html?i=0';
-        }
-    });
-</script>
 </body>
 </html>

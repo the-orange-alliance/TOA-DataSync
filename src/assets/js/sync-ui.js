@@ -1,37 +1,36 @@
-const { clipboard, shell, remote } = require('electron');
-const window = remote.getCurrentWindow();
-const platform = require('os').platform();
 const logger = require('./logger');
 const apis = require('../../apis');
-const appbar = require('./appbar');
 const awardsUploader = require('./awards');
 const { firebase } = require('./firebase');
-const { eventId, eventKey } = require('./config');
+const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
+const eventKey = events.length > 0 ? events[0].toa_event_key : null;
 const toaApi = apis.toa;
 const minScorekeeperVersion = apis.minScorekeeperVersion;
 const scorekeeperIp = localStorage.getItem('SCOREKEEPER-IP');
 let lastStatus = 'loading';
-let isFlashing = false;
+let apiKeys = {};
+for (const event of events) {
+  apiKeys[event.toa_event_key] = event.toa_api_key;
+}
 
 mdc.autoInit();
-appbar.init();
+if (!eventKey) throw new Error('No event key');
 
 function log(...args) {
   console.log(...args);
   logger.write(...args)
 }
 
-toaApi.get('/event/' + eventKey).then((data) => {
+toaApi(apiKeys[eventKey]).get('/event/' + eventKey).then((data) => {
   const event = data.data[0];
-  document.querySelector('#event-name').innerText = event.division_name ? event.division_name + ' Division' : event.event_name;
-  document.querySelector('#view-event').onclick = () => {
-    shell.openExternal('https://theorangealliance.org/events/' + event.event_key);
-  };
+  document.querySelector('#event-name').innerText = event.event_name;
+  document.querySelector('#view-event').onclick = () =>
+    openExternalLink('https://theorangealliance.org/events/' + event.event_key);
 
-  const shortLink = 'toa.events/' + eventKey;
+  const shortLink = 'toa.events/' + events[0].toa_event_key;
   document.querySelector('#short-link').innerText = shortLink;
   document.querySelector('#copy-url').onclick = () => {
-    clipboard.writeText('http://' + shortLink);
+    navigator.clipboard.writeText('http://' + shortLink);
   };
 
   document.querySelector('#content').hidden = false;
@@ -56,7 +55,7 @@ document.querySelector('#upload-awards').onclick = () => {
 
 document.querySelector('#settings-btn').onclick = () => {
   const dialog = document.querySelector('#settings-dialog').MDCDialog;
-  document.querySelector('#ds-version').innerText = remote.app.getVersion() || '0.0.0';
+  document.querySelector('#ds-version').innerText = dataSyncVersion || '0.0.0';
   document.querySelector('#sk-version').innerText = localStorage.getItem('SCOREKEEPER-VERSION') || '0.0.0';
   dialog.open()
 };
@@ -68,30 +67,27 @@ document.querySelector('#purge-data-btn').onclick = () => {
     showSnackbar('Okay, purging...');
 
     // Delete localStorage
-    for (const key in localStorage) {
-      if (key.startsWith(`${eventId}-`)) {
-        localStorage.removeItem(key);
+    for (const event of events) {
+      for (const key in localStorage) {
+        if (key.startsWith(`${event.event_id}-`)) {
+          localStorage.removeItem(key);
+        }
       }
     }
 
-    await toaApi.delete(`/event/${eventKey}/matches/all`);
-    await toaApi.delete(`/event/${eventKey}/rankings`);
-    await toaApi.delete(`/event/${eventKey}/awards`);
-    await toaApi.delete(`/event/${eventKey}/teams`);
+    for (const event of events) {
+      const eventKey = event.toa_event_key;
+      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/matches/all`);
+      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/rankings`);
+      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/awards`);
+      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/teams`);
+    }
     showSnackbar('The data has been successfully purged.');
   });
 };
 
 document.querySelector('#save-logs-btn').onclick = () => {
   logger.saveLogs();
-};
-
-document.querySelector('#dev-tools-btn').onclick = () => {
-  showConfirmationDialog('Warning!', 'This is a feature intended for developers. If someone <u>who is not a TOA developer</u> told you to copy and paste' +
-    ' something here, it is a probably scam and will give them access to your myTOA account and/or your Scorekeeper Software, ' +
-    'including change data of your events.\nAre you sure that you want to open the dev console?').then(() => {
-    window.openDevTools({mode: 'detach'});
-  });
 };
 
 document.querySelector('#logout-btn').onclick = () => {
@@ -101,14 +97,10 @@ document.querySelector('#logout-btn').onclick = () => {
 };
 
 function logout(exit = true) {
-  const divisions = JSON.parse(localStorage.getItem('CONFIG-EVENTS') || '[]');
   localStorage.clear();
   firebase.auth().signOut();
   if (exit) {
-    remote.app.exit(0);
-  } else if (divisions.length > 1 || divisions.length === 0) {
-    remote.app.relaunch();
-    remote.app.exit(0);
+    window.close();
   } else {
     location.href = './setup-pages/step1.html';
   }
@@ -143,7 +135,7 @@ function openStreamsDialog() {
   content.hidden = true;
   deleteStreamButton.hidden = true;
   addStreamButton.hidden = true;
-  toaApi.get(`/event/${eventKey}/streams`).then((data) => {
+  toaApi(apiKeys[eventKey]).get(`/event/${eventKey}/streams`).then((data) => {
     const streams = data.data.filter((stream) => stream.is_active);
     if (streams.length > 0) {
       const stream = streams[0];
@@ -151,7 +143,7 @@ function openStreamsDialog() {
       const stringType = type && type === 0 ? 'youtube' : type && type === 1 ? 'twitch' : 'video';
       content.innerHTML = `Currently linked a stream.
             <div class="w-100 my-2">
-                <div class="mdc-chip ${stringType}-chip" onclick="ui.openExternalLink('${stream.channel_url}')">
+                <div class="mdc-chip ${stringType}-chip" onclick="sync.openExternalLink('${stream.channel_url}')">
                     <i class="mdc-chip__icon mdc-chip__icon--leading mdi mdi-${stringType}"></i>
                     <div class="mdc-chip__text">${stream.channel_name || stream.url}</div>
                 </div>
@@ -166,6 +158,7 @@ function openStreamsDialog() {
                 <label class="mdc-floating-label">URL</label>
             </div>`;
       addStreamButton.hidden = false;
+      mdc.autoInit();
     }
     loading.hidden = true;
     content.hidden = false;
@@ -175,7 +168,7 @@ function openStreamsDialog() {
   });
 
   dialog.open();
-  new Promise(resolve => setTimeout(resolve, 800)).then(() => {
+  new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
     mdc.autoInit();
   });
 }
@@ -186,7 +179,7 @@ document.querySelector('#streams-btn2').onclick = openStreamsDialog;
 function createStream(btn) {
   btn.textContent = 'Loading...';
   btn.disabled = true;
-  toaApi.get(`/event/${eventKey}`).then((data) => {
+  toaApi(apiKeys[eventKey]).get(`/event/${eventKey}`).then((data) => {
     return data.data[0];
   }).then((event) => {
     const streamName = event.division_name ? event.event_name + ' - ' + event.division_name + ' Division' : event.event_name;
@@ -226,7 +219,7 @@ function createStream(btn) {
         channel_url: channelLink
       };
       log('Uploading a stream...', toUpload);
-      return toaApi.post(`/event/${eventKey}/streams`, JSON.stringify([toUpload])).then(() => {
+      return toaApi(apiKeys[eventKey]).post(`/event/${eventKey}/streams`, JSON.stringify([toUpload])).then(() => {
         showSnackbar('The stream has been successfully uploaded.');
         document.querySelector('#streams-dialog').MDCDialog.close();
         btn.textContent = 'Add';
@@ -244,7 +237,7 @@ function createStream(btn) {
 function unlinkStream(streamKey, btn, dialog) {
   btn.textContent = 'Unlinking...';
   btn.disabled = true;
-  toaApi.delete(`/streams/${streamKey}`).then(() => {
+  toaApi(apiKeys[eventKey]).delete(`/streams/${streamKey}`).then(() => {
     dialog.close();
     showSnackbar('The stream has been successfully unlinked.');
     btn.textContent = 'Delete';
@@ -269,7 +262,7 @@ function updateIpAddress(btn) {
   }
   btn.textContent = 'Loading...';
   btn.disabled = true;
-  apis.scorekeeperFromIp(ipAddress).get('/v1/version').then((data) => {
+  apis.scorekeeperFromIp(ipAddress).get('/v1/version/').then((data) => {
     const version = data.data.version;
     console.log('Version ' + version);
     if (version < minScorekeeperVersion) {
@@ -277,8 +270,7 @@ function updateIpAddress(btn) {
     }
     localStorage.setItem('SCOREKEEPER-IP', ipAddress);
     localStorage.setItem('SCOREKEEPER-VERSION', version);
-    remote.app.relaunch();
-    remote.app.exit(0);
+    location.reload();
   }).catch((data) => {
     console.log(data);
     btn.textContent = 'Update';
@@ -289,32 +281,16 @@ function updateIpAddress(btn) {
 
 
 function openExternalLink(url) {
-  shell.openExternal(url);
+  window.open(url, '_blank').focus();
 }
 
 // loading, ok, no-scorekeeper, no-internet, paused
 function setStatus(status) {
-  const setFlash = (bool) => {
-    if (platform === 'win32') {
-      if (!bool && isFlashing) {
-        window.flashFrame(true); // Fix Electron's bug
-        setTimeout(() => window.flashFrame(false), 500);
-      } else {
-        window.flashFrame(bool);
-      }
-    } else if (platform === 'darwin') {
-      remote.app.dock.setBadge(bool ? ' ' : null);
-    }
-    isFlashing = bool;
-  };
   const header = document.querySelector('#status-header');
   const icon = document.querySelector('#status-icon');
   const title = document.querySelector('#status-text');
   const description = document.querySelector('#status-description');
-  const content = document.querySelector('#content');
   const iconBase = 'mdc-top-app-bar__icon mdi mdi-';
-
-  content.style.marginTop = status === 'ok' || status === 'no-scorekeeper' ? '150px' : '130px';
 
   if (status === 'loading') {
     header.className = 'mdc-top-app-bar';
@@ -322,13 +298,11 @@ function setStatus(status) {
     title.innerText = 'Connecting';
     description.innerText = 'We are connecting to our servers...';
   } else if (status === 'ok') {
-    setFlash(false);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-green';
     icon.className = iconBase + 'check-outline';
     title.innerText = 'All is good';
     description.innerText = 'Keep this window open or minimized and connected to the internet to continue upload.';
   } else if (status === 'no-scorekeeper') {
-    setFlash(true);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-red';
     icon.className = iconBase + 'cancel';
     title.innerText = 'Cannot access the Scorekeeper server';
@@ -336,13 +310,11 @@ function setStatus(status) {
     description.innerHTML += `<br/>or <a class="link" id="update-ip">Change the Scorekeeper IP Address</a>.`;
     document.querySelector('#update-ip').onclick = showChangeIpDialog;
   } else if (status === 'no-internet') {
-    setFlash(true);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-red';
     icon.className = iconBase + 'wifi-strength-off-outline';
     title.innerText = 'No internet connection';
     description.innerText = 'Please make sure this computer is connected to the internet.';
   } else if (status === 'paused') {
-    setFlash(false);
     header.className = 'mdc-top-app-bar mdc-top-app-bar-sync-red';
     icon.className = iconBase + 'pause-circle-outline';
     title.innerText = 'The uploading is paused';
@@ -362,7 +334,9 @@ function setScheduleAccess(hide) {
 }
 
 function openScorekeeperSchedule() {
-  openExternalLink(`http://${scorekeeperIp}/event/${eventId}/dashboard/schedule/`);
+  for (const event of events) {
+    openExternalLink(`http://${scorekeeperIp}/event/${event.event_id}/dashboard/schedule/`);
+  }
 }
 
 module.exports = {

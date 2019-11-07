@@ -1,10 +1,7 @@
+const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS') || '[]');
 const logger = require('./logger');
 const apis = require('../../apis');
-const toaApi = apis.toa;
 const scorekeeperApi = apis.scorekeeper;
-const configEvent = JSON.parse(localStorage.getItem('CONFIG-EVENTS'))[0]; // Awards are stored in the Finals[0] Division
-const eventId = configEvent.event_id;
-const eventKey = configEvent.toa_event_key;
 
 function log(...args) {
   console.log(...args);
@@ -12,11 +9,17 @@ function log(...args) {
 }
 
 function uploadAwards(showSnackbar) {
+  if (events.length <= 0) return
+  const event = events[0]; // Awards are stored in the Finals[0] Division
+  const eventId = event.event_id;
+  const eventKey = event.toa_event_key;
+  const toaApi = apis.toa(event.toa_api_key);
+
   const allAwards = [];
   scorekeeperApi.get(`/v2/events/${eventId}/awards/`).then((data) => {
     const awards = data.awards;
     for (const award of awards) {
-      const awardId = getAwardIDFromName(award.awardName);
+      const awardId = getAwardIDFromName(award.name);
       if (!awardId) {
         continue;
       }
@@ -42,11 +45,11 @@ function uploadAwards(showSnackbar) {
       }
     }
     return toaApi.get('/event/' + eventKey + '/awards');
-  }).then((oldAwards) =>{
+  }).then((oldAwards) => {
     oldAwards = oldAwards.data.map((award) => award.awards_key);
     const toUpload = allAwards.filter((award) => !oldAwards.includes(award.awards_key));
     log('Uploading awards...', toUpload);
-    if (toUpload > 0) {
+    if (toUpload.length > 0) {
       return toaApi.post('/event/' + eventKey + '/awards', JSON.stringify(toUpload));
     } else if (oldAwards.length > 0) {
       showSnackbar('Awards have already been uploaded.');
