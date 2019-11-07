@@ -18,7 +18,7 @@ const showStep = (id) => {
 
 document.querySelector('#sk-recommend-version').textContent = apis.recommendScorekeeperVersion;
 document.querySelector('#sk-download-link').href =
-  `https://github.com/FIRST-Tech-Challenge/scorekeeper/releases/tag/v${apis.scorekeeperReleaseTag}`;
+  `https://github.com/FIRST-Tech-Challenge/scorekeeper/releases/tag/${apis.scorekeeperReleaseTag}`;
 
 function log(...args) {
   console.log(...args);
