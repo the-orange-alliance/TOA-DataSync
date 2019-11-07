@@ -83,7 +83,8 @@ h2 {
 .center-spin {
   display: flex;
   margin-top: 56px;
-  height: calc(100vh - 56px);
+  height: calc(100vh - 56px); /* Fallback */
+  height: calc(calc(var(--vh, 1vh) * 100) - 56px);
   justify-content: center;
   align-items: center;
   position: absolute;
