@@ -28,7 +28,7 @@ jobs:
           name: Build
           path: dist
       - name: Deploy
-        if: github.event == 'push'
+        if: github.event_name == 'push'
         uses: w9jds/firebase-action@master
         with:
           args: deploy --only hosting:datasync

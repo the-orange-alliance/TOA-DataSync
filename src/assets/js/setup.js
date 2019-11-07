@@ -18,7 +18,7 @@ const showStep = (id) => {
 
 document.querySelector('#sk-recommend-version').textContent = apis.recommendScorekeeperVersion;
 document.querySelector('#sk-download-link').href =
-  `https://github.com/FIRST-Tech-Challenge/scorekeeper/releases/tag/v${apis.scorekeeperReleaseTag}`;
+  `https://github.com/FIRST-Tech-Challenge/scorekeeper/releases/tag/${apis.scorekeeperReleaseTag}`;
 
 function log(...args) {
   console.log(...args);
@@ -83,7 +83,7 @@ function getEventsFromFirebase() {
             data-event-input data-event-id="${event.event_id}">
             <i class="mdc-select__dropdown-icon"></i>
             <div class="mdc-select__selected-text setup-event-select">Select an event...</div>
-            <div class="mdc-select__menu mdc-menu mdc-menu-surface" style="width: calc(100vw - 72px)">
+            <div class="mdc-select__menu mdc-menu mdc-menu-surface">
               <ul class="mdc-list">`;
           adminEvents.forEach((event) => {
             html += `<li class="mdc-list-item"  data-value="${event.event_key}"><span>${event.event_name}
@@ -102,6 +102,10 @@ function getEventsFromFirebase() {
       showStep(4);
       Array.from(document.querySelectorAll('[data-mdc-auto-init="MDCSelect"]')).forEach((input) => {
         input[input.dataset.mdcAutoInit].listen('MDCSelect:change', onEventKeyChanged);
+      });
+      const selectWidth =  document.querySelector('.mdc-select').clientWidth;
+      Array.from(document.querySelectorAll('.mdc-menu.mdc-select__menu')).forEach((input) => {
+        input.style.width = selectWidth + 'px';
       });
     } else {
       showSnackbar("An error has occurred, please log in again.");
@@ -240,7 +244,8 @@ function testScorekeeperConfig(btn) {
 }
 
 function loadScorekeeperEvents() {
-  const scorekeeperApi = apis.scorekeeperFromIp(localStorage.getItem('SCOREKEEPER-IP'));
+  const skHost = localStorage.getItem('SCOREKEEPER-IP');
+  const scorekeeperApi = apis.scorekeeperFromIp(skHost);
   scorekeeperApi.get('/v1/events/').then(async (data) => {
     const events = [];
     for (const eventId of data.data.eventCodes) {
@@ -294,7 +299,7 @@ function loadScorekeeperEvents() {
       document.querySelector('#events-list').innerHTML +=
         `<div class="pt-2 text-center">
           <div class="mdc-typography--subtitle1">No events found</div>
-          <div class="mdc-typography--body2">Please <a href="#" onclick="setup.openExternalLink('http://localhost/setup/event')">create your Scorekeeper event</a> first.</div>
+          <div class="mdc-typography--body2">Please <a href="#" onclick="setup.openExternalLink('http://${skHost}/setup/event')">create your Scorekeeper event</a> first.</div>
           <button class="mdc-button mt-2" onclick="setup.loadScorekeeperEvents()">Retry</button>
         </div>`;
     }
