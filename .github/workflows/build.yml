@@ -29,8 +29,9 @@ jobs:
           path: dist
       - name: Deploy
         if: github.event_name == 'push'
-        uses: w9jds/firebase-action@master
+        uses: crazy-max/ghaction-github-pages@v1
         with:
-          args: deploy --only hosting:datasync
+          target_branch: gh-pages
+          build_dir: dist
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
