@@ -2,7 +2,7 @@
 A cross-platform desktop app to sync the [Scorekeeper](https://github.com/FIRST-Tech-Challenge/scorekeeper) with [The Orange Alliance](https://github.com/orange-alliance) in realtime.
 <br/>Built on top We recently switched to using a browser version rather than a software version, we recommend that you switch to using the new version.of [Webpack](https://github.com/webpack/webpack), aims to be simple to use, fast and beautiful.
 
-### [Start Syncing The Event](https://upload.theorangealliance.org)
+### [Start Syncing The Event](http://upload.theorangealliance.org)
 
 **We recently switched to using web-based version rather than the software, we recommend you to switch to using the [new version](https://upload.theorangealliance.org).**
 
