@@ -45,27 +45,5 @@
     "webpack-dev-server": "^3.8.2",
     "copy-webpack-plugin": "^5.0.4",
     "@babel/runtime": "^7.6.3"
-  },
-  "build": {
-    "appId": "org.theorangealliance.datasync",
-    "mac": {
-      "category": "public.app-category.education",
-      "icon": "AppIcon.icns"
-    },
-    "win": {
-      "target": [
-        {
-          "target": "portable",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
-        }
-      ],
-      "icon": "AppIcon.ico"
-    },
-    "linux": {
-      "target": "deb"
-    }
   }
 }
