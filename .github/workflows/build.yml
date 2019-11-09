@@ -27,6 +27,8 @@ jobs:
         with:
           name: Build
           path: dist
+      - name: Add CNAME file
+        run: echo 'upload.theorangealliance.org' > ./dist/CNAME
       - name: Deploy
         if: github.event_name == 'push'
         uses: crazy-max/ghaction-github-pages@v1
