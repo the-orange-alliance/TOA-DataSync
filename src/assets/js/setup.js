@@ -103,9 +103,8 @@ function getEventsFromFirebase() {
       Array.from(document.querySelectorAll('[data-mdc-auto-init="MDCSelect"]')).forEach((input) => {
         input[input.dataset.mdcAutoInit].listen('MDCSelect:change', onEventKeyChanged);
       });
-      const selectWidth =  document.querySelector('.mdc-select').clientWidth;
       Array.from(document.querySelectorAll('.mdc-menu.mdc-select__menu')).forEach((input) => {
-        input.style.width = selectWidth + 'px';
+        input.style.width = document.querySelector('.mdc-select').clientWidth + 'px';
       });
     } else {
       showSnackbar("An error has occurred, please log in again.");
