@@ -85,7 +85,8 @@ const parser = (event) => {
   }
 
   function parseAndUpload() {
-    return Promise.all([retrieveMatches(), retrieveTeams()]).catch(() => log);
+    retrieveMatches();
+    retrieveTeams();
   }
 
   async function retrieveMatches() {

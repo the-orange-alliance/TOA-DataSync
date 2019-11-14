@@ -157,6 +157,7 @@ function selectedToaEvent(btn) {
       showSnackbar('An error has occurred. Please reload the page and try again.');
     } else {
       user.getIdToken().then(async (token) => {
+        let hasErrors = false;
         for (const event of events) {
           const eventKey = event.toa_event_key;
           await getApiKey(token, eventKey).then((apiKey) => {
@@ -171,16 +172,19 @@ function selectedToaEvent(btn) {
             } else {
               showSnackbar(error.response.data['_message'] || 'Cannot access TOA servers. Please make sure you have an Internet connection.')
             }
+            hasErrors = true;
           })
         }
-        for (const event of events) {
-          if (!event.toa_event_key || !event.toa_api_key) {
-            showSnackbar('An error occurred while receiving an API Key.');
+        if (!hasErrors) {
+          for (const event of events) {
+            if (!event.toa_event_key || !event.toa_api_key) {
+              return showSnackbar('An error occurred while receiving an API Key.');
+            }
           }
+          btn.textContent = 'Successful!';
+          localStorage.setItem('CONFIG-EVENTS', JSON.stringify(events));
+          location.href = './index.html';
         }
-        btn.textContent = 'Successful!';
-        localStorage.setItem('CONFIG-EVENTS', JSON.stringify(events));
-        location.href = './index.html';
       }).catch(() => {
         showSnackbar('An Error has occurred. Please reload the page and try again.');
         setInvalid();
