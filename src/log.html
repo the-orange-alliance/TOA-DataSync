@@ -50,7 +50,8 @@
       console.clear();
       let skErrors = 0;
       let toaErrors = 0;
-      await zip.file('local-storage.json').async('string').then(file => {
+      let invalidKeyMsg;
+      const ls = await zip.file('local-storage.json').async('string').then(file => {
         const json = JSON.parse(file);
         let newJson = {};
         Object.keys(json).forEach((key) => {
@@ -60,11 +61,26 @@
             newJson[key] = json[key];
           }
         });
-        console.log('localStorage', newJson);
+        return newJson;
       });
       const browser = await zip.file('browser.json').async('string').then(file => JSON.parse(file));
+      if ((ls['CONFIG-EVENTS'] || []).length > 0) {
+        const event = ls['CONFIG-EVENTS'][0];
+        await fetch(`https://theorangealliance.org/api/event/${event.toa_event_key}`, { headers: {
+          'content-type': 'application/json',
+          'X-Application-Origin': 'DataSync Log Reader - API Key Testing',
+          'X-TOA-Key': event.toa_api_key+'f'
+        }}).then(async res => {
+          if (res.status !== 200) invalidKeyMsg = (await res.json())['_message'];
+        }).catch(() => {})
+      }
+      await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms, until the network logs are printed
+      console.clear();
+
+      console.log('localStorage', ls);
       console.log('Browser', browser);
       await zip.file('console.txt').async('string').then(file => {
+        if (file === '') return;
         for (const line of file.trim().split('\n')) {
           const parts = [];
           let isError = false;
@@ -86,7 +102,18 @@
         }
       });
 
+      console.group('More Information');
+      console.log(`Browser: ${browser.browser.name} ${browser.browser.version}`);
+      console.log(`Machine: ${browser.os.name} ${browser.os.versionName}`);
+      console.log(`Scorekeeper Host: ${ls['SCOREKEEPER-IP']}`);
+      console.log(`Scorekeeper Version: ${ls['SCOREKEEPER-VERSION']}`);
+      for (const event of ls['CONFIG-EVENTS'] || []) {
+        console.log(`https://theorangealliance.org/events/${event['toa_event_key']}`);
+      }
+      console.groupEnd();
+
       // Find issues
+      if (invalidKeyMsg) console.warn(invalidKeyMsg);
       if (!browser.WebSocketSupport) console.warn('WebSocket is not supported by the browser.');
       if (browser.onLine === undefined || browser.onLine === null) console.warn('navigator.onLine is undefined.');
       if (browser.onLine === false) console.warn('No internet connection.');
