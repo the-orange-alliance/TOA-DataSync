@@ -1,5 +1,5 @@
 const webpack = require('webpack');
-const HtmlWebpackPlugin = require('html-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
 
@@ -39,6 +39,7 @@ const config = {
       { from: './src/assets', to: './assets' },
       { from: './node_modules/@mdi/font/fonts', to: './assets/mdi/fonts' },
       { from: './node_modules/@mdi/font/css', to: './assets/mdi/css' },
+      { from: './src/log.html', to: 'log.html' },
     ]),
     new HtmlWebpackPlugin({
       template: './src/index.html',
@@ -54,11 +55,6 @@ const config = {
       template: './src/setup.html',
       filename: 'setup.html',
       chunks: ['index', 'setup']
-    }),
-    new HtmlWebpackPlugin({
-      template: './src/log.html',
-      filename: 'log.html',
-      chunks: []
     }),
     new HtmlWebpackPlugin({
       template: './src/404.html',

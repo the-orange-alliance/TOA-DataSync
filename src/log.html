@@ -67,10 +67,10 @@
       if ((ls['CONFIG-EVENTS'] || []).length > 0) {
         const event = ls['CONFIG-EVENTS'][0];
         await fetch(`https://theorangealliance.org/api/event/${event.toa_event_key}`, { headers: {
-          'content-type': 'application/json',
-          'X-Application-Origin': 'DataSync Log Reader - API Key Testing',
-          'X-TOA-Key': event.toa_api_key+'f'
-        }}).then(async res => {
+            'content-type': 'application/json',
+            'X-Application-Origin': 'DataSync Log Reader - API Key Testing',
+            'X-TOA-Key': event.toa_api_key
+          }}).then(async res => {
           if (res.status !== 200) invalidKeyMsg = (await res.json())['_message'];
         }).catch(() => {})
       }
