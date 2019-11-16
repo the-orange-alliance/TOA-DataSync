@@ -244,8 +244,9 @@ const parser = (event) => {
       });
     }
 
-    await toaApi.delete(`/event/${eventKey}/teams`);
-    await toaApi.post(`/event/${eventKey}/teams`, JSON.stringify(result));
+    return toaApi.delete(`/event/${eventKey}/teams`).finally(() =>
+      toaApi.post(`/event/${eventKey}/teams`, JSON.stringify(result))
+    );
   }
 
   async function retrieveRankings() {
@@ -282,9 +283,9 @@ const parser = (event) => {
     }
 
     log('Uploading rankings...', result);
-    toaApi.delete(`/event/${eventKey}/rankings`).then(() => {
-      return toaApi.post(`/event/${eventKey}/rankings`, JSON.stringify(result));
-    });
+    return toaApi.delete(`/event/${eventKey}/rankings`).finally(() =>
+      toaApi.post(`/event/${eventKey}/rankings`, JSON.stringify(result))
+    );
   }
 };
 
