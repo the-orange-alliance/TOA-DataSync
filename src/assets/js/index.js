@@ -44,3 +44,11 @@ if (dataSyncMode !== 'development') {
     return text;
   };
 }
+
+// Mixed Content
+if (location.protocol === 'https:' && location.hash !== '#s') {
+  const newLocation = new URL(location.toString());
+  newLocation.protocol = 'http:';
+  newLocation.hash = '#s';
+  location = newLocation;
+}

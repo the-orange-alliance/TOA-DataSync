@@ -240,9 +240,16 @@ function testScorekeeperConfig(btn) {
     loadScorekeeperEvents();
   }).catch((data) => {
     log(data);
-    btn.textContent = 'Retry';
-    btn.disabled = false;
-    showSnackbar(typeof data === 'string' ? data : 'Cannot access the scorekeeper.');
+    console.log(JSON.stringify(data));
+
+    // Mixed Content
+    if (location.protocol === 'https:' && !ipAddress.startsWith('localhost') && typeof data !== 'string') {
+      testMixedContent();
+    } else {
+      btn.textContent = 'Retry';
+      btn.disabled = false;
+      showSnackbar(typeof data === 'string' ? data : 'Cannot access the scorekeeper.');
+    }
   });
 }
 
@@ -327,6 +334,11 @@ function showSnackbar(text) {
 
 function openExternalLink(url) {
   window.open(url, '_blank').focus();
+}
+
+function testMixedContent() {
+  // TODO: Test
+  // document.querySelector('#ssl-dialog').MDCDialog.open();
 }
 
 module.exports = {
