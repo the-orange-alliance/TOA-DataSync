@@ -1,0 +1,15 @@
+language: node
+node_js: 10
+script: npm run build
+before_deploy: echo 'upload.theorangealliance.org' > ./dist/CNAME
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token:
+    secure: mfJsBzCvlO1rrknJXeuuNqc0l2X6D437NZsax4NgOLAvHNbvswZHVjWPxyzyHfy9XRT/OvDPh2VNysrtX8ZSdUnTof8KVdFvxd4prBomMETdkHDqAwR5PJv41tWGOgiO3BZDtlmO04OgqjHqAyDgc9FldYt4RXO7XC859hI3S9dcBewlnNs0ke3N7QMmN4l74lz0nsj3GD/3wQ8dZnf3IFCI1/gvZYiw0+CXjSK4+sX61W/afGD7y1l1HYYVc3sjSbr52xMsby2fKekXxMcAAGUZIDiGn7wtQUDB+KZB2/QgYuxNYyN5lVNbbNAaAlzlPl9FpzDQ4egwC7gpDgl8/4NZ07LImxJ9J4D91YBp4c43WoXEDl4H2XrjssaWReRt84qz90Z15nczXlJxGtPEiJaXgs6GwKXwA/r6Re4EUAOqxxKFhkhPZAzaSrlNL/MTL+JBt22iwY89qfjQBUgpY+QJyQRg9swvj9SxgL1GYq0y/qXg5JLg/0nVtYxknVR6VhP4w8L5b/h9uL2m5mGNZU9gVuYFpRaYyjGD63Me4+O0LRetVvJPUabTN2oVUEUCN/VF5lDlj6hpEZ9Wo+rkXaO+pVD+lSATAaHBlY4gSnSbOTIiDmdfVjo8GHvmvSHS3XBSclxhNGmPvPNtfUnG6IvXXBp/DbwR9aEhAuZnYPU=
+  on:
+    branch: master
+    repo: orange-alliance/TOA-DataSync
+
+notifications:
+  email: false
