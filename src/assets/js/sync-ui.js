@@ -20,6 +20,10 @@ function log(...args) {
   console.log(...args);
   logger.write(...args)
 }
+window.onerror = (msg, url, line) => {
+  const paths = new URL(url).pathname.split('/');
+  logger.write(msg, paths[paths.length - 1] + ':' + line);
+};
 
 toaApi(apiKeys[eventKey]).get('/event/' + eventKey).then((data) => {
   const event = data.data[0];
