@@ -98,6 +98,20 @@ function getEventsFromFirebase() {
         html += '</div>';
         content.innerHTML += html;
       });
+      if (isAdmin) {
+        content.innerHTML += `<div class="mdc-form-field mt-1">
+          <div class="mdc-checkbox">
+            <input type="checkbox" class="mdc-checkbox__native-control" id="live-checkbox"/>
+            <div class="mdc-checkbox__background">
+              <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+              </svg>
+              <div class="mdc-checkbox__mixedmark"></div>
+            </div>
+          </div>
+          <label for="live-checkbox">Live Uploading</label>
+        </div>`;
+      }
       mdc.autoInit();
       showStep(4);
       Array.from(document.querySelectorAll('[data-mdc-auto-init="MDCSelect"]')).forEach((input) => {
@@ -181,6 +195,12 @@ function selectedToaEvent(btn) {
               return showSnackbar('An error occurred while receiving an API Key.');
             }
           }
+          const liveCheckbox = document.querySelector('#live-checkbox').checked;
+          await Promise.all(events.map(e => apis.toa(e.toa_api_key).put('/event/' + e.toa_event_key, JSON.stringify([{
+            event_key: e.toa_event_key,
+            season_key: e.toa_event_key.split('-')[0],
+            data_source: !liveCheckbox || liveCheckbox.checked ? 1 : 2
+          }]))));
           btn.textContent = 'Successful!';
           localStorage.setItem('CONFIG-EVENTS', JSON.stringify(events));
           location.href = './index.html';
