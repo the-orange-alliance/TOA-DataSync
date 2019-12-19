@@ -77,12 +77,13 @@ document.querySelector('#purge-data-btn').onclick = () => {
 
     for (const event of events) {
       const eventKey = event.toa_event_key;
-      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/matches/all`);
-      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/rankings`);
-      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/awards`);
-      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/teams`);
+      Promise.all([
+        toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/matches/all`),
+        toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/rankings`),
+        toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/awards`),
+        toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/teams`),
+      ]).finally(() => showSnackbar('The data has been successfully purged.'));
     }
-    showSnackbar('The data has been successfully purged.');
   });
 };
 
