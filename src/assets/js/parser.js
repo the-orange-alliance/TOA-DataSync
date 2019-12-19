@@ -125,7 +125,7 @@ const parser = (event) => {
 
     if (matchName.startsWith('SF')) {
       return parseAndUploadMatch(match, index + 1, matchName.substr(2,1), 30, alliances);
-    } else if (matchName.startsWith('F')) {
+    } else if (matchName.startsWith('F') || matchName.startsWith('IF')) {
       return parseAndUploadMatch(match, index + 1, 0, 4, alliances);
     }
   }
@@ -293,7 +293,7 @@ function generateMatchName(tournLevel, matchNumber, elimNumber){
   if (tournLevel === 30) {
     return `Semis ${elimNumber} Match ${matchNumber}`
   } else if (tournLevel === 4) {
-    return `Finals Match ${matchNumber}`
+    return `Finals ${matchNumber}`
   } else {
     return null;
   }

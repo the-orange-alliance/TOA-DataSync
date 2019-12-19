@@ -19,13 +19,13 @@ function uploadAwards(showSnackbar) {
   scorekeeperApi.get(`/v2/events/${eventId}/awards/`).then((data) => {
     const awards = data.awards;
     for (const award of awards) {
-      let awardId = getAwardIDFromName(award.name);
-      if (!awardId) {
+      let globalAwardId = getAwardIDFromName(award.name);  // WIN
+      if (!globalAwardId) {
         continue;
       }
-      awardId += (winner.series || 0).toString(); // WIN1
 
       for (const winner of award.winners) {
+        const awardId = globalAwardId + (winner.series || 0).toString(); // WIN1
         const awardKey = `${eventKey}-${awardId}`; // 1819-ISR-CMP0-WIN1
         let teamKey = winner.team && winner.team > 0 ? winner.team + '' : null;
         let receiverName = null;
