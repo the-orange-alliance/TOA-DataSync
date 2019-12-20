@@ -260,14 +260,15 @@ const parser = (event) => {
     }
 
     const result = [];
+    const ranked = rankings.filter(r => r.ranking > 0);
     for (const rank of rankings) {
-      if (rank.ranking > 0) {
+      if (ranked.length > 0) {
         const teamKey = rank.team.toString();
         result.push({
           rank_key: `${eventKey}-R${teamKey}`,
           event_key: eventKey,
           team_key: teamKey,
-          rank: rank.ranking,
+          rank: rank.ranking > 0 ? rank.ranking : 0,
           rank_change: 0,
           wins: rank.wins,
           losses: rank.losses,
