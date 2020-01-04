@@ -195,7 +195,7 @@ function selectedToaEvent(btn) {
               return showSnackbar('An error occurred while receiving an API Key.');
             }
           }
-          const liveCheckbox = document.querySelector('#live-checkbox').checked;
+          const liveCheckbox = document.querySelector('#live-checkbox');
           await Promise.all(events.map(e => apis.toa(e.toa_api_key).put('/event/' + e.toa_event_key, JSON.stringify([{
             event_key: e.toa_event_key,
             season_key: e.toa_event_key.split('-')[0],
@@ -205,9 +205,10 @@ function selectedToaEvent(btn) {
           localStorage.setItem('CONFIG-EVENTS', JSON.stringify(events));
           location.href = './index.html';
         }
-      }).catch(() => {
-        showSnackbar('An Error has occurred. Please reload the page and try again.');
+      }).catch((e) => {
+        showSnackbar('An Error has occurred. Please reload the page and try again.2');
         setInvalid();
+        throw e;
       });
     }
   });
