@@ -1,22 +1,12 @@
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
 
-const minScorekeeperVersion = '1.2.1';
-const recommendScorekeeperVersion = '1.3.0';
-const scorekeeperReleaseTag = 'v1.3.0';
-
-const getSKBaseUrl = (ip) => {
-  const host = ip || localStorage.getItem('SCOREKEEPER-IP');
-  try {
-    const url = new URL(host);;
-    return url.protocol + '//' + url.hostname;
-  } catch (e) {
-    return 'http://' + host;
-  }
-};
+const minScorekeeperVersion = '1.1.2';
+const recommendScorekeeperVersion = '1.1.2';
+const scorekeeperReleaseTag = '1.1.2';
 
 const scorekeeperFromIp = (ip) => axios.create({
-  baseURL: getSKBaseUrl(ip) + '/api',
+  baseURL: 'http://' + (ip || localStorage.getItem('SCOREKEEPER-IP')) + '/api',
   method: 'GET',
   timeout: 5000
 });
@@ -53,5 +43,5 @@ axiosRetry(scorekeeper, {
 });
 
 module.exports = {
-  scorekeeper, toa, scorekeeperFromIp, cloud, minScorekeeperVersion, recommendScorekeeperVersion, scorekeeperReleaseTag, getSKBaseUrl
+  scorekeeper, toa, scorekeeperFromIp, cloud, minScorekeeperVersion, recommendScorekeeperVersion, scorekeeperReleaseTag
 };

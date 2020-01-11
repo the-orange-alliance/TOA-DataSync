@@ -43,8 +43,8 @@ const parser = (event) => {
   parseAndUpload();
 
   // Fast update matches
-  const url = new URL(apis.getSKBaseUrl());
-  const socket = new ReconnectingWebSocket(`${url.protocol === 'https:' ? 'wss' : 'ws'}://${url.hostname}/api/v2/stream/?code=${eventId}`);
+  const host = localStorage.getItem('SCOREKEEPER-IP').replace('http://', '');
+  const socket = new ReconnectingWebSocket(`ws://${host}/api/v2/stream/?code=${eventId}`);
   socket.debug = true;
   socket.timeoutInterval = 20 * 1000;  // 20 seconds
   socket.maxReconnectInterval = 5 * 60 * 1000; // 5 minutes

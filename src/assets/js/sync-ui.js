@@ -340,8 +340,7 @@ function setScheduleAccess(hide) {
 
 function openScorekeeperSchedule() {
   for (const event of events) {
-    const url = new URL(apis.getSKBaseUrl());
-    openExternalLink(`${url.protocol}//${url.hostname}/event/${event.event_id}/dashboard/schedule/`);
+    openExternalLink(`http://${scorekeeperIp}/event/${event.event_id}/dashboard/schedule/`);
   }
 }
 
