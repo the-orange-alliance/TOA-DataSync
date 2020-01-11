@@ -273,39 +273,43 @@ function loadScorekeeperEvents() {
   scorekeeperApi.get('/v1/events/').then(async (data) => {
     const events = [];
     for (const eventId of data.data.eventCodes) {
-      const event = (await scorekeeperApi.get('/v1/events/' + eventId + '/')).data;
-      if (eventId.endsWith('_0') && event.finals) {
-        const baseEventId = eventId.substring(0, eventId.length - 2);
-        const division1 = (await scorekeeperApi.get('/v1//events/' + baseEventId + '_1/')).data;
-        const division2 = (await scorekeeperApi.get('/v1/events/' + baseEventId + '_2/')).data;
-
-        let data = {
-          event_id: eventId,
-          name: event.name,
-          divisions: [
-            {
-              event_id: eventId,
-              name: 'Finals'
-            },
-            {
-              event_id: division1.eventCode,
-              name: division1.name
-            },
-            {
-              event_id: division2.eventCode,
-              name: division2.name
-            }
-          ]
-        };
-        events.push(data);
-      } else if (event.division > 0) {
-        continue;
-      } else {
-        events.push({
-          event_id: eventId,
-          name: event.name,
-          divisions: []
-        });
+      try {
+        const event = (await scorekeeperApi.get('/v1/events/' + eventId + '/')).data;
+        if (eventId.endsWith('_0') && event.finals) {
+          const baseEventId = eventId.substring(0, eventId.length - 2);
+          const division1 = (await scorekeeperApi.get('/v1//events/' + baseEventId + '_1/')).data;
+          const division2 = (await scorekeeperApi.get('/v1/events/' + baseEventId + '_2/')).data;
+  
+          let data = {
+            event_id: eventId,
+            name: event.name,
+            divisions: [
+              {
+                event_id: eventId,
+                name: 'Finals'
+              },
+              {
+                event_id: division1.eventCode,
+                name: division1.name
+              },
+              {
+                event_id: division2.eventCode,
+                name: division2.name
+              }
+            ]
+          };
+          events.push(data);
+        } else if (event.division > 0) {
+          continue;
+        } else {
+          events.push({
+            event_id: eventId,
+            name: event.name,
+            divisions: []
+          });
+        }  
+      } catch (e) {
+        console.log(e);
       }
     }
     document.querySelector('#events-list').innerHTML = ''
