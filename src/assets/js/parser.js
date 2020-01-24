@@ -4,7 +4,7 @@ const ReconnectingWebSocket = require('reconnectingwebsocket');
 const uploadMatchDetails = require('./match-details');
 
 const parser = (event) => {
-  const { eventId, eventKey, apiKey, isFinalDivision } = event;
+  const { eventId, eventKey, apiKey, isFinalDivision, type } = event;
   const logger = require('./logger');
   const toaApi = apis.toa(apiKey);
   const scorekeeperApi = apis.scorekeeper;
@@ -251,7 +251,8 @@ const parser = (event) => {
 
   async function retrieveRankings() {
     const cacheKey = `${eventId}-rankings`;
-    const rankings = (await scorekeeperApi.get(`/v1/events/${eventId}/rankings/`)).rankingList;
+    const isLeagueTournament = type && type === 'League Tournament';
+    const rankings = (await scorekeeperApi.get(`/v1/events/${eventId}/rankings/${isLeagueTournament ? 'combined/' : ''}`)).rankingList;
 
     if ((localStorage.getItem(cacheKey) || []) === JSON.stringify(rankings)) {
       return;
