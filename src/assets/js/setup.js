@@ -283,18 +283,22 @@ function loadScorekeeperEvents() {
           let data = {
             event_id: eventId,
             name: event.name,
+            type: event.type,
             divisions: [
               {
                 event_id: eventId,
-                name: 'Finals'
+                name: 'Finals',
+                type: event.type
               },
               {
                 event_id: division1.eventCode,
-                name: division1.name
+                name: division1.name,
+                type: division1.type
               },
               {
                 event_id: division2.eventCode,
-                name: division2.name
+                name: division2.name,
+                type: division2.type
               }
             ]
           };
@@ -305,6 +309,7 @@ function loadScorekeeperEvents() {
           events.push({
             event_id: eventId,
             name: event.name,
+            type: event.type,
             divisions: []
           });
         }  
@@ -315,12 +320,13 @@ function loadScorekeeperEvents() {
     document.querySelector('#events-list').innerHTML = ''
     for (const event of events) {
       document.getElementById('events-list').innerHTML +=
-        `<li class="mdc-list-item" onclick='setup.selectEvent(${JSON.stringify(event)})'>
+        `<li class="mdc-list-item" id="event-${event.event_id}">
           <span class="mdc-list-item__graphic mdi mdi-calendar-outline"></span>
           <span class="mdc-list-item__text">
             ${event.divisions.length > 0 ? event.name + ' - ' + ' Dual Division' : event.name}
           </span>
         </li>`;
+        document.querySelector('#event-' + event.event_id).setAttribute('onclick', `setup.selectEvent(${JSON.stringify(event)})`)
     }
     document.querySelector('#step2-description').hidden = events.length === 0;
     if (events.length === 0) {
