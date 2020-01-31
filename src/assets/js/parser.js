@@ -191,16 +191,16 @@ const parser = (event) => {
       const red = alliances.filter(a => a.seed === match.red.seed)[0];
       const blue = alliances.filter(a => a.seed === match.blue.seed)[0];
 
-      participants.push(buildParticipant(red.captain, 'R1', matchKey, match.red.captain === -1));
-      participants.push(buildParticipant(red.pick1, 'R2', matchKey, match.red.pick1 === -1));
+      participants.push(buildParticipant(red.captain, 'R1', matchKey, false, match.red.captain === -1));
+      participants.push(buildParticipant(red.pick1, 'R2', matchKey, false, match.red.pick1 === -1));
       if (red.pick2 !== -1 && blue.pick2 !== -1) {
-        participants.push(buildParticipant(red.pick2, 'R3', matchKey, match.red.pick2 === -1));
+        participants.push(buildParticipant(red.pick2, 'R3', matchKey, false, match.red.pick2 === -1));
       }
 
-      participants.push(buildParticipant(blue.captain, 'B1', matchKey, match.blue.captain === -1));
-      participants.push(buildParticipant(blue.pick1, 'B2', matchKey, match.blue.pick1 === -1));
+      participants.push(buildParticipant(blue.captain, 'B1', matchKey, false, match.blue.captain === -1));
+      participants.push(buildParticipant(blue.pick1, 'B2', matchKey, false, match.blue.pick1 === -1));
       if (red.pick2 !== -1 && blue.pick2 !== -1) {
-        participants.push(buildParticipant(blue.pick2, 'B3', matchKey, match.blue.pick2 === -1));
+        participants.push(buildParticipant(blue.pick2, 'B3', matchKey, false, match.blue.pick2 === -1));
       }
     }
 
@@ -308,7 +308,7 @@ function buildParticipant(teamKey, suffix, matchKey, isSurrogate, noShow = false
     match_key: matchKey,
     team_key: teamKey,
     station: getStation(suffix),
-    station_status: isSurrogate ? 0 : (noShow) ? 2 : 1, // 0 = Surrogate, 1 = Normal, 2 = No Show/Sit Out
+    station_status: isSurrogate ? 0 : noShow ? 2 : 1, // 0 = Surrogate, 1 = Normal, 2 = No Show/Sit Out
     ref_status: 0
   };
 }
