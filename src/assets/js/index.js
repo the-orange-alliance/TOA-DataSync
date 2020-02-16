@@ -1,6 +1,8 @@
 const { firebase } = require('./firebase.js');
 require('devtools-detect');
 
+console.log(`DataSync v${dataSyncVersion} running in ${dataSyncMode} mode.`)
+
 window.addEventListener('devtoolschange', event => {
   if (event.detail.isOpen) {
     const warningStyle = 'font-family: sans-serif; font-size: 20px;';

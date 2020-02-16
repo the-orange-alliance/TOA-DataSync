@@ -2,8 +2,8 @@ const axios = require('axios');
 const axiosRetry = require('axios-retry');
 
 const minScorekeeperVersion = '1.3.0';
-const recommendScorekeeperVersion = '1.3.2';
-const scorekeeperReleaseTag = 'v1.3.2';
+const recommendScorekeeperVersion = '1.4.0';
+const scorekeeperReleaseTag = 'v1.4.0';
 
 const scorekeeperFromIp = (ip) => axios.create({
   baseURL: 'http://' + (ip || localStorage.getItem('SCOREKEEPER-IP')) + '/api',

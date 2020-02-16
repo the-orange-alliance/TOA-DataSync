@@ -3,7 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
 
-const config = {
+module.exports = env => ({
   target: 'web',
   entry: {
     index: './src/assets/js/index.js',
@@ -33,7 +33,7 @@ const config = {
   plugins: [
     new webpack.DefinePlugin({
       dataSyncVersion: JSON.stringify(require('./package.json').version),
-      dataSyncMode: JSON.stringify(process.env.NODE_ENV || 'development')
+      dataSyncMode: JSON.stringify(env && env.NODE_ENV || 'development')
     }),
     new CopyPlugin([
       { from: './src/assets', to: './assets' },
@@ -66,6 +66,4 @@ const config = {
       chunks: []
     })
   ]
-};
-
-module.exports = config;
+});
