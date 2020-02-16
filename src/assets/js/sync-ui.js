@@ -24,6 +24,14 @@ window.onerror = (msg, url, line) => {
   const paths = new URL(url).pathname.split('/');
   logger.write(msg, paths[paths.length - 1] + ':' + line);
 };
+if (dataSyncMode !== 'development') {
+  window.onbeforeunload = (e) => {
+    const text = 'You are going to stop uploading data to The Orange Alliance. Are you sure?';
+    e = e || window.event;
+    if (e) e.returnValue = text;
+    return text;
+  };
+}
 
 toaApi(apiKeys[eventKey]).get('/event/' + eventKey).then((data) => {
   const event = data.data[0];
