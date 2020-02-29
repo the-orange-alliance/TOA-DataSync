@@ -2,19 +2,17 @@ const apis = require('../../apis');
 const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
 const toaApi = apis.toa;
 
-module.exports = async function uploadMatchDetails(details, matchKey, eventKey) {
+module.exports = async function uploadMatchDetails(match, matchKey, eventKey) {
   let apiKeys = {};
   for (const event of events) {
     apiKeys[event.toa_event_key] = event.toa_api_key;
   }
 
-  if (!details) return;
-
   let data = {};
   if (matchKey.startsWith('1819')) {
-    data = getMatchDetails1819(details, matchKey);
+    data = getMatchDetails1819(match, matchKey);
   } else if (matchKey.startsWith('1920')) {
-    data = getMatchDetails1920(details, matchKey);
+    data = getMatchDetails1920(match, matchKey);
   }
 
   return toaApi(apiKeys[eventKey]).put(`/event/${eventKey}/matches/${matchKey}/details`, JSON.stringify([data]));
