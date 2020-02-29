@@ -53,6 +53,7 @@ toaApi(apiKeys[eventKey]).get('/event/' + eventKey).then((data) => {
 
 document.querySelector('#stop-sync-btn').onclick = () => {
   const content = 'You are going to logout from your myTOA Account, and stop uploading data to The Orange Alliance.' +
+    '\nDon\'t forget to upload the awards!' +
     '\nAre you sure?';
   showConfirmationDialog('Stop Uploading Data and Logout', content).then(async () => {
     const dialog = document.querySelector('#goodbye-dialog').MDCDialog;
