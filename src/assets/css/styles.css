@@ -291,6 +291,15 @@ label {
   text-align: center;
 }
 
+.request-access {
+  color: white;
+  text-decoration: underline;
+}
+
+.request-access:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
 .toa-stepper {
   width: 100%;
   max-width: 600px;
