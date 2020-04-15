@@ -31,9 +31,11 @@ function getEventsFromFirebase() {
   firebase.auth().onAuthStateChanged(async user => {
     if (user) {
       await user.getIdTokenResult().then(async (value) => {
-        return await apis.cloud(value.token).get('/user', { headers: {
-          short: true
-        }}).then(me => {
+        return await apis.cloud(value.token).get('/user', {
+          headers: {
+            short: true
+          }
+        }).then(me => {
           if (me.data.level >= 6) {
             isAdmin = true;
           } else {
@@ -87,7 +89,7 @@ function getEventsFromFirebase() {
               <ul class="mdc-list">`;
           adminEvents.forEach((event) => {
             html += `<li class="mdc-list-item"  data-value="${event.event_key}"><span>${event.event_name}
-              ${event.division_name ? `<span style="font-weight: 500"> - ${event.division_name} Division</span>` : `` }
+              ${event.division_name ? `<span style="font-weight: 500"> - ${event.division_name} Division</span>` : ``}
             </span></li>`
           });
           html += `</ul>
@@ -196,17 +198,24 @@ function selectedToaEvent(btn) {
             }
           }
           const liveCheckbox = document.querySelector('#live-checkbox');
-          await Promise.all(events.map(e => apis.toa(e.toa_api_key).put('/event/' + e.toa_event_key, JSON.stringify([{
+          await Promise.all(events.map(e => apis.toa(e.toa_api_key).post('/connect', JSON.stringify({
             event_key: e.toa_event_key,
-            season_key: e.toa_event_key.split('-')[0],
-            data_source: !liveCheckbox || liveCheckbox.checked ? 1 : 2
-          }]))));
+            source: {
+              key: !liveCheckbox || liveCheckbox.checked ? 1 : 2,
+              name: `DataSync v${dataSyncVersion || '0.0.0'}`
+            },
+            user: {
+              name: user.displayName,
+              email: user.email,
+              uid: user.uid
+            }
+          }))));
           btn.textContent = 'Successful!';
           localStorage.setItem('CONFIG-EVENTS', JSON.stringify(events));
           location.href = './index.html';
         }
       }).catch((e) => {
-        showSnackbar('An Error has occurred. Please reload the page and try again.2');
+        showSnackbar('An Error has occurred. Please reload the page and try again.');
         setInvalid();
         throw e;
       });
@@ -216,7 +225,7 @@ function selectedToaEvent(btn) {
 
 function getApiKey(token, eventKey) {
   return new Promise((resolve, reject) => {
-    apis.cloud(token).get('/getAPIKey', { headers: { data: eventKey }, body: { generate: true }}).then((data) => {
+    apis.cloud(token).get('/getAPIKey', { headers: { data: eventKey }, body: { generate: true } }).then((data) => {
       const apiKey = data.data.key;
       log(data.data);
       return apis.toa(apiKey).get('/event/' + eventKey).then(() => {
@@ -279,7 +288,7 @@ function loadScorekeeperEvents() {
           const baseEventId = eventId.substring(0, eventId.length - 2);
           const division1 = (await scorekeeperApi.get('/v1//events/' + baseEventId + '_1/')).data;
           const division2 = (await scorekeeperApi.get('/v1/events/' + baseEventId + '_2/')).data;
-  
+
           let data = {
             event_id: eventId,
             name: event.name,
@@ -312,7 +321,7 @@ function loadScorekeeperEvents() {
             type: event.type,
             divisions: []
           });
-        }  
+        }
       } catch (e) {
         console.log(e);
       }
@@ -326,7 +335,7 @@ function loadScorekeeperEvents() {
             ${event.divisions.length > 0 ? event.name + ' - ' + ' Dual Division' : event.name}
           </span>
         </li>`;
-        document.querySelector('#event-' + event.event_id).setAttribute('onclick', `setup.selectEvent(${JSON.stringify(event)})`)
+      document.querySelector('#event-' + event.event_id).setAttribute('onclick', `setup.selectEvent(${JSON.stringify(event)})`)
     }
     document.querySelector('#step2-description').hidden = events.length === 0;
     if (events.length === 0) {
