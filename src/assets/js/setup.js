@@ -31,9 +31,11 @@ function getEventsFromFirebase() {
   firebase.auth().onAuthStateChanged(async user => {
     if (user) {
       await user.getIdTokenResult().then(async (value) => {
-        return await apis.cloud(value.token).get('/user', { headers: {
-          short: true
-        }}).then(me => {
+        return await apis.cloud(value.token).get('/user', {
+          headers: {
+            short: true
+          }
+        }).then(me => {
           if (me.data.level >= 6) {
             isAdmin = true;
           } else {
@@ -87,7 +89,7 @@ function getEventsFromFirebase() {
               <ul class="mdc-list">`;
           adminEvents.forEach((event) => {
             html += `<li class="mdc-list-item"  data-value="${event.event_key}"><span>${event.event_name}
-              ${event.division_name ? `<span style="font-weight: 500"> - ${event.division_name} Division</span>` : `` }
+              ${event.division_name ? `<span style="font-weight: 500"> - ${event.division_name} Division</span>` : ``}
             </span></li>`
           });
           html += `</ul>
@@ -98,14 +100,27 @@ function getEventsFromFirebase() {
         html += '</div>';
         content.innerHTML += html;
       });
+      if (isAdmin) {
+        content.innerHTML += `<div class="mdc-form-field mt-1">
+          <div class="mdc-checkbox">
+            <input type="checkbox" class="mdc-checkbox__native-control" id="live-checkbox"/>
+            <div class="mdc-checkbox__background">
+              <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+              </svg>
+              <div class="mdc-checkbox__mixedmark"></div>
+            </div>
+          </div>
+          <label for="live-checkbox">Live Uploading</label>
+        </div>`;
+      }
       mdc.autoInit();
       showStep(4);
       Array.from(document.querySelectorAll('[data-mdc-auto-init="MDCSelect"]')).forEach((input) => {
         input[input.dataset.mdcAutoInit].listen('MDCSelect:change', onEventKeyChanged);
       });
-      const selectWidth =  document.querySelector('.mdc-select').clientWidth;
       Array.from(document.querySelectorAll('.mdc-menu.mdc-select__menu')).forEach((input) => {
-        input.style.width = selectWidth + 'px';
+        input.style.width = document.querySelector('.mdc-select').clientWidth + 'px';
       });
     } else {
       showSnackbar("An error has occurred, please log in again.");
@@ -158,6 +173,7 @@ function selectedToaEvent(btn) {
       showSnackbar('An error has occurred. Please reload the page and try again.');
     } else {
       user.getIdToken().then(async (token) => {
+        let hasErrors = false;
         for (const event of events) {
           const eventKey = event.toa_event_key;
           await getApiKey(token, eventKey).then((apiKey) => {
@@ -172,19 +188,36 @@ function selectedToaEvent(btn) {
             } else {
               showSnackbar(error.response.data['_message'] || 'Cannot access TOA servers. Please make sure you have an Internet connection.')
             }
+            hasErrors = true;
           })
         }
-        for (const event of events) {
-          if (!event.toa_event_key || !event.toa_api_key) {
-            showSnackbar('An error occurred while receiving an API Key.');
+        if (!hasErrors) {
+          for (const event of events) {
+            if (!event.toa_event_key || !event.toa_api_key) {
+              return showSnackbar('An error occurred while receiving an API Key.');
+            }
           }
+          const liveCheckbox = document.querySelector('#live-checkbox');
+          await Promise.all(events.map(e => apis.toa(e.toa_api_key).post('/connect', JSON.stringify({
+            event_key: e.toa_event_key,
+            source: {
+              key: !liveCheckbox || liveCheckbox.checked ? 1 : 2,
+              name: `DataSync v${dataSyncVersion || '0.0.0'}`
+            },
+            user: {
+              name: user.displayName,
+              email: user.email,
+              uid: user.uid
+            }
+          }))));
+          btn.textContent = 'Successful!';
+          localStorage.setItem('CONFIG-EVENTS', JSON.stringify(events));
+          location.href = './index.html';
         }
-        btn.textContent = 'Successful!';
-        localStorage.setItem('CONFIG-EVENTS', JSON.stringify(events));
-        location.href = './index.html';
-      }).catch(() => {
+      }).catch((e) => {
         showSnackbar('An Error has occurred. Please reload the page and try again.');
         setInvalid();
+        throw e;
       });
     }
   });
@@ -192,7 +225,7 @@ function selectedToaEvent(btn) {
 
 function getApiKey(token, eventKey) {
   return new Promise((resolve, reject) => {
-    apis.cloud(token).get('/getAPIKey', { headers: { data: eventKey }, body: { generate: true }}).then((data) => {
+    apis.cloud(token).get('/getAPIKey', { headers: { data: eventKey }, body: { generate: true } }).then((data) => {
       const apiKey = data.data.key;
       log(data.data);
       return apis.toa(apiKey).get('/event/' + eventKey).then(() => {
@@ -249,50 +282,60 @@ function loadScorekeeperEvents() {
   scorekeeperApi.get('/v1/events/').then(async (data) => {
     const events = [];
     for (const eventId of data.data.eventCodes) {
-      const event = (await scorekeeperApi.get('/v1/events/' + eventId + '/')).data;
-      if (eventId.endsWith('_0') && event.finals) {
-        const baseEventId = eventId.substring(0, eventId.length - 2);
-        const division1 = (await scorekeeperApi.get('/v1//events/' + baseEventId + '_1/')).data;
-        const division2 = (await scorekeeperApi.get('/v1/events/' + baseEventId + '_2/')).data;
+      try {
+        const event = (await scorekeeperApi.get('/v1/events/' + eventId + '/')).data;
+        if (eventId.endsWith('_0') && event.finals) {
+          const baseEventId = eventId.substring(0, eventId.length - 2);
+          const division1 = (await scorekeeperApi.get('/v1//events/' + baseEventId + '_1/')).data;
+          const division2 = (await scorekeeperApi.get('/v1/events/' + baseEventId + '_2/')).data;
 
-        let data = {
-          event_id: eventId,
-          name: event.name,
-          divisions: [
-            {
-              event_id: eventId,
-              name: 'Finals'
-            },
-            {
-              event_id: division1.eventCode,
-              name: division1.name
-            },
-            {
-              event_id: division2.eventCode,
-              name: division2.name
-            }
-          ]
-        };
-        events.push(data);
-      } else if (event.division > 0) {
-        continue;
-      } else {
-        events.push({
-          event_id: eventId,
-          name: event.name,
-          divisions: []
-        });
+          let data = {
+            event_id: eventId,
+            name: event.name,
+            type: event.type,
+            divisions: [
+              {
+                event_id: eventId,
+                name: 'Finals',
+                type: event.type
+              },
+              {
+                event_id: division1.eventCode,
+                name: division1.name,
+                type: division1.type
+              },
+              {
+                event_id: division2.eventCode,
+                name: division2.name,
+                type: division2.type
+              }
+            ]
+          };
+          events.push(data);
+        } else if (event.division > 0) {
+          continue;
+        } else {
+          events.push({
+            event_id: eventId,
+            name: event.name,
+            type: event.type,
+            divisions: []
+          });
+        }
+      } catch (e) {
+        console.log(e);
       }
     }
     document.querySelector('#events-list').innerHTML = ''
     for (const event of events) {
       document.getElementById('events-list').innerHTML +=
-        `<li class="mdc-list-item" onclick='setup.selectEvent(${JSON.stringify(event)})'>
+        `<li class="mdc-list-item" id="event-${event.event_id}">
           <span class="mdc-list-item__graphic mdi mdi-calendar-outline"></span>
           <span class="mdc-list-item__text">
             ${event.divisions.length > 0 ? event.name + ' - ' + ' Dual Division' : event.name}
           </span>
         </li>`;
+      document.querySelector('#event-' + event.event_id).setAttribute('onclick', `setup.selectEvent(${JSON.stringify(event)})`)
     }
     document.querySelector('#step2-description').hidden = events.length === 0;
     if (events.length === 0) {

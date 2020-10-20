@@ -9,7 +9,7 @@ function log(...args) {
 }
 
 function uploadAwards(showSnackbar) {
-  if (events.length <= 0) return
+  if (events.length <= 0) return;
   const event = events[0]; // Awards are stored in the Finals[0] Division
   const eventId = event.event_id;
   const eventKey = event.toa_event_key;
@@ -19,22 +19,23 @@ function uploadAwards(showSnackbar) {
   scorekeeperApi.get(`/v2/events/${eventId}/awards/`).then((data) => {
     const awards = data.awards;
     for (const award of awards) {
-      const awardId = getAwardIDFromName(award.name);
-      if (!awardId) {
+      let globalAwardId = getAwardIDFromName(award.name);  // WIN
+      if (!globalAwardId) {
         continue;
       }
 
       for (const winner of award.winners) {
-        const awardKey = `${eventKey}-${awardId}${winner.series || 0}`; //1819-ISR-CMP0-WIN1
+        const awardId = globalAwardId + (winner.series || 0).toString(); // WIN1
+        const awardKey = `${eventKey}-${awardId}`; // 1819-ISR-CMP0-WIN1
         let teamKey = winner.team && winner.team > 0 ? winner.team + '' : null;
         let receiverName = null;
-        if (awardId === 'DNSF' || awardId === 'DNSSF') {
-          receiverName = `${winner.firstName} ${winner.lastName}`;
+        if (winner.firstName || winner.lastName) {
+          receiverName = `${winner.firstName || ''} ${winner.lastName || ''}`.trim();
         }
 
         if (teamKey || receiverName) {
           allAwards.push({
-            award_key: awardId + (winner.series || 0),
+            award_key: awardId,
             award_name: getAwardNameFromID(awardId),
             awards_key: awardKey,
             event_key: eventKey,
@@ -85,6 +86,7 @@ function getAwardIDFromName(name) {
     case 'Motivate Award':
       return 'MOT';
     case 'Control Award':
+    case 'Control Award sponsored by Arm, Inc.':
       return 'CTL';
     case 'Promote Award':
       return 'PRM';

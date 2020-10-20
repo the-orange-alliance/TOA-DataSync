@@ -20,6 +20,18 @@ function log(...args) {
   console.log(...args);
   logger.write(...args)
 }
+window.onerror = (msg, url, line) => {
+  const paths = new URL(url).pathname.split('/');
+  logger.write(msg, paths[paths.length - 1] + ':' + line);
+};
+if (dataSyncMode !== 'development') {
+  window.onbeforeunload = (e) => {
+    const text = 'You are going to stop uploading data to The Orange Alliance. Are you sure?';
+    e = e || window.event;
+    if (e) e.returnValue = text;
+    return text;
+  };
+}
 
 toaApi(apiKeys[eventKey]).get('/event/' + eventKey).then((data) => {
   const event = data.data[0];
@@ -41,6 +53,7 @@ toaApi(apiKeys[eventKey]).get('/event/' + eventKey).then((data) => {
 
 document.querySelector('#stop-sync-btn').onclick = () => {
   const content = 'You are going to logout from your myTOA Account, and stop uploading data to The Orange Alliance.' +
+    '\nDon\'t forget to upload the awards!' +
     '\nAre you sure?';
   showConfirmationDialog('Stop Uploading Data and Logout', content).then(async () => {
     const dialog = document.querySelector('#goodbye-dialog').MDCDialog;
@@ -77,12 +90,13 @@ document.querySelector('#purge-data-btn').onclick = () => {
 
     for (const event of events) {
       const eventKey = event.toa_event_key;
-      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/matches/all`);
-      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/rankings`);
-      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/awards`);
-      await toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/teams`);
+      Promise.all([
+        toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/matches/all`),
+        toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/rankings`),
+        toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/awards`),
+        toaApi(apiKeys[eventKey]).delete(`/event/${eventKey}/teams`),
+      ]).finally(() => showSnackbar('The data has been successfully purged.'));
     }
-    showSnackbar('The data has been successfully purged.');
   });
 };
 
