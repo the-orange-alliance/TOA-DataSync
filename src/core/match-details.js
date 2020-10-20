@@ -15,10 +15,7 @@ module.exports = async function uploadMatchDetails(match, matchKey, eventKey) {
     data = getMatchDetails1920(match, matchKey);
   }
 
-  return toaApi(apiKeys[eventKey]).put(
-    `/event/${eventKey}/matches/${matchKey}/details`,
-    JSON.stringify([data])
-  );
+  return toaApi(apiKeys[eventKey]).put(`/event/${eventKey}/matches/${matchKey}/details`, JSON.stringify([data]));
 };
 
 function getMatchDetails1819(details, matchKey) {
@@ -77,28 +74,20 @@ function getMatchDetails1819(details, matchKey) {
     blue_tele_depot: details.blue.depotMinerals / 2,
     blue_end_latch: details.blue.latchedLander / 50,
     blue_end_in: calcCratePoints(details.blue.endParking).partCrater,
-    blue_end_comp: calcCratePoints(details.blue.endParking).fullCrater,
+    blue_end_comp: calcCratePoints(details.blue.endParking).fullCrater
   };
 }
 
 function getMatchDetails1920(details, matchKey) {
   const getCapLevel = (alliance) => {
-    const level1 =
-      alliance.robot1.capstoneLevel === -1 ? 0 : alliance.robot1.capstoneLevel;
-    const level2 =
-      alliance.robot2.capstoneLevel === -1 ? 0 : alliance.robot2.capstoneLevel;
+    const level1 = alliance.robot1.capstoneLevel === -1 ? 0 : alliance.robot1.capstoneLevel;
+    const level2 = alliance.robot2.capstoneLevel === -1 ? 0 : alliance.robot2.capstoneLevel;
     return level1 + level2;
   };
   const getSkystones = (alliance) => {
-    if (
-      alliance.autoStones[0] === 'SKYSTONE' &&
-      alliance.autoStones[1] === 'SKYSTONE'
-    ) {
+    if (alliance.autoStones[0] === 'SKYSTONE' && alliance.autoStones[1] === 'SKYSTONE') {
       return 2;
-    } else if (
-      alliance.autoStones[0] === 'SKYSTONE' ||
-      alliance.autoStones[1] === 'SKYSTONE'
-    ) {
+    } else if (alliance.autoStones[0] === 'SKYSTONE' || alliance.autoStones[1] === 'SKYSTONE') {
       return 1;
     } else {
       return 0;
@@ -106,8 +95,7 @@ function getMatchDetails1920(details, matchKey) {
   };
   const getStones = (alliance) => {
     const skystones = getSkystones(alliance);
-    const stones =
-      alliance.autoStones.filter((x) => x && x !== 'NONE').length - skystones;
+    const stones = alliance.autoStones.filter((x) => x && x !== 'NONE').length - skystones;
     return Math.max(stones, 0); // Prevent negative numbers
   };
 
@@ -139,12 +127,12 @@ function getMatchDetails1920(details, matchKey) {
       robot_1: {
         nav: details.red.robot1.navigated,
         parked: details.red.robot1.parked,
-        cap_level: details.red.robot1.capstoneLevel,
+        cap_level: details.red.robot1.capstoneLevel
       },
       robot_2: {
         nav: details.red.robot2.navigated,
         parked: details.red.robot2.parked,
-        cap_level: details.red.robot2.capstoneLevel,
+        cap_level: details.red.robot2.capstoneLevel
       },
       foundation_moved: details.red.foundationMoved,
       auto_transport_points: details.red.autoTransportPoints,
@@ -154,15 +142,14 @@ function getMatchDetails1920(details, matchKey) {
       tele_transport_points: details.red.driverControlledTransportPoints,
       tele_placed_points: details.red.driverControlledPlacedPoints,
       tower_bonus: details.red.towerBonusPoints / 2,
-      tower_capping_bonus:
-        (details.red.capstonePoints - getCapLevel(details.red)) / 5,
+      tower_capping_bonus: (details.red.capstonePoints - getCapLevel(details.red)) / 5,
       tower_level_bonus: getCapLevel(details.red),
       end_robots_parked: details.red.parkingPoints / 5,
       auto_points: details.red.autonomousPoints,
       auto_total: details.red.auto,
       tele_total: details.red.tele,
       end_total: details.red.end,
-      penalty_total: details.red.penalty,
+      penalty_total: details.red.penalty
     },
 
     blue: {
@@ -184,12 +171,12 @@ function getMatchDetails1920(details, matchKey) {
       robot_1: {
         nav: details.blue.robot1.navigated,
         parked: details.blue.robot1.parked,
-        cap_level: details.blue.robot1.capstoneLevel,
+        cap_level: details.blue.robot1.capstoneLevel
       },
       robot_2: {
         nav: details.blue.robot2.navigated,
         parked: details.blue.robot2.parked,
-        cap_level: details.blue.robot2.capstoneLevel,
+        cap_level: details.blue.robot2.capstoneLevel
       },
       foundation_moved: details.blue.foundationMoved,
       auto_transport_points: details.blue.autoTransportPoints,
@@ -199,16 +186,15 @@ function getMatchDetails1920(details, matchKey) {
       tele_transport_points: details.blue.driverControlledTransportPoints,
       tele_placed_points: details.blue.driverControlledPlacedPoints,
       tower_bonus: details.blue.towerBonusPoints / 2,
-      tower_capping_bonus:
-        (details.blue.capstonePoints - getCapLevel(details.blue)) / 5,
+      tower_capping_bonus: (details.blue.capstonePoints - getCapLevel(details.blue)) / 5,
       tower_level_bonus: getCapLevel(details.blue),
       end_robots_parked: details.blue.parkingPoints / 5,
       auto_points: details.blue.autonomousPoints,
       auto_total: details.blue.auto,
       tele_total: details.blue.tele,
       end_total: details.blue.end,
-      penalty_total: details.blue.penalty,
+      penalty_total: details.blue.penalty
     },
-    randomization: details.randomization,
+    randomization: details.randomization
   };
 }

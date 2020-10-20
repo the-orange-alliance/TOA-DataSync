@@ -16,8 +16,7 @@ const parser = (event) => {
   }
 
   scorekeeperApi.interceptors.response.use(
-    (response) =>
-      !response.config || response.config.returnRes ? response : response.data,
+    (response) => (!response.config || response.config.returnRes ? response : response.data),
     (error) => {
       if (error && error.response && error.response.config) {
         const res = error.response.config;
@@ -50,9 +49,7 @@ const parser = (event) => {
 
   // Fast update matches
   const host = localStorage.getItem('SCOREKEEPER-IP').replace('http://', '');
-  const socket = new ReconnectingWebSocket(
-    `ws://${host}/api/v2/stream/?code=${eventId}`
-  );
+  const socket = new ReconnectingWebSocket(`ws://${host}/api/v2/stream/?code=${eventId}`);
   socket.debug = true;
   socket.timeoutInterval = 20 * 1000; // 20 seconds
   socket.maxReconnectInterval = 5 * 60 * 1000; // 5 minutes
@@ -62,44 +59,25 @@ const parser = (event) => {
     if (json.updateType === 'MATCH_COMMIT') {
       log(`Fast uploading ${matchName}.`);
       if (matchName.startsWith('Q')) {
-        const match = await scorekeeperApi.get(
-          `/2021/v1/events/${eventId}/matches/${json.payload.number}/`
-        );
+        const match = await scorekeeperApi.get(`/2021/v1/events/${eventId}/matches/${json.payload.number}/`);
         parseAndUploadMatch(match);
 
         // Upload rankings
         const isLeagueTournament = type && type === 'League Tournament';
         const rankings = (
-          await scorekeeperApi.get(
-            `/v1/events/${eventId}/rankings/${
-              isLeagueTournament ? 'combined/' : ''
-            }`
-          )
+          await scorekeeperApi.get(`/v1/events/${eventId}/rankings/${isLeagueTournament ? 'combined/' : ''}`)
         ).rankingList;
         retrieveRankings(rankings);
-      } else if (
-        matchName.startsWith('SF') ||
-        matchName.startsWith('F') ||
-        matchName.startsWith('IF')
-      ) {
-        const alliances = (
-          await scorekeeperApi.get(`/v1/events/${eventId}/elim/alliances/`)
-        ).alliances;
-        const elims = (
-          await scorekeeperApi.get(`/v1/events/${eventId}/elim/all/`)
-        ).matchList;
+      } else if (matchName.startsWith('SF') || matchName.startsWith('F') || matchName.startsWith('IF')) {
+        const alliances = (await scorekeeperApi.get(`/v1/events/${eventId}/elim/alliances/`)).alliances;
+        const elims = (await scorekeeperApi.get(`/v1/events/${eventId}/elim/all/`)).matchList;
         let match = null;
         if (matchName.startsWith('SF')) {
           match = await scorekeeperApi.get(
-            `/2021/v1/events/${eventId}/elim/sf/${matchName.substr(
-              2,
-              1
-            )}/${matchName.substr(4, 1)}/`
+            `/2021/v1/events/${eventId}/elim/sf/${matchName.substr(2, 1)}/${matchName.substr(4, 1)}/`
           );
         } else {
-          match = await scorekeeperApi.get(
-            `/2021/v1/events/${eventId}/elim/finals/${matchName.substr(-1)}/`
-          );
+          match = await scorekeeperApi.get(`/2021/v1/events/${eventId}/elim/finals/${matchName.substr(-1)}/`);
         }
         const index = elims.findIndex((m) => m.match === matchName);
         const arr = [];
@@ -135,9 +113,7 @@ const parser = (event) => {
   const uploadAllData = async () => {
     log('Fetching all data...');
     const data = await scorekeeperApi.get(`/v2/events/${eventId}/full/`);
-    const details = await scorekeeperApi.get(
-      `/2021/v1/events/${eventId}/full/`
-    );
+    const details = await scorekeeperApi.get(`/2021/v1/events/${eventId}/full/`);
     const {
       version,
       event,
@@ -147,34 +123,24 @@ const parser = (event) => {
       matchList,
       elimsMatchList,
       elimsMatchDetailedList,
-      allianceList,
+      allianceList
     } = data;
 
     // Teams
     retrieveTeams(teamList.teams);
 
     // Rankings
-    retrieveRankings(
-      event.type === 'League Tournament'
-        ? combinedRankingsList.rankingList
-        : rankingsList.rankingList
-    );
+    retrieveRankings(event.type === 'League Tournament' ? combinedRankingsList.rankingList : rankingsList.rankingList);
 
     // Qual Matches
     for (const match of matchList.matches) {
-      const detail = details.matchList.matches.find(
-        (m) => m.matchBrief.matchName === match.matchBrief.matchName
-      );
+      const detail = details.matchList.matches.find((m) => m.matchBrief.matchName === match.matchBrief.matchName);
       parseAndUploadMatch(detail);
     }
 
     // Playoff Matches
     for (let i = 0; i < details.elimsMatchList.matches.length; i++) {
-      parseAndUploadElimMatch(
-        i,
-        details.elimsMatchList.matches,
-        allianceList.alliances
-      );
+      parseAndUploadElimMatch(i, details.elimsMatchList.matches, allianceList.alliances);
     }
   };
   uploadAllData();
@@ -185,33 +151,17 @@ const parser = (event) => {
     const matchName = match.matchBrief.matchName;
 
     if (matchName.startsWith('SF')) {
-      return parseAndUploadMatch(
-        match,
-        index + 1,
-        parseInt(matchName.substr(2, 1)),
-        30,
-        alliances
-      );
+      return parseAndUploadMatch(match, index + 1, parseInt(matchName.substr(2, 1)), 30, alliances);
     } else if (matchName.startsWith('F') || matchName.startsWith('IF')) {
       return parseAndUploadMatch(match, index + 1, 0, 4, alliances);
     }
   }
 
-  async function parseAndUploadMatch(
-    match,
-    numberElimMatchesPlayed,
-    elimNumber,
-    tournLevel,
-    alliances
-  ) {
+  async function parseAndUploadMatch(match, numberElimMatchesPlayed, elimNumber, tournLevel, alliances) {
     const participants = [];
     const isQual = !tournLevel || tournLevel === 1;
-    const elimMatchNumber = isQual
-      ? -1
-      : match.matchBrief.matchName.toString().split('-')[1];
-    const matchNumber = isQual
-      ? match.matchBrief.matchNumber.toString()
-      : numberElimMatchesPlayed;
+    const elimMatchNumber = isQual ? -1 : match.matchBrief.matchName.toString().split('-')[1];
+    const matchNumber = isQual ? match.matchBrief.matchNumber.toString() : numberElimMatchesPlayed;
     const hasDetails = match.matchBrief.finished;
 
     // Format Match Number
@@ -231,19 +181,10 @@ const parser = (event) => {
     let matchJSON = {
       match_key: matchKey,
       event_key: eventKey,
-      tournament_level:
-        tournLevel && tournLevel === 30
-          ? tournLevel + elimNumber
-          : isQual
-          ? 1
-          : tournLevel,
-      scheduled_time:
-        match.scheduledTime > 0 ? getDateString(match.scheduledTime) : null,
-      match_start_time:
-        match.startTime > 0 ? getDateString(match.startTime) : null,
-      match_name: isQual
-        ? `Quals ${matchNumber}`
-        : generateMatchName(tournLevel, elimMatchNumber, elimNumber),
+      tournament_level: tournLevel && tournLevel === 30 ? tournLevel + elimNumber : isQual ? 1 : tournLevel,
+      scheduled_time: match.scheduledTime > 0 ? getDateString(match.scheduledTime) : null,
+      match_start_time: match.startTime > 0 ? getDateString(match.startTime) : null,
+      match_name: isQual ? `Quals ${matchNumber}` : generateMatchName(tournLevel, elimMatchNumber, elimNumber),
       play_number: 1,
       field_number: hasDetails ? match.matchBrief.field : -1,
       red_score: hasDetails ? match.redScore : -1,
@@ -255,72 +196,37 @@ const parser = (event) => {
       red_tele_score: hasDetails ? match.red.teleop : -1,
       blue_tele_score: hasDetails ? match.blue.teleop : -1,
       red_end_score: hasDetails ? match.red.end : -1,
-      blue_end_score: hasDetails ? match.blue.end : -1,
+      blue_end_score: hasDetails ? match.blue.end : -1
     };
 
     if (isQual) {
       const { red, blue } = match.matchBrief;
-      participants.push(
-        buildParticipant(red.team1, 'R1', matchKey, red.isTeam1Surrogate)
-      );
-      participants.push(
-        buildParticipant(red.team2, 'R2', matchKey, red.isTeam2Surrogate)
-      );
-      participants.push(
-        buildParticipant(blue.team1, 'B1', matchKey, blue.isTeam1Surrogate)
-      );
-      participants.push(
-        buildParticipant(blue.team2, 'B2', matchKey, blue.isTeam2Surrogate)
-      );
+      participants.push(buildParticipant(red.team1, 'R1', matchKey, red.isTeam1Surrogate));
+      participants.push(buildParticipant(red.team2, 'R2', matchKey, red.isTeam2Surrogate));
+      participants.push(buildParticipant(blue.team1, 'B1', matchKey, blue.isTeam1Surrogate));
+      participants.push(buildParticipant(blue.team2, 'B2', matchKey, blue.isTeam2Surrogate));
     } else if (alliances && alliances.length > 0) {
-      const red = alliances.filter(
-        (a) => a.seed === match.matchBrief.red.seed
-      )[0];
-      const blue = alliances.filter(
-        (a) => a.seed === match.matchBrief.blue.seed
-      )[0];
+      const red = alliances.filter((a) => a.seed === match.matchBrief.red.seed)[0];
+      const blue = alliances.filter((a) => a.seed === match.matchBrief.blue.seed)[0];
 
-      participants.push(
-        buildParticipant(red.captain, 'R1', matchKey, match.red.captain === -1)
-      );
-      participants.push(
-        buildParticipant(red.pick1, 'R2', matchKey, match.red.pick1 === -1)
-      );
+      participants.push(buildParticipant(red.captain, 'R1', matchKey, match.red.captain === -1));
+      participants.push(buildParticipant(red.pick1, 'R2', matchKey, match.red.pick1 === -1));
       if (red.pick2 !== -1 && blue.pick2 !== -1) {
-        participants.push(
-          buildParticipant(red.pick2, 'R3', matchKey, match.red.pick2 === -1)
-        );
+        participants.push(buildParticipant(red.pick2, 'R3', matchKey, match.red.pick2 === -1));
       }
 
-      participants.push(
-        buildParticipant(
-          blue.captain,
-          'B1',
-          matchKey,
-          match.blue.captain === -1
-        )
-      );
-      participants.push(
-        buildParticipant(blue.pick1, 'B2', matchKey, match.blue.pick1 === -1)
-      );
+      participants.push(buildParticipant(blue.captain, 'B1', matchKey, match.blue.captain === -1));
+      participants.push(buildParticipant(blue.pick1, 'B2', matchKey, match.blue.pick1 === -1));
       if (red.pick2 !== -1 && blue.pick2 !== -1) {
-        participants.push(
-          buildParticipant(blue.pick2, 'B3', matchKey, match.blue.pick2 === -1)
-        );
+        participants.push(buildParticipant(blue.pick2, 'B3', matchKey, match.blue.pick2 === -1));
       }
     }
 
     if (participants.length !== 4 && participants.length !== 6) return;
 
     log('Uploading match data for ' + matchKey, matchJSON);
-    toaApi.put(
-      `/event/${eventKey}/matches/${matchKey}`,
-      JSON.stringify([matchJSON])
-    );
-    toaApi.put(
-      `/event/${eventKey}/matches/${matchKey}/participants`,
-      JSON.stringify(participants)
-    );
+    toaApi.put(`/event/${eventKey}/matches/${matchKey}`, JSON.stringify([matchJSON]));
+    toaApi.put(`/event/${eventKey}/matches/${matchKey}/participants`, JSON.stringify(participants));
     if (hasDetails) uploadMatchDetails(match, matchKey, eventKey);
   }
 
@@ -330,13 +236,11 @@ const parser = (event) => {
       event_participant_key: `${eventKey}-T${team.number}`,
       team_key: team.number.toString(),
       is_active: true,
-      card_status: null,
+      card_status: null
     }));
     return toaApi
       .delete(`/event/${eventKey}/teams`)
-      .finally(() =>
-        toaApi.post(`/event/${eventKey}/teams`, JSON.stringify(result))
-      );
+      .finally(() => toaApi.post(`/event/${eventKey}/teams`, JSON.stringify(result)));
   }
 
   async function retrieveRankings(rankingList) {
@@ -351,24 +255,17 @@ const parser = (event) => {
         losses: rank.losses,
         ties: rank.ties,
         highest_qual_score: rank.highestScore,
-        ranking_points:
-          rank.rankingPoints && rank.rankingPoints !== '--'
-            ? parseFloat(rank.rankingPoints) || 0
-            : 0,
+        ranking_points: rank.rankingPoints && rank.rankingPoints !== '--' ? parseFloat(rank.rankingPoints) || 0 : 0,
         qualifying_points: 0,
         tie_breaker_points:
-          rank.tieBreakerPoints && rank.tieBreakerPoints !== '--'
-            ? parseFloat(rank.tieBreakerPoints) || 0
-            : 0,
+          rank.tieBreakerPoints && rank.tieBreakerPoints !== '--' ? parseFloat(rank.tieBreakerPoints) || 0 : 0,
         disqualified: 0,
-        played: rank.matchesPlayed,
+        played: rank.matchesPlayed
       }));
       log('Uploading rankings...', result);
       return toaApi
         .delete(`/event/${eventKey}/rankings`)
-        .finally(() =>
-          toaApi.post(`/event/${eventKey}/rankings`, JSON.stringify(result))
-        );
+        .finally(() => toaApi.post(`/event/${eventKey}/rankings`, JSON.stringify(result)));
     } else {
       log('No ranking to upload.', rankingList);
     }
@@ -385,13 +282,7 @@ function generateMatchName(tournLevel, matchNumber, elimNumber) {
   }
 }
 
-function buildParticipant(
-  teamKey,
-  suffix,
-  matchKey,
-  isSurrogate,
-  noShow = false
-) {
+function buildParticipant(teamKey, suffix, matchKey, isSurrogate, noShow = false) {
   teamKey = teamKey.toString();
   return {
     match_participant_key: `${matchKey}-${suffix}`,
@@ -399,7 +290,7 @@ function buildParticipant(
     team_key: teamKey,
     station: getStation(suffix),
     station_status: isSurrogate ? 0 : noShow ? 2 : 1, // 0 = Surrogate, 1 = Normal, 2 = No Show/Sit Out
-    ref_status: 0,
+    ref_status: 0
   };
 }
 

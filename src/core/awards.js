@@ -29,13 +29,10 @@ function uploadAwards(showSnackbar) {
         for (const winner of award.winners) {
           const awardId = globalAwardId + (winner.series || 0).toString(); // WIN1
           const awardKey = `${eventKey}-${awardId}`; // 1819-ISR-CMP0-WIN1
-          let teamKey =
-            winner.team && winner.team > 0 ? winner.team + '' : null;
+          let teamKey = winner.team && winner.team > 0 ? winner.team + '' : null;
           let receiverName = null;
           if (winner.firstName || winner.lastName) {
-            receiverName = `${winner.firstName || ''} ${
-              winner.lastName || ''
-            }`.trim();
+            receiverName = `${winner.firstName || ''} ${winner.lastName || ''}`.trim();
           }
 
           if (teamKey || receiverName) {
@@ -45,7 +42,7 @@ function uploadAwards(showSnackbar) {
               awards_key: awardKey,
               event_key: eventKey,
               receiver_name: receiverName,
-              team_key: teamKey,
+              team_key: teamKey
             });
           }
         }
@@ -54,15 +51,10 @@ function uploadAwards(showSnackbar) {
     })
     .then((oldAwards) => {
       oldAwards = oldAwards.data.map((award) => award.awards_key);
-      const toUpload = allAwards.filter(
-        (award) => !oldAwards.includes(award.awards_key)
-      );
+      const toUpload = allAwards.filter((award) => !oldAwards.includes(award.awards_key));
       log('Uploading awards...', toUpload);
       if (toUpload.length > 0) {
-        return toaApi.post(
-          '/event/' + eventKey + '/awards',
-          JSON.stringify(toUpload)
-        );
+        return toaApi.post('/event/' + eventKey + '/awards', JSON.stringify(toUpload));
       } else if (oldAwards.length > 0) {
         showSnackbar('Awards have already been uploaded.');
       } else if (oldAwards.length === 0) {

@@ -16,8 +16,7 @@ const showStep = (id) => {
   }
 };
 
-document.querySelector('#sk-recommend-version').textContent =
-  apis.recommendScorekeeperVersion;
+document.querySelector('#sk-recommend-version').textContent = apis.recommendScorekeeperVersion;
 document.querySelector(
   '#sk-download-link'
 ).href = `https://github.com/FIRST-Tech-Challenge/scorekeeper/releases/tag/${apis.scorekeeperReleaseTag}`;
@@ -39,8 +38,8 @@ function getEventsFromFirebase() {
             .cloud(value.token)
             .get('/user', {
               headers: {
-                short: true,
-              },
+                short: true
+              }
             })
             .then((me) => {
               if (me.data.level >= 6) {
@@ -54,9 +53,7 @@ function getEventsFromFirebase() {
                 .cloud(value.token)
                 .get('/getAllCurrentWriteEvents')
                 .then((data) => {
-                  adminEvents = data.data.filter(
-                    (event) => event.season_key === '1920'
-                  );
+                  adminEvents = data.data.filter((event) => event.season_key === '1920');
                   adminEvents.sort((a, b) => {
                     const date1 = new Date(a.start_date).getTime();
                     const date2 = new Date(b.start_date).getTime();
@@ -66,9 +63,7 @@ function getEventsFromFirebase() {
                 .catch((error) => {
                   if (error) {
                     console.error(error);
-                    showSnackbar(
-                      'An error has occurred, please reload the and try again.'
-                    );
+                    showSnackbar('An error has occurred, please reload the and try again.');
                     log('Error in getting cloud');
                   }
                 });
@@ -77,9 +72,7 @@ function getEventsFromFirebase() {
         .catch((error) => {
           if (error.code && error.message) {
             console.error(error);
-            showSnackbar(
-              'An error has occurred, please restart the app and try again.'
-            );
+            showSnackbar('An error has occurred, please restart the app and try again.');
             log("Couldn't get token");
           }
         });
@@ -88,9 +81,7 @@ function getEventsFromFirebase() {
       const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
       events.forEach((event) => {
         let html = '';
-        html += `<div class="mdc-card ${
-          events[events.length - 1] !== event ? 'mb-3' : ''
-        }">
+        html += `<div class="mdc-card ${events[events.length - 1] !== event ? 'mb-3' : ''}">
           <div class="card__primary">
             <h2 class="card__title mdc-typography mdc-typography--headline6" style="font-size: 1rem; line-height: 1rem;">Select the TOA Event for <i>${
               event.name
@@ -111,14 +102,8 @@ function getEventsFromFirebase() {
             <div class="mdc-select__menu mdc-menu mdc-menu-surface">
               <ul class="mdc-list">`;
           adminEvents.forEach((event) => {
-            html += `<li class="mdc-list-item"  data-value="${
-              event.event_key
-            }"><span>${event.event_name}
-              ${
-                event.division_name
-                  ? `<span style="font-weight: 500"> - ${event.division_name} Division</span>`
-                  : ``
-              }
+            html += `<li class="mdc-list-item"  data-value="${event.event_key}"><span>${event.event_name}
+              ${event.division_name ? `<span style="font-weight: 500"> - ${event.division_name} Division</span>` : ``}
             </span></li>`;
           });
           html += `</ul>
@@ -145,19 +130,11 @@ function getEventsFromFirebase() {
       }
       mdc.autoInit();
       showStep(4);
-      Array.from(
-        document.querySelectorAll('[data-mdc-auto-init="MDCSelect"]')
-      ).forEach((input) => {
-        input[input.dataset.mdcAutoInit].listen(
-          'MDCSelect:change',
-          onEventKeyChanged
-        );
+      Array.from(document.querySelectorAll('[data-mdc-auto-init="MDCSelect"]')).forEach((input) => {
+        input[input.dataset.mdcAutoInit].listen('MDCSelect:change', onEventKeyChanged);
       });
-      Array.from(
-        document.querySelectorAll('.mdc-menu.mdc-select__menu')
-      ).forEach((input) => {
-        input.style.width =
-          document.querySelector('.mdc-select').clientWidth + 'px';
+      Array.from(document.querySelectorAll('.mdc-menu.mdc-select__menu')).forEach((input) => {
+        input.style.width = document.querySelector('.mdc-select').clientWidth + 'px';
       });
     } else {
       showSnackbar('An error has occurred, please log in again.');
@@ -167,9 +144,7 @@ function getEventsFromFirebase() {
 
 function login(btn) {
   const email = document.getElementById('email').MDCTextField.value.toString();
-  const password = document
-    .getElementById('password')
-    .MDCTextField.value.toString();
+  const password = document.getElementById('password').MDCTextField.value.toString();
   if (!email || !password) {
     showSnackbar('You must enter a email and password.');
     return;
@@ -208,16 +183,12 @@ function selectedToaEvent(btn) {
   const inputs = Array.from(document.querySelectorAll('[data-event-input]'));
   const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
   for (let i = 0; i < events.length; i++) {
-    events[i].toa_event_key = inputs[i][
-      inputs[i].dataset.mdcAutoInit
-    ].value.toUpperCase();
+    events[i].toa_event_key = inputs[i][inputs[i].dataset.mdcAutoInit].value.toUpperCase();
   }
 
   firebase.auth().onAuthStateChanged((user) => {
     if (user === null) {
-      showSnackbar(
-        'An error has occurred. Please reload the page and try again.'
-      );
+      showSnackbar('An error has occurred. Please reload the page and try again.');
     } else {
       user
         .getIdToken()
@@ -248,9 +219,7 @@ function selectedToaEvent(btn) {
           if (!hasErrors) {
             for (const event of events) {
               if (!event.toa_event_key || !event.toa_api_key) {
-                return showSnackbar(
-                  'An error occurred while receiving an API Key.'
-                );
+                return showSnackbar('An error occurred while receiving an API Key.');
               }
             }
             const liveCheckbox = document.querySelector('#live-checkbox');
@@ -262,13 +231,13 @@ function selectedToaEvent(btn) {
                     event_key: e.toa_event_key,
                     source: {
                       key: !liveCheckbox || liveCheckbox.checked ? 1 : 2,
-                      name: `DataSync v${dataSyncVersion || '0.0.0'}`,
+                      name: `DataSync v${dataSyncVersion || '0.0.0'}`
                     },
                     user: {
                       name: user.displayName,
                       email: user.email,
-                      uid: user.uid,
-                    },
+                      uid: user.uid
+                    }
                   })
                 )
               )
@@ -279,9 +248,7 @@ function selectedToaEvent(btn) {
           }
         })
         .catch((e) => {
-          showSnackbar(
-            'An Error has occurred. Please reload the page and try again.'
-          );
+          showSnackbar('An Error has occurred. Please reload the page and try again.');
           setInvalid();
           throw e;
         });
@@ -295,7 +262,7 @@ function getApiKey(token, eventKey) {
       .cloud(token)
       .get('/getAPIKey', {
         headers: { data: eventKey },
-        body: { generate: true },
+        body: { generate: true }
       })
       .then((data) => {
         const apiKey = data.data.key;
@@ -341,11 +308,7 @@ function testScorekeeperConfig(btn) {
       const version = data.data.version;
       log('Version ' + version);
       if (version < minScorekeeperVersion) {
-        throw (
-          'Your Scorekeeper version is too old, please use at least version ' +
-          minScorekeeperVersion +
-          '.'
-        );
+        throw 'Your Scorekeeper version is too old, please use at least version ' + minScorekeeperVersion + '.';
       }
       localStorage.setItem('SCOREKEEPER-IP', ipAddress);
       localStorage.setItem('SCOREKEEPER-VERSION', version);
@@ -356,9 +319,7 @@ function testScorekeeperConfig(btn) {
       log(data);
       btn.textContent = 'Retry';
       btn.disabled = false;
-      showSnackbar(
-        typeof data === 'string' ? data : 'Cannot access the scorekeeper.'
-      );
+      showSnackbar(typeof data === 'string' ? data : 'Cannot access the scorekeeper.');
     });
 }
 
@@ -371,17 +332,11 @@ function loadScorekeeperEvents() {
       const events = [];
       for (const eventId of data.data.eventCodes) {
         try {
-          const event = (
-            await scorekeeperApi.get('/v1/events/' + eventId + '/')
-          ).data;
+          const event = (await scorekeeperApi.get('/v1/events/' + eventId + '/')).data;
           if (eventId.endsWith('_0') && event.finals) {
             const baseEventId = eventId.substring(0, eventId.length - 2);
-            const division1 = (
-              await scorekeeperApi.get('/v1//events/' + baseEventId + '_1/')
-            ).data;
-            const division2 = (
-              await scorekeeperApi.get('/v1/events/' + baseEventId + '_2/')
-            ).data;
+            const division1 = (await scorekeeperApi.get('/v1//events/' + baseEventId + '_1/')).data;
+            const division2 = (await scorekeeperApi.get('/v1/events/' + baseEventId + '_2/')).data;
 
             let data = {
               event_id: eventId,
@@ -391,19 +346,19 @@ function loadScorekeeperEvents() {
                 {
                   event_id: eventId,
                   name: 'Finals',
-                  type: event.type,
+                  type: event.type
                 },
                 {
                   event_id: division1.eventCode,
                   name: division1.name,
-                  type: division1.type,
+                  type: division1.type
                 },
                 {
                   event_id: division2.eventCode,
                   name: division2.name,
-                  type: division2.type,
-                },
-              ],
+                  type: division2.type
+                }
+              ]
             };
             events.push(data);
           } else if (event.division > 0) {
@@ -413,7 +368,7 @@ function loadScorekeeperEvents() {
               event_id: eventId,
               name: event.name,
               type: event.type,
-              divisions: [],
+              divisions: []
             });
           }
         } catch (e) {
@@ -422,30 +377,19 @@ function loadScorekeeperEvents() {
       }
       document.querySelector('#events-list').innerHTML = '';
       for (const event of events) {
-        document.getElementById(
-          'events-list'
-        ).innerHTML += `<li class="mdc-list-item" id="event-${event.event_id}">
+        document.getElementById('events-list').innerHTML += `<li class="mdc-list-item" id="event-${event.event_id}">
           <span class="mdc-list-item__graphic mdi mdi-calendar-outline"></span>
           <span class="mdc-list-item__text">
-            ${
-              event.divisions.length > 0
-                ? event.name + ' - ' + ' Dual Division'
-                : event.name
-            }
+            ${event.divisions.length > 0 ? event.name + ' - ' + ' Dual Division' : event.name}
           </span>
         </li>`;
         document
           .querySelector('#event-' + event.event_id)
-          .setAttribute(
-            'onclick',
-            `setup.selectEvent(${JSON.stringify(event)})`
-          );
+          .setAttribute('onclick', `setup.selectEvent(${JSON.stringify(event)})`);
       }
       document.querySelector('#step2-description').hidden = events.length === 0;
       if (events.length === 0) {
-        document.querySelector(
-          '#events-list'
-        ).innerHTML += `<div class="pt-2 text-center">
+        document.querySelector('#events-list').innerHTML += `<div class="pt-2 text-center">
           <div class="mdc-typography--subtitle1">No events found</div>
           <div class="mdc-typography--body2">Please <a href="#" onclick="setup.openExternalLink('http://${skHost}/setup/event')">create your Scorekeeper event</a> first.</div>
           <button class="mdc-button mt-2" onclick="setup.loadScorekeeperEvents()">Retry</button>
@@ -466,9 +410,7 @@ function selectEvent(event) {
 }
 
 function showSnackbar(text) {
-  const snackbar = new mdc.snackbar.MDCSnackbar(
-    document.querySelector('.mdc-snackbar')
-  );
+  const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
   snackbar.labelText = text;
   snackbar.open();
 }
@@ -484,5 +426,5 @@ module.exports = {
   getEventsFromFirebase,
   onEventKeyChanged,
   openExternalLink,
-  login,
+  login
 };
