@@ -1,11 +1,11 @@
 const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS') || '[]');
 const logger = require('./logger');
-const apis = require('../../apis');
+const apis = require('./apis');
 const scorekeeperApi = apis.scorekeeper;
 
 function log(...args) {
   console.log(...args);
-  logger.write(...args)
+  logger.write(...args);
 }
 
 function uploadAwards(showSnackbar) {
@@ -16,51 +16,63 @@ function uploadAwards(showSnackbar) {
   const toaApi = apis.toa(event.toa_api_key);
 
   const allAwards = [];
-  scorekeeperApi.get(`/v2/events/${eventId}/awards/`).then((data) => {
-    const awards = data.awards;
-    for (const award of awards) {
-      let globalAwardId = getAwardIDFromName(award.name);  // WIN
-      if (!globalAwardId) {
-        continue;
-      }
-
-      for (const winner of award.winners) {
-        const awardId = globalAwardId + (winner.series || 0).toString(); // WIN1
-        const awardKey = `${eventKey}-${awardId}`; // 1819-ISR-CMP0-WIN1
-        let teamKey = winner.team && winner.team > 0 ? winner.team + '' : null;
-        let receiverName = null;
-        if (winner.firstName || winner.lastName) {
-          receiverName = `${winner.firstName || ''} ${winner.lastName || ''}`.trim();
+  scorekeeperApi
+    .get(`/v2/events/${eventId}/awards/`)
+    .then((data) => {
+      const awards = data.awards;
+      for (const award of awards) {
+        let globalAwardId = getAwardIDFromName(award.name); // WIN
+        if (!globalAwardId) {
+          continue;
         }
 
-        if (teamKey || receiverName) {
-          allAwards.push({
-            award_key: awardId,
-            award_name: getAwardNameFromID(awardId),
-            awards_key: awardKey,
-            event_key: eventKey,
-            receiver_name: receiverName,
-            team_key: teamKey
-          });
+        for (const winner of award.winners) {
+          const awardId = globalAwardId + (winner.series || 0).toString(); // WIN1
+          const awardKey = `${eventKey}-${awardId}`; // 1819-ISR-CMP0-WIN1
+          let teamKey =
+            winner.team && winner.team > 0 ? winner.team + '' : null;
+          let receiverName = null;
+          if (winner.firstName || winner.lastName) {
+            receiverName = `${winner.firstName || ''} ${
+              winner.lastName || ''
+            }`.trim();
+          }
+
+          if (teamKey || receiverName) {
+            allAwards.push({
+              award_key: awardId,
+              award_name: getAwardNameFromID(awardId),
+              awards_key: awardKey,
+              event_key: eventKey,
+              receiver_name: receiverName,
+              team_key: teamKey,
+            });
+          }
         }
       }
-    }
-    return toaApi.get('/event/' + eventKey + '/awards');
-  }).then((oldAwards) => {
-    oldAwards = oldAwards.data.map((award) => award.awards_key);
-    const toUpload = allAwards.filter((award) => !oldAwards.includes(award.awards_key));
-    log('Uploading awards...', toUpload);
-    if (toUpload.length > 0) {
-      return toaApi.post('/event/' + eventKey + '/awards', JSON.stringify(toUpload));
-    } else if (oldAwards.length > 0) {
-      showSnackbar('Awards have already been uploaded.');
-    } else if (oldAwards.length === 0) {
-      showSnackbar('No available awards found.');
-    }
-  }).catch((error) => {
-    showSnackbar('There was an error in uploading the awards');
-    log(error);
-  });
+      return toaApi.get('/event/' + eventKey + '/awards');
+    })
+    .then((oldAwards) => {
+      oldAwards = oldAwards.data.map((award) => award.awards_key);
+      const toUpload = allAwards.filter(
+        (award) => !oldAwards.includes(award.awards_key)
+      );
+      log('Uploading awards...', toUpload);
+      if (toUpload.length > 0) {
+        return toaApi.post(
+          '/event/' + eventKey + '/awards',
+          JSON.stringify(toUpload)
+        );
+      } else if (oldAwards.length > 0) {
+        showSnackbar('Awards have already been uploaded.');
+      } else if (oldAwards.length === 0) {
+        showSnackbar('No available awards found.');
+      }
+    })
+    .catch((error) => {
+      showSnackbar('There was an error in uploading the awards');
+      log(error);
+    });
 }
 
 // Convert an award name to an award key
@@ -139,7 +151,7 @@ function getAwardNameFromID(key) {
   } else if (key.startsWith('MOT')) {
     if (key.substring(key.length - 1) === '1') {
       return 'Motivate Award Winner';
-    }else {
+    } else {
       return 'Motivate Award Finalist';
     }
   } else if (key.startsWith('CTL')) {
@@ -171,9 +183,9 @@ function getAwardNameFromID(key) {
   } else if (key.startsWith('FIN')) {
     return 'Finalist Alliance Award Winners';
   } else if (key.startsWith('DNSSF')) {
-    return 'Dean\'s List Finalist Award';
+    return "Dean's List Finalist Award";
   } else if (key.startsWith('DNSF')) {
-    return 'Dean\'s List Winner Award';
+    return "Dean's List Winner Award";
   }
   return null;
 }

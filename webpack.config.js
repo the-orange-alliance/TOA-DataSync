@@ -1,39 +1,39 @@
 const webpack = require('webpack');
-const HtmlWebpackPlugin = require('html-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
 
-module.exports = env => ({
+module.exports = (env) => ({
   target: 'web',
   entry: {
-    index: './src/assets/js/index.js',
-    setup: './src/assets/js/setup.js',
-    sync: './src/assets/js/sync.js',
+    index: './src/core/index.js',
+    setup: './src/core/setup.js',
+    sync: './src/core/sync.js',
   },
   output: {
     path: path.join(__dirname, 'dist'),
     filename: './js/[name].bundle.js',
-    library: '[name]'
+    library: '[name]',
   },
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
     compress: true,
     port: 9000,
-    watchContentBase: true
+    watchContentBase: true,
   },
   module: {
     rules: [
       {
         test: /\.js$/,
         use: 'babel-loader',
-        exclude: /node_modules/
-      }
-    ]
+        exclude: /node_modules/,
+      },
+    ],
   },
   plugins: [
     new webpack.DefinePlugin({
       dataSyncVersion: JSON.stringify(require('./package.json').version),
-      dataSyncMode: JSON.stringify(env && env.NODE_ENV || 'development')
+      dataSyncMode: JSON.stringify((env && env.NODE_ENV) || 'development'),
     }),
     new CopyPlugin([
       { from: './src/assets', to: './assets' },
@@ -43,27 +43,27 @@ module.exports = env => ({
     new HtmlWebpackPlugin({
       template: './src/index.html',
       filename: 'index.html',
-      chunks: ['index']
+      chunks: ['index'],
     }),
     new HtmlWebpackPlugin({
       template: './src/sync.html',
       filename: 'sync.html',
-      chunks: ['index', 'sync']
+      chunks: ['index', 'sync'],
     }),
     new HtmlWebpackPlugin({
       template: './src/setup.html',
       filename: 'setup.html',
-      chunks: ['index', 'setup']
+      chunks: ['index', 'setup'],
     }),
     new HtmlWebpackPlugin({
       template: './src/log.html',
       filename: 'log.html',
-      chunks: []
+      chunks: [],
     }),
     new HtmlWebpackPlugin({
       template: './src/404.html',
       filename: '404.html',
-      chunks: []
-    })
-  ]
+      chunks: [],
+    }),
+  ],
 });

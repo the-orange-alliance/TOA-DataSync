@@ -1,4 +1,4 @@
-const { parser, ui} = require('./parser');
+const { parser, ui } = require('./parser');
 const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
 
 for (let i = 0; i < events.length; i++) {
