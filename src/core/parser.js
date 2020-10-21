@@ -95,7 +95,6 @@ const parser = (event) => {
   window.addEventListener('online', healthCheck);
   window.addEventListener('offline', healthCheck);
   function healthCheck() {
-    console.log('TOA socket', socket);
     const socketState = socket.readyState;
     const isOnline = navigator.onLine;
     if (!isOnline) {
