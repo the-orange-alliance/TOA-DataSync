@@ -1,5 +1,5 @@
 const ui = require('./sync-ui');
-const apis = require('../../apis');
+const apis = require('./apis');
 const ReconnectingWebSocket = require('reconnectingwebsocket');
 const uploadMatchDetails = require('./match-details');
 
@@ -12,15 +12,20 @@ const parser = (event) => {
 
   function log(...args) {
     console.log(...args);
-    logger.write(...args)
+    logger.write(...args);
   }
 
   scorekeeperApi.interceptors.response.use(
-    (response) => !response.config || response.config.returnRes ? response : response.data,
+    (response) => (!response.config || response.config.returnRes ? response : response.data),
     (error) => {
       if (error && error.response && error.response.config) {
         const res = error.response.config;
-        log('SK-ERROR', error.response.statusText, res.method.toUpperCase() + ' ' + (res.url.replace(res.baseURL, '')), response.data);
+        log(
+          'SK-ERROR',
+          error.response.statusText,
+          res.method.toUpperCase() + ' ' + res.url.replace(res.baseURL, ''),
+          response.data
+        );
       }
       return Promise.reject(error);
     }
@@ -31,7 +36,12 @@ const parser = (event) => {
     (error) => {
       if (error && error.response && error.response.config) {
         const res = error.response.config;
-        log('TOA-ERROR', error.response.statusText, res.method.toUpperCase() + ' ' + (res.url.replace(res.baseURL, '')), JSON.parse(res.data));
+        log(
+          'TOA-ERROR',
+          error.response.statusText,
+          res.method.toUpperCase() + ' ' + res.url.replace(res.baseURL, ''),
+          JSON.parse(res.data)
+        );
       }
       return Promise.reject(error);
     }
@@ -41,39 +51,44 @@ const parser = (event) => {
   const host = localStorage.getItem('SCOREKEEPER-IP').replace('http://', '');
   const socket = new ReconnectingWebSocket(`ws://${host}/api/v2/stream/?code=${eventId}`);
   socket.debug = true;
-  socket.timeoutInterval = 20 * 1000;  // 20 seconds
+  socket.timeoutInterval = 20 * 1000; // 20 seconds
   socket.maxReconnectInterval = 5 * 60 * 1000; // 5 minutes
   socket.onmessage = async (data) => {
     const json = JSON.parse(data.data);
     const matchName = json.payload.shortName;
-    if (json.updateType === "MATCH_COMMIT") {
+    if (json.updateType === 'MATCH_COMMIT') {
       log(`Fast uploading ${matchName}.`);
       if (matchName.startsWith('Q')) {
-        const match = await scorekeeperApi.get(`/2020/v1/events/${eventId}/matches/${json.payload.number}/`);
+        const match = await scorekeeperApi.get(`/2021/v1/events/${eventId}/matches/${json.payload.number}/`);
         parseAndUploadMatch(match);
 
         // Upload rankings
         const isLeagueTournament = type && type === 'League Tournament';
-        const rankings = (await scorekeeperApi.get(`/v1/events/${eventId}/rankings/${isLeagueTournament ? 'combined/' : ''}`)).rankingList;
+        const rankings = (
+          await scorekeeperApi.get(`/v1/events/${eventId}/rankings/${isLeagueTournament ? 'combined/' : ''}`)
+        ).rankingList;
         retrieveRankings(rankings);
       } else if (matchName.startsWith('SF') || matchName.startsWith('F') || matchName.startsWith('IF')) {
         const alliances = (await scorekeeperApi.get(`/v1/events/${eventId}/elim/alliances/`)).alliances;
         const elims = (await scorekeeperApi.get(`/v1/events/${eventId}/elim/all/`)).matchList;
-        let match = null; 
+        let match = null;
         if (matchName.startsWith('SF')) {
-          match = await scorekeeperApi.get(`/2020/v1/events/${eventId}/elim/sf/${matchName.substr(2, 1)}/${matchName.substr(4, 1)}/`);
+          match = await scorekeeperApi.get(
+            `/2021/v1/events/${eventId}/elim/sf/${matchName.substr(2, 1)}/${matchName.substr(4, 1)}/`
+          );
         } else {
-          match = await scorekeeperApi.get(`/2020/v1/events/${eventId}/elim/finals/${matchName.substr(-1)}/`);
+          match = await scorekeeperApi.get(`/2021/v1/events/${eventId}/elim/finals/${matchName.substr(-1)}/`);
         }
-        const index = elims.findIndex(m => m.match === matchName);
+        const index = elims.findIndex((m) => m.match === matchName);
         const arr = [];
-        arr[index] = match;    
-        return parseAndUploadElimMatch(index, arr, alliances);  
+        arr[index] = match;
+        return parseAndUploadElimMatch(index, arr, alliances);
       }
     }
   };
   socket.onopen = healthCheck;
   socket.onclose = healthCheck;
+  socket.onerror = healthCheck;
 
   // Health check
   healthCheck();
@@ -84,18 +99,31 @@ const parser = (event) => {
     const isOnline = navigator.onLine;
     if (!isOnline) {
       ui.setStatus('no-internet');
-    } else if (socketState >= 2) { // Close
-      ui.setStatus('no-scorekeeper');
-    } else if (socketState === 1) { // Open
+    } else if (socketState === WebSocket.OPEN) {
       ui.setStatus('ok');
+    } else if (
+      socketState === WebSocket.CLOSED ||
+      (socket.reconnectAttempts >= 2 && socketState === WebSocket.CONNECTING)
+    ) {
+      ui.setStatus('no-scorekeeper');
     }
   }
 
   const uploadAllData = async () => {
     log('Fetching all data...');
     const data = await scorekeeperApi.get(`/v2/events/${eventId}/full/`);
-    const details = await scorekeeperApi.get(`/2020/v1/events/${eventId}/full/`);
-    const { version, event, teamList, rankingsList, combinedRankingsList, matchList, elimsMatchList, elimsMatchDetailedList, allianceList } = data;
+    const details = await scorekeeperApi.get(`/2021/v1/events/${eventId}/full/`);
+    const {
+      version,
+      event,
+      teamList,
+      rankingsList,
+      combinedRankingsList,
+      matchList,
+      elimsMatchList,
+      elimsMatchDetailedList,
+      allianceList
+    } = data;
 
     // Teams
     retrieveTeams(teamList.teams);
@@ -105,7 +133,7 @@ const parser = (event) => {
 
     // Qual Matches
     for (const match of matchList.matches) {
-      const detail = details.matchList.matches.find(m => m.matchBrief.matchName === match.matchBrief.matchName);
+      const detail = details.matchList.matches.find((m) => m.matchBrief.matchName === match.matchBrief.matchName);
       parseAndUploadMatch(detail);
     }
 
@@ -152,7 +180,7 @@ const parser = (event) => {
     let matchJSON = {
       match_key: matchKey,
       event_key: eventKey,
-      tournament_level: tournLevel && tournLevel === 30 ? (tournLevel + elimNumber) : (isQual ? 1 : tournLevel),
+      tournament_level: tournLevel && tournLevel === 30 ? tournLevel + elimNumber : isQual ? 1 : tournLevel,
       scheduled_time: match.scheduledTime > 0 ? getDateString(match.scheduledTime) : null,
       match_start_time: match.startTime > 0 ? getDateString(match.startTime) : null,
       match_name: isQual ? `Quals ${matchNumber}` : generateMatchName(tournLevel, elimMatchNumber, elimNumber),
@@ -167,7 +195,7 @@ const parser = (event) => {
       red_tele_score: hasDetails ? match.red.teleop : -1,
       blue_tele_score: hasDetails ? match.blue.teleop : -1,
       red_end_score: hasDetails ? match.red.end : -1,
-      blue_end_score: hasDetails ? match.blue.end : -1,
+      blue_end_score: hasDetails ? match.blue.end : -1
     };
 
     if (isQual) {
@@ -177,8 +205,8 @@ const parser = (event) => {
       participants.push(buildParticipant(blue.team1, 'B1', matchKey, blue.isTeam1Surrogate));
       participants.push(buildParticipant(blue.team2, 'B2', matchKey, blue.isTeam2Surrogate));
     } else if (alliances && alliances.length > 0) {
-      const red = alliances.filter(a => a.seed === match.matchBrief.red.seed)[0];
-      const blue = alliances.filter(a => a.seed === match.matchBrief.blue.seed)[0];
+      const red = alliances.filter((a) => a.seed === match.matchBrief.red.seed)[0];
+      const blue = alliances.filter((a) => a.seed === match.matchBrief.blue.seed)[0];
 
       participants.push(buildParticipant(red.captain, 'R1', matchKey, match.red.captain === -1));
       participants.push(buildParticipant(red.pick1, 'R2', matchKey, match.red.pick1 === -1));
@@ -202,21 +230,21 @@ const parser = (event) => {
   }
 
   async function retrieveTeams(teams) {
-    const result = teams.map(team => ({
+    const result = teams.map((team) => ({
       event_key: eventKey,
       event_participant_key: `${eventKey}-T${team.number}`,
       team_key: team.number.toString(),
       is_active: true,
       card_status: null
     }));
-    return toaApi.delete(`/event/${eventKey}/teams`).finally(() =>
-      toaApi.post(`/event/${eventKey}/teams`, JSON.stringify(result))
-    );
+    return toaApi
+      .delete(`/event/${eventKey}/teams`)
+      .finally(() => toaApi.post(`/event/${eventKey}/teams`, JSON.stringify(result)));
   }
 
   async function retrieveRankings(rankingList) {
-    if (rankingList.filter(r => r.ranking > 0)) {
-      const result = rankingList.map(rank => ({
+    if (rankingList.filter((r) => r.ranking > 0)) {
+      const result = rankingList.map((rank) => ({
         rank_key: `${eventKey}-R${rank.team}`,
         event_key: eventKey,
         team_key: rank.team.toString(),
@@ -228,25 +256,26 @@ const parser = (event) => {
         highest_qual_score: rank.highestScore,
         ranking_points: rank.rankingPoints && rank.rankingPoints !== '--' ? parseFloat(rank.rankingPoints) || 0 : 0,
         qualifying_points: 0,
-        tie_breaker_points: rank.tieBreakerPoints && rank.tieBreakerPoints !== '--' ? parseFloat(rank.tieBreakerPoints) || 0 : 0,
+        tie_breaker_points:
+          rank.tieBreakerPoints && rank.tieBreakerPoints !== '--' ? parseFloat(rank.tieBreakerPoints) || 0 : 0,
         disqualified: 0,
         played: rank.matchesPlayed
       }));
       log('Uploading rankings...', result);
-      return toaApi.delete(`/event/${eventKey}/rankings`).finally(() =>
-        toaApi.post(`/event/${eventKey}/rankings`, JSON.stringify(result))
-      );  
+      return toaApi
+        .delete(`/event/${eventKey}/rankings`)
+        .finally(() => toaApi.post(`/event/${eventKey}/rankings`, JSON.stringify(result)));
     } else {
       log('No ranking to upload.', rankingList);
     }
   }
 };
 
-function generateMatchName(tournLevel, matchNumber, elimNumber){
+function generateMatchName(tournLevel, matchNumber, elimNumber) {
   if (tournLevel === 30) {
-    return `Semis ${elimNumber} Match ${matchNumber}`
+    return `Semis ${elimNumber} Match ${matchNumber}`;
   } else if (tournLevel === 4) {
-    return `Finals ${matchNumber}`
+    return `Finals ${matchNumber}`;
   } else {
     return null;
   }
@@ -259,7 +288,7 @@ function buildParticipant(teamKey, suffix, matchKey, isSurrogate, noShow = false
     match_key: matchKey,
     team_key: teamKey,
     station: getStation(suffix),
-    station_status: isSurrogate ? 0 : (noShow) ? 2 : 1, // 0 = Surrogate, 1 = Normal, 2 = No Show/Sit Out
+    station_status: isSurrogate ? 0 : noShow ? 2 : 1, // 0 = Surrogate, 1 = Normal, 2 = No Show/Sit Out
     ref_status: 0
   };
 }

@@ -1,4 +1,4 @@
-const apis = require('../../apis');
+const apis = require('./apis');
 const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
 const toaApi = apis.toa;
 
@@ -23,14 +23,27 @@ function getMatchDetails1819(details, matchKey) {
     let partCrater = 0;
     let fullCrater = 0;
     switch (parking) {
-      case 15: partCrater = 1; break;
-      case 25: fullCrater = 1; break;
-      case 30: partCrater = 2; break;
-      case 40: partCrater = 1; fullCrater = 1; break;
-      case 50: fullCrater = 2; break;
-      default: partCrater = parking; break; // We should never get here
+      case 15:
+        partCrater = 1;
+        break;
+      case 25:
+        fullCrater = 1;
+        break;
+      case 30:
+        partCrater = 2;
+        break;
+      case 40:
+        partCrater = 1;
+        fullCrater = 1;
+        break;
+      case 50:
+        fullCrater = 2;
+        break;
+      default:
+        partCrater = parking;
+        break; // We should never get here
     }
-    return {partCrater, fullCrater};
+    return { partCrater, fullCrater };
   };
 
   return {
@@ -61,7 +74,7 @@ function getMatchDetails1819(details, matchKey) {
     blue_tele_depot: details.blue.depotMinerals / 2,
     blue_end_latch: details.blue.latchedLander / 50,
     blue_end_in: calcCratePoints(details.blue.endParking).partCrater,
-    blue_end_comp: calcCratePoints(details.blue.endParking).fullCrater,
+    blue_end_comp: calcCratePoints(details.blue.endParking).fullCrater
   };
 }
 
@@ -82,7 +95,7 @@ function getMatchDetails1920(details, matchKey) {
   };
   const getStones = (alliance) => {
     const skystones = getSkystones(alliance);
-    const stones = alliance.autoStones.filter(x => x && x !== 'NONE').length - skystones;
+    const stones = alliance.autoStones.filter((x) => x && x !== 'NONE').length - skystones;
     return Math.max(stones, 0); // Prevent negative numbers
   };
 
