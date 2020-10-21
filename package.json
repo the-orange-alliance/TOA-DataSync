@@ -34,6 +34,7 @@
     "devtools-detect": "^3.0.0",
     "firebase": "^6.0.4",
     "jszip": "^3.2.2",
+    "material-components-web": "^2.2.0",
     "reconnectingwebsocket": "^1.0.0"
   },
   "devDependencies": {
@@ -47,6 +48,7 @@
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^3.2.0",
     "html-webpack-plugin-assets-fix": "^1.0.2",
+    "html-webpack-tags-plugin": "^2.0.17",
     "husky": "^4.3.0",
     "prettier": "2.1.2",
     "pretty-quick": "^3.1.0",
