@@ -19,7 +19,7 @@
         margin: 0;
       }
       body {
-        background: #202124;
+        background-color: #000 !important;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -32,11 +32,13 @@
         height: 100%;
       }
       h3 {
-        font-family: sans-serif;
-        border-radius: 10px;
-        border: 1px solid white;
-        padding: 8px 14px;
-        color: white;
+        font-family: 'Arial', sans-serif;
+        border-radius: 8px;
+        font-size: 22px !important;
+        background: #111;
+        border: 1px solid #333;
+        padding: 12px 24px;
+        color: #fff;
       }
     </style>
   </head>
@@ -45,36 +47,6 @@
     <input type="file" id="file" name="file" />
 
     <script>
-      const devtools = { isOpen: false, orientation: undefined };
-      const threshold = 160;
-      const emitEvent = (isOpen, orientation) => {
-        window.dispatchEvent(new CustomEvent('devtoolschange', { detail: { isOpen, orientation } }));
-      };
-      setInterval(() => {
-        const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-        const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-        const orientation = widthThreshold ? 'vertical' : 'horizontal';
-        if (
-          !(heightThreshold && widthThreshold) &&
-          ((window.Firebug && window.Firebug.chrome && window.Firebug.chrome.isInitialized) ||
-            widthThreshold ||
-            heightThreshold)
-        ) {
-          if (!devtools.isOpen || devtools.orientation !== orientation) {
-            emitEvent(true, orientation);
-          }
-          devtools.isOpen = true;
-          devtools.orientation = orientation;
-        } else {
-          if (devtools.isOpen) {
-            emitEvent(false, undefined);
-          }
-          devtools.isOpen = false;
-          devtools.orientation = undefined;
-        }
-      }, 500);
-      window.devtools = devtools;
-
       document.querySelector('#file').addEventListener('change', (evt) => {
         const file = evt.target.files[0];
         JSZip.loadAsync(file)
@@ -143,7 +115,7 @@
             if (skErrors > 0) console.warn(skErrors + ' requests to the scorekeeper failed.');
             if (toaErrors > 0) console.warn(toaErrors + ' requests to TOA failed.');
 
-            if (!devtools.isOpen) alert('Parsing done, open the dev console');
+            alert('Parsing done, open the dev console.');
           })
           .catch((e) => {
             alert('Error reading the file.');

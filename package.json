@@ -1,7 +1,7 @@
 {
   "name": "the-orange-alliance-datasync",
   "productName": "DataSync",
-  "version": "3.2.1",
+  "version": "3.5.0",
   "description": "A cross-platform desktop app to sync the Scorekeeper with The Orange Alliance in realtime.",
   "author": "The Orange Alliance <contact@theorangealliance.org>",
   "license": "MIT",
@@ -38,7 +38,7 @@
     "reconnectingwebsocket": "^1.0.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.6.4",
+    "@babel/cli": "^7.12.1",
     "@babel/core": "^7.6.4",
     "@babel/plugin-transform-runtime": "^7.6.2",
     "@babel/preset-env": "^7.6.3",
@@ -55,6 +55,6 @@
     "url-loader": "^2.1.0",
     "webpack": "^4.41.1",
     "webpack-cli": "^3.3.9",
-    "webpack-dev-server": "^3.8.2"
+    "webpack-dev-server": "^3.11.0"
   }
 }
