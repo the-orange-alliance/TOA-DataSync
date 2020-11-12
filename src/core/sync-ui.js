@@ -60,11 +60,13 @@ document.querySelector('#stop-sync-btn').onclick = () => {
     "\nDon't forget to upload the awards!" +
     '\nAre you sure?';
   showConfirmationDialog('Stop Uploading Data and Logout', content).then(async () => {
+    logout();
     const dialog = document.querySelector('#goodbye-dialog').MDCDialog;
-    dialog.listen('MDCDialog:closed', logout);
+    dialog.listen('MDCDialog:closed', () => logout(true));
     dialog.open();
   });
 };
+document.querySelector('#logout-btn').onclick = document.querySelector('#stop-sync-btn').onclick;
 
 document.querySelector('#upload-awards').onclick = () => {
   awardsUploader(showSnackbar);
@@ -109,19 +111,12 @@ document.querySelector('#save-logs-btn').onclick = () => {
   logger.saveLogs();
 };
 
-document.querySelector('#logout-btn').onclick = () => {
-  showConfirmationDialog('Are you sure you want to logout?').then(() => {
-    logout(false);
-  });
-};
-
-function logout(exit = true) {
+function logout(exit = false) {
+  window.toaLogoutSilent = true;
   localStorage.clear();
   firebase.auth().signOut();
   if (exit) {
-    window.close();
-  } else {
-    location.href = './setup-pages/step1.html';
+    location.href = '/setup.html';
   }
 }
 

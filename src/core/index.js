@@ -30,7 +30,11 @@ firebase.auth().onAuthStateChanged((user) => {
   const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
   let newPath = location.pathname;
   if (!ipAddress || !events || !user) {
-    newPath = '/setup.html';
+    if (!window.toaLogoutSilent) {
+      newPath = '/setup.html';
+    } else {
+      window.toaLogoutSilent = false;
+    }
   } else {
     newPath = '/sync.html';
 
