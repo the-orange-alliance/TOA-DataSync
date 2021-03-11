@@ -28,7 +28,7 @@
   "homepage": "https://github.com/orange-alliance/TOA-DataSync#readme",
   "dependencies": {
     "@mdi/font": "^3.6.95",
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "axios-retry": "^3.1.2",
     "bowser": "^2.7.0",
     "devtools-detect": "^3.0.0",
