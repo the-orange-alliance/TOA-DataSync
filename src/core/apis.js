@@ -2,8 +2,13 @@ const axios = require('axios');
 const axiosRetry = require('axios-retry');
 
 const minScorekeeperVersion = '2.0.0';
-const recommendScorekeeperVersion = '2.1.0';
-const scorekeeperReleaseTag = 'v2.1.0';
+const recommendScorekeeperVersion = '2.3.0';
+const scorekeeperReleaseTag = 'v2.3.0';
+
+const config = {
+  scorekeeperSeason: '2021',
+  toaSeason: '2021'
+};
 
 const scorekeeperFromIp = (ip) =>
   axios.create({
@@ -51,5 +56,6 @@ module.exports = {
   cloud,
   minScorekeeperVersion,
   recommendScorekeeperVersion,
-  scorekeeperReleaseTag
+  scorekeeperReleaseTag,
+  config
 };
