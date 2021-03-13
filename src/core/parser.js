@@ -59,7 +59,9 @@ const parser = (event) => {
     if (json.updateType === 'MATCH_COMMIT') {
       log(`Fast uploading ${matchName}.`);
       if (matchName.startsWith('Q')) {
-        const match = await scorekeeperApi.get(`/2021/v1/events/${eventId}/matches/${json.payload.number}/`);
+        const match = await scorekeeperApi.get(
+          `/${apis.config.scorekeeperSeason}/v1/events/${eventId}/matches/${json.payload.number}/`
+        );
         parseAndUploadMatch(match);
 
         // Upload rankings
@@ -74,10 +76,15 @@ const parser = (event) => {
         let match = null;
         if (matchName.startsWith('SF')) {
           match = await scorekeeperApi.get(
-            `/2021/v1/events/${eventId}/elim/sf/${matchName.substr(2, 1)}/${matchName.substr(4, 1)}/`
+            `/${apis.config.scorekeeperSeason}/v1/events/${eventId}/elim/sf/${matchName.substr(
+              2,
+              1
+            )}/${matchName.substr(4, 1)}/`
           );
         } else {
-          match = await scorekeeperApi.get(`/2021/v1/events/${eventId}/elim/finals/${matchName.substr(-1)}/`);
+          match = await scorekeeperApi.get(
+            `/${apis.config.scorekeeperSeason}/v1/events/${eventId}/elim/finals/${matchName.substr(-1)}/`
+          );
         }
         const index = elims.findIndex((m) => m.match === matchName);
         const arr = [];
@@ -112,7 +119,7 @@ const parser = (event) => {
   const uploadAllData = async () => {
     log('Fetching all data...');
     const data = await scorekeeperApi.get(`/v2/events/${eventId}/full/`);
-    const details = await scorekeeperApi.get(`/2021/v1/events/${eventId}/full/`);
+    const details = await scorekeeperApi.get(`/${apis.config.scorekeeperSeason}/v1/events/${eventId}/full/`);
     const {
       version,
       event,

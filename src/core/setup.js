@@ -53,7 +53,7 @@ function getEventsFromFirebase() {
                 .cloud(value.token)
                 .get('/getAllCurrentWriteEvents')
                 .then((data) => {
-                  adminEvents = data.data.filter((event) => event.season_key === '1920');
+                  adminEvents = data.data.filter((event) => event.season_key === apis.config.toaSeason);
                   adminEvents.sort((a, b) => {
                     const date1 = new Date(a.start_date).getTime();
                     const date2 = new Date(b.start_date).getTime();
