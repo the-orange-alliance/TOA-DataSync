@@ -26,7 +26,7 @@ const toa = (apiKey) => {
       'X-TOA-Key': apiKey,
       'X-Application-Origin': 'TOA DataSync ' + (dataSyncVersion || '0.0.0')
     },
-    data: {}
+    data: null
   });
 };
 
