@@ -27,9 +27,10 @@ window.addEventListener('devtoolschange', (event) => {
 
 firebase.auth().onAuthStateChanged((user) => {
   const ipAddress = localStorage.getItem('SCOREKEEPER-IP');
+  const skKey = localStorage.getItem('SCOREKEEPER-KEY');
   const events = JSON.parse(localStorage.getItem('CONFIG-EVENTS'));
   let newPath = location.pathname;
-  if (!ipAddress || !events || !user) {
+  if (!ipAddress || !events || !user || !skKey) {
     if (!window.toaLogoutSilent) {
       newPath = '/setup.html';
     } else {

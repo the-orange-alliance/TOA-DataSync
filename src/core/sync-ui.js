@@ -246,7 +246,7 @@ function createStream(btn) {
         };
         log('Uploading a stream...', toUpload);
         return toaApi(apiKeys[eventKey])
-          .post(`/event/${eventKey}/streams`, JSON.stringify([toUpload]))
+          .post(`/event/${eventKey}/streams`, [toUpload])
           .then(() => {
             showSnackbar('The stream has been successfully uploaded.');
             document.querySelector('#streams-dialog').MDCDialog.close();

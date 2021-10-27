@@ -3,10 +3,12 @@ const logger = require('./logger');
 const { firebase } = require('./firebase');
 const minScorekeeperVersion = apis.minScorekeeperVersion;
 
+let apiKeyRetryAttempts = 0;
+
 mdc.autoInit();
 
 const showStep = (id) => {
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 5; i++) {
     const elm = document.querySelector('#step' + i);
     if (i === id) {
       elm.classList.add('toa-stepper-step--active');
@@ -129,7 +131,7 @@ function getEventsFromFirebase() {
         </div>`;
       }
       mdc.autoInit();
-      showStep(4);
+      showStep(5);
       Array.from(document.querySelectorAll('[data-mdc-auto-init="MDCSelect"]')).forEach((input) => {
         input[input.dataset.mdcAutoInit].listen('MDCSelect:change', onEventKeyChanged);
       });
@@ -225,21 +227,18 @@ function selectedToaEvent(btn) {
             const liveCheckbox = document.querySelector('#live-checkbox');
             await Promise.all(
               events.map((e) =>
-                apis.toa(e.toa_api_key).post(
-                  '/connect',
-                  JSON.stringify({
-                    event_key: e.toa_event_key,
-                    source: {
-                      key: !liveCheckbox || liveCheckbox.checked ? 1 : 2,
-                      name: `DataSync v${dataSyncVersion || '0.0.0'}`
-                    },
-                    user: {
-                      name: user.displayName,
-                      email: user.email,
-                      uid: user.uid
-                    }
-                  })
-                )
+                apis.toa(e.toa_api_key).post('/connect', {
+                  event_key: e.toa_event_key,
+                  source: {
+                    key: !liveCheckbox || liveCheckbox.checked ? 1 : 2,
+                    name: `DataSync v${dataSyncVersion || '0.0.0'}`
+                  },
+                  user: {
+                    name: user.displayName,
+                    email: user.email,
+                    uid: user.uid
+                  }
+                })
               )
             );
             btn.textContent = 'Successful!';
@@ -406,7 +405,64 @@ function selectEvent(event) {
     delete event.divisions;
     localStorage.setItem('CONFIG-EVENTS', JSON.stringify([event]));
   }
-  showStep(3);
+  // Send API Key Request
+  apiKeyRetryAttempts = 0;
+  const apiKey = localStorage.getItem('SCOREKEEPER-KEY');
+  if (apiKey && apiKey !== '') {
+    waitForKey(apiKey);
+  } else {
+    requestNewApiKey();
+  }
+}
+
+function waitForKey(key) {
+  const skHost = localStorage.getItem('SCOREKEEPER-IP');
+  apis // This is a long-poll request... will not resolve until either socket is closed or key is approved
+    .scorekeeperFromIp(skHost)
+    .get('/v1/keywait/', { headers: { authorization: key } })
+    .then((data) => {
+      if (data.data.active) {
+        showStep(4);
+      } else {
+        showSnackbar('Scorekeeper API key not accepted. Please refresh and try again.');
+      }
+    })
+    .catch((error) => {
+      requestNewApiKey();
+      console.error(error);
+      showSnackbar('An error has occurred, please reload the and try again.');
+      log('Error approving scorekeeper API key');
+    });
+}
+
+function requestNewApiKey() {
+  // TODO: Raise to 4 when CORS requests are made
+  if (apiKeyRetryAttempts > 0) {
+    showSnackbar('Maximum API key requests reached. This is currently a known bug.');
+    return;
+  } else {
+    apiKeyRetryAttempts++;
+  }
+  const skHost = localStorage.getItem('SCOREKEEPER-IP');
+  const name = encodeURIComponent('TOA DataSync v' + (dataSyncVersion || '0.0.0'));
+  apis
+    .scorekeeperFromIp(skHost)
+    .post(`/v1/keyrequest/?name=${name}`)
+    .then((data) => {
+      document.querySelector('#scorekeeper-approve-url').innerHTML = `http://${skHost}/manage/`;
+      document.querySelector('#scorekeeper-approve-url').href = `http://${skHost}/manage/`;
+      document.querySelector('#key-needing-approval').innerHTML = data.data.key;
+      localStorage.setItem('SCOREKEEPER-KEY', data.data.key);
+      // TODO: re-enable when CORS is fixed
+      // showStep(3);
+      showStep(4);
+      return waitForKey();
+    })
+    .catch((error) => {
+      console.error(error);
+      showSnackbar('An error has occurred, please reload the and try again.');
+      log('Error requesting scorekeeper API key');
+    });
 }
 
 function showSnackbar(text) {

@@ -119,7 +119,8 @@ const parser = (event) => {
   const uploadAllData = async () => {
     log('Fetching all data...');
     const data = await scorekeeperApi.get(`/v2/events/${eventId}/full/`);
-    const details = await scorekeeperApi.get(`/${apis.config.scorekeeperSeason}/v1/events/${eventId}/full/`);
+    const detailsReq = await scorekeeperApi.get(`/${apis.config.scorekeeperSeason}/v1/events/${eventId}/full/`);
+    const details = detailsReq.data;
     const {
       version,
       event,
@@ -130,7 +131,7 @@ const parser = (event) => {
       elimsMatchList,
       elimsMatchDetailedList,
       allianceList
-    } = data;
+    } = data.data;
 
     // Teams
     retrieveTeams(teamList.teams);
@@ -231,8 +232,8 @@ const parser = (event) => {
     if (participants.length !== 4 && participants.length !== 6) return;
 
     log('Uploading match data for ' + matchKey, matchJSON);
-    toaApi.put(`/event/${eventKey}/matches/${matchKey}`, JSON.stringify([matchJSON]));
-    toaApi.put(`/event/${eventKey}/matches/${matchKey}/participants`, JSON.stringify(participants));
+    toaApi.put(`/event/${eventKey}/matches/${matchKey}`, [matchJSON]);
+    toaApi.put(`/event/${eventKey}/matches/${matchKey}/participants`, participants);
     if (hasDetails) uploadMatchDetails(match, matchKey, eventKey);
   }
 
@@ -244,9 +245,7 @@ const parser = (event) => {
       is_active: true,
       card_status: null
     }));
-    return toaApi
-      .delete(`/event/${eventKey}/teams`)
-      .finally(() => toaApi.post(`/event/${eventKey}/teams`, JSON.stringify(result)));
+    return toaApi.delete(`/event/${eventKey}/teams`).finally(() => toaApi.post(`/event/${eventKey}/teams`, result));
   }
 
   async function retrieveRankings(rankingList) {
@@ -271,7 +270,7 @@ const parser = (event) => {
       log('Uploading rankings...', result);
       return toaApi
         .delete(`/event/${eventKey}/rankings`)
-        .finally(() => toaApi.post(`/event/${eventKey}/rankings`, JSON.stringify(result)));
+        .finally(() => toaApi.post(`/event/${eventKey}/rankings`, result));
     } else {
       log('No ranking to upload.', rankingList);
     }

@@ -15,10 +15,103 @@ module.exports = async function uploadMatchDetails(match, matchKey, eventKey) {
     data = getMatchDetails1920(match, matchKey);
   } else if (matchKey.startsWith('2021')) {
     data = getMatchDetails2021(match, matchKey);
+  } else if (matchKey.startsWith('2122')) {
+    data = getMatchDetails2122(match, matchKey);
   }
 
-  return toaApi(apiKeys[eventKey]).put(`/event/${eventKey}/matches/${matchKey}/details`, JSON.stringify([data]));
+  return toaApi(apiKeys[eventKey]).put(`/event/${eventKey}/matches/${matchKey}/details`, [data]);
 };
+
+function getMatchDetails2122(details, matchKey) {
+  const { red, blue } = details;
+
+  return {
+    match_key: matchKey,
+    match_detail_key: matchKey + '-DTL',
+    // randomization: details.randomization
+
+    red_min_pen: details.blue.minorPenalties,
+    red_maj_pen: details.blue.majorPenalties,
+    blue_min_pen: details.red.minorPenalties,
+    blue_maj_pen: details.red.majorPenalties,
+
+    red: {
+      barcode_element_1: red.barcodeElement1,
+      barcode_element_2: red.barcodeElement1,
+      carousel: red.carousel,
+      auto_navigated_1: red.autoNavigated1,
+      auto_navigated_2: red.autoNavigated2,
+      auto_nav_points: red.autoNavigationPoints,
+      auto_bonus_1: red.autoBonus1,
+      auto_bonus_2: red.autoBonus2,
+      auto_bonus_points: red.autoBonusPoints,
+      auto_storage_freight: red.autoStorageFreight,
+      auto_freight_1: red.autoFreight1,
+      auto_freight_2: red.autoFreight2,
+      auto_freight_3: red.autoFreight3,
+      auto_freight_points: red.autoFreightPoints,
+      tele_storage_freight: red.driverControlledStorageFreight,
+      tele_freight_1: red.driverControlledFreight1,
+      tele_freight_2: red.driverControlledFreight2,
+      tele_freight_3: red.driverControlledFreight3,
+      tele_alliance_hub_points: red.driverControlledAllianceHubPoints,
+      tele_shared_hub_points: red.driverControlledSharedHubPoints,
+      tele_storage_points: red.driverControlledStoragePoints,
+      shared_freight: red.sharedFreight,
+      end_delivered: red.endgameDelivered,
+      end_delivered_points: red.endgameDeliveryPoints,
+      alliance_balanced: red.allianceBalanced,
+      alliance_balanced_points: red.allianceBalancedPoints,
+      shared_unbalanced: red.sharedUnbalanced,
+      shared_unbalanced_points: red.sharedUnbalancedPoints,
+      end_parked_1: red.endgameParked1,
+      end_parked_2: red.endgameParked2,
+      end_parked_points: red.endgameParkingPoints,
+      capped: red.capped,
+      capped_points: red.cappingPoints,
+      carousel_points: red.carouselPoints,
+      total_points: red.totalPoints
+    },
+
+    blue: {
+      barcode_element_1: blue.barcodeElement1,
+      barcode_element_2: blue.barcodeElement1,
+      carousel: blue.carousel,
+      auto_navigated_1: blue.autoNavigated1,
+      auto_navigated_2: blue.autoNavigated2,
+      auto_nav_points: blue.autoNavigationPoints,
+      auto_bonus_1: blue.autoBonus1,
+      auto_bonus_2: blue.autoBonus2,
+      auto_bonus_points: blue.autoBonusPoints,
+      auto_storage_freight: blue.autoStorageFreight,
+      auto_freight_1: blue.autoFreight1,
+      auto_freight_2: blue.autoFreight2,
+      auto_freight_3: blue.autoFreight3,
+      auto_freight_points: blue.autoFreightPoints,
+      tele_storage_freight: blue.driverControlledStorageFreight,
+      tele_freight_1: blue.driverControlledFreight1,
+      tele_freight_2: blue.driverControlledFreight2,
+      tele_freight_3: blue.driverControlledFreight3,
+      tele_alliance_hub_points: blue.driverControlledAllianceHubPoints,
+      tele_shared_hub_points: blue.driverControlledSharedHubPoints,
+      tele_storage_points: blue.driverControlledStoragePoints,
+      shared_freight: blue.sharedFreight,
+      end_delivered: blue.endgameDelivered,
+      end_delivered_points: blue.endgameDeliveryPoints,
+      alliance_balanced: blue.allianceBalanced,
+      alliance_balanced_points: blue.allianceBalancedPoints,
+      shared_unbalanced: blue.sharedUnbalanced,
+      shared_unbalanced_points: blue.sharedUnbalancedPoints,
+      end_parked_1: blue.endgameParked1,
+      end_parked_2: blue.endgameParked2,
+      end_parked_points: blue.endgameParkingPoints,
+      capped: blue.capped,
+      capped_points: blue.cappingPoints,
+      carousel_points: blue.carouselPoints,
+      total_points: blue.totalPoints
+    }
+  };
+}
 
 function getMatchDetails2021(details, matchKey) {
   const { red, blue } = details;

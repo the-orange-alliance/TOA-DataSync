@@ -54,7 +54,7 @@ function uploadAwards(showSnackbar) {
       const toUpload = allAwards.filter((award) => !oldAwards.includes(award.awards_key));
       log('Uploading awards...', toUpload);
       if (toUpload.length > 0) {
-        return toaApi.post('/event/' + eventKey + '/awards', JSON.stringify(toUpload));
+        return toaApi.post('/event/' + eventKey + '/awards', toUpload);
       } else if (oldAwards.length > 0) {
         showSnackbar('Awards have already been uploaded.');
       } else if (oldAwards.length === 0) {
@@ -70,6 +70,20 @@ function uploadAwards(showSnackbar) {
 // Convert an award name to an award key
 function getAwardIDFromName(name) {
   switch (name) {
+    case 'Championship Winner - Captain':
+      return 'WIN1';
+    case 'Championship Winner - 1st Team Selected':
+      return 'WIN2';
+    case 'Championship Winner - 2nd Team Selected':
+      return 'WIN3';
+
+    case 'Winning Alliance - Captain':
+      return 'FIN1';
+    case 'Winning Alliance - 1st Team Selected':
+      return 'FIN2';
+    case 'Winning Alliance - 2nd Team Selected':
+      return 'FIN3';
+
     case 'Winning Alliance Award':
     case 'Winning Alliance':
       return 'WIN';

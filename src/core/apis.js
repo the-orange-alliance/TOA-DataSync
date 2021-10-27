@@ -1,13 +1,13 @@
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
 
-const minScorekeeperVersion = '2.0.0';
-const recommendScorekeeperVersion = '2.3.0';
-const scorekeeperReleaseTag = 'v2.3.0';
+const minScorekeeperVersion = '3.1.1';
+const recommendScorekeeperVersion = '3.1.1';
+const scorekeeperReleaseTag = 'v3.1.1';
 
 const config = {
-  scorekeeperSeason: '2021',
-  toaSeason: '2021'
+  scorekeeperSeason: '2022',
+  toaSeason: '2122'
 };
 
 const scorekeeperFromIp = (ip) =>
