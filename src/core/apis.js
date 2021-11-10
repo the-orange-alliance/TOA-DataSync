@@ -1,9 +1,9 @@
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
 
-const minScorekeeperVersion = '3.1.1';
-const recommendScorekeeperVersion = '3.1.1';
-const scorekeeperReleaseTag = 'v3.1.1';
+const minScorekeeperVersion = '3.1.4';
+const recommendScorekeeperVersion = '3.1.4';
+const scorekeeperReleaseTag = 'v3.1.4';
 
 const config = {
   scorekeeperSeason: '2022',
