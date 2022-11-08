@@ -46,7 +46,7 @@
     "babel-loader": "^8.0.6",
     "copy-webpack-plugin": "^5.0.4",
     "html-loader": "^0.5.5",
-    "html-webpack-plugin": "^3.2.0",
+    "html-webpack-plugin": "^5.5.0",
     "html-webpack-plugin-assets-fix": "^1.0.2",
     "html-webpack-tags-plugin": "^2.0.17",
     "husky": "^4.3.0",
@@ -54,7 +54,7 @@
     "pretty-quick": "^3.1.0",
     "url-loader": "^2.1.0",
     "webpack": "^4.41.1",
-    "webpack-cli": "^3.3.9",
+    "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.11.0"
   }
 }
