@@ -33,7 +33,7 @@
     "bowser": "^2.7.0",
     "devtools-detect": "^3.0.0",
     "firebase": "^6.0.4",
-    "jszip": "^3.7.0",
+    "jszip": "^3.8.0",
     "material-components-web": "^2.2.0",
     "reconnectingwebsocket": "^1.0.0"
   },
